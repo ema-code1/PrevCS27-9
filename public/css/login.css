@@ -1,0 +1,98 @@
+.login-page {
+    min-height: calc(100vh - var(--header-height) - 5.9rem);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 4.5rem 1rem 2rem;
+}
+
+.login-card {
+    width: 360px;
+    min-height: 460px;
+    background-color: var(--bg-sidebar);
+    color: var(--text-on-sidebar);
+    border: var(--border-normal) solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--radius-lg);
+    padding: 28px 26px 24px;
+    box-shadow: var(--shadow-md);
+}
+
+.login-card h1 {
+    margin: 0 0 26px;
+    font-size: 28px;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: var(--font-weight-regular);
+    color: var(--text-primary);
+}
+
+.form-group input {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 12px;
+    border: var(--border-thin) solid rgba(255, 255, 255, 0.28);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-group input:focus {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.submit-btn {
+    margin-top: 26px;
+    width: 100%;
+    min-height: 42px;
+    border: none;
+    border-radius: var(--radius-pill);
+    background-color: var(--bg-tab-active);
+    color: var(--text-on-active-tab);
+    font-size: 16px;
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: transform var(--transition-fast), filter var(--transition-fast);
+}
+
+.submit-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+}
+
+.login-note {
+    margin-top: 12px;
+    padding: 0 8px;
+    text-align: center;
+    font-size: 10px;
+    line-height: 1.4;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width: 768px) {
+    .login-page {
+        padding: 2rem 1rem;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 360px;
+    }
+}
