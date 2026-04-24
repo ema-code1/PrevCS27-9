@@ -1,13 +1,16 @@
 <?= $this->extend('templates/layout') ?>
 
 <?= $this->section('content') ?>
-<main class="page">
+<main class="page page--dashboard">
     <aside class="sidebar card card--dark" data-sidebar>
         <div class="sidebar__head">
-            <h2 class="sidebar__title">Menu de accion</h2>
-            <button class="sidebar__toggle" type="button" aria-label="Contraer menu" aria-expanded="true" data-sidebar-toggle>
-                <span class="sidebar__toggle-icon">></span>
-            </button>
+            <h2 class="sidebar__title">Navegacion</h2>
+            <label class="burger sidebar__toggle" for="burger">
+                <input type="checkbox" id="burger" data-sidebar-toggle aria-label="Contraer menu lateral">
+                <span></span>
+                <span></span>
+                <span></span>
+            </label>
         </div>
 
         <nav class="sidebar__nav" aria-label="Menu principal">
@@ -48,17 +51,60 @@
                 </span>
                 <span class="menu-link__label">Historial</span>
             </a>
+
+            <a href="#" class="menu-link">
+                <span class="menu-link__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span class="menu-link__label">Crear OT</span>
+            </a>
         </nav>
     </aside>
 
     <section class="content-area">
+        <header class="dashboard-head card">
+            <div>
+                <p class="dashboard-head__eyebrow">Sistema de gestion de mantenimiento</p>
+                <h1>Dashboard</h1>
+                <p class="dashboard-head__text">Resumen general de planta para decision operativa en tiempo real.</p>
+            </div>
+            <?php if (session('isLoggedIn') === true): ?>
+                <a class="logout-link" href="<?= base_url('logout') ?>">Cerrar sesion</a>
+            <?php endif; ?>
+        </header>
+
+        <section class="kpi-grid">
+            <article class="kpi-card card">
+                <p>TOTAL ELEMENTOS</p>
+                <strong>128</strong>
+            </article>
+            <article class="kpi-card card">
+                <p>MTTO. VENCIDO</p>
+                <strong>8</strong>
+            </article>
+            <article class="kpi-card card">
+                <p>PROXIMOS MTTO.</p>
+                <strong>21</strong>
+            </article>
+            <article class="kpi-card card">
+                <p>ALERTAS IOT</p>
+                <strong>4</strong>
+            </article>
+            <article class="kpi-card card">
+                <p>GASTO TOTAL MTTO.</p>
+                <strong>$65.0k</strong>
+            </article>
+        </section>
+
         <?php if (session('isLoggedIn') === true): ?>
             <div class="page-actions">
-                <a class="logout-link" href="<?= base_url('logout') ?>">Cerrar sesion</a>
+                <span class="chip chip--success">Sesion activa</span>
             </div>
         <?php endif; ?>
 
-        <div class="section-switch" role="tablist" aria-label="Secciones principales">
+        <div class="section-switch card" role="tablist" aria-label="Secciones principales">
             <button class="section-switch__option is-active" type="button" data-section-target="principal" aria-selected="true">
                 Principal
             </button>
@@ -71,48 +117,50 @@
         </div>
 
         <section class="section-pane is-active" data-section-pane="principal">
-            <div class="hero-card card">
-                <div class="hero-card__content">
-                    <p class="hero-card__eyebrow">Vista general</p>
-                    <h1>Todo el control preventivo, en una sola pantalla.</h1>
-                    <p>Desde aca podes seguir el estado del sistema, revisar pendientes y abrir accesos rapidos a las tareas mas frecuentes.</p>
-                </div>
-                <div class="hero-card__stats">
-                    <div class="metric-pill">
-                        <strong>24</strong>
-                        <span>Activos</span>
-                    </div>
-                    <div class="metric-pill">
-                        <strong>07</strong>
-                        <span>Alertas</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="dashboard-grid">
-                <section class="panel panel--small card">
+                <section class="panel panel--urgencias card">
                     <div class="panel__header">
-                        <h3>Estado diario</h3>
-                        <span class="badge badge--success">En ritmo</span>
+                        <h3>Urgencias</h3>
+                        <span class="badge badge--error">8 vencidos</span>
                     </div>
-                    <p class="panel__text">Las revisiones criticas del turno vienen alineadas y sin desfasajes.</p>
+                    <div class="event-list">
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Prensa Hidraulica</strong><small>MAQ-001</small><span class="chip chip--danger">Vencido</span></article>
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Centrifuga secundaria</strong><small>MAQ-002</small><span class="chip chip--danger">Vencido</span></article>
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Caldera Industrial</strong><small>MAQ-003</small><span class="chip chip--danger">Vencido</span></article>
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Taladro banco</strong><small>HER-881</small><span class="chip chip--danger">Vencido</span></article>
+                    </div>
                 </section>
 
-                <section class="panel panel--wide card">
+                <section class="panel panel--actividad card">
                     <div class="panel__header">
-                        <h3>Seguimiento operativo</h3>
+                        <h3>Actividad reciente</h3>
                         <span class="badge badge--info">Actualizado</span>
                     </div>
-                    <div class="progress-strip">
-                        <span style="width: 72%"></span>
+                    <div class="event-list event-list--activity">
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Reemplazo de rodamiento</strong><small>Centrifuga 2024-12-18</small><span>$2800</span></article>
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Falla en sistema hidraulico</strong><small>Autoelevador 2024-11-28</small><span>$5500</span></article>
+                        <article class="event-item"><span class="dot dot--success"></span><strong>Cambio de aceite</strong><small>Prensa principal 2024-11-15</small><span>$1200</span></article>
+                        <article class="event-item"><span class="dot dot--success"></span><strong>Limpieza de tubos</strong><small>Caldera industrial 2024-10-01</small><span>$2200</span></article>
                     </div>
-                    <p class="panel__text">El avance semanal esta en 72%, con margen para completar los puntos abiertos antes del cierre.</p>
+                </section>
+
+                <section class="panel panel--gastos card">
+                    <div class="panel__header">
+                        <h3>Gasto por categoria</h3>
+                        <span class="badge badge--warning">Mensual</span>
+                    </div>
+                    <div class="bar-group">
+                        <div class="bar-row"><span>Maquinaria</span><div class="bar"><i style="width: 88%"></i></div></div>
+                        <div class="bar-row"><span>Herramientas</span><div class="bar"><i style="width: 45%"></i></div></div>
+                        <div class="bar-row"><span>Transporte</span><div class="bar"><i style="width: 56%"></i></div></div>
+                        <div class="bar-row"><span>Insumos</span><div class="bar"><i style="width: 32%"></i></div></div>
+                    </div>
                 </section>
 
                 <section class="panel panel--full card">
                     <div class="panel__header">
                         <h3>Resumen ejecutivo</h3>
-                        <span class="badge badge--warning">3 focos</span>
+                        <span class="badge badge--success">Operacion estable</span>
                     </div>
                     <div class="summary-grid">
                         <article class="summary-item">
@@ -224,9 +272,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     if (sidebar && sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
-            const isCollapsed = sidebar.classList.toggle('is-collapsed');
-            sidebarToggle.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+        sidebarToggle.addEventListener('change', () => {
+            sidebar.classList.toggle('is-collapsed', sidebarToggle.checked);
         });
     }
 });
