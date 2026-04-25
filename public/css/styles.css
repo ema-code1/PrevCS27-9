@@ -163,6 +163,24 @@ svg {
   max-width: 100%;
 }
 
+.material-symbols-rounded,
+.material-icons-round {
+  font-family: "Material Symbols Rounded";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 1.2rem;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "liga";
+}
+
 button,
 input,
 select,
@@ -513,6 +531,39 @@ body[data-theme="dark"] .app-shell::before {
   line-height: 1;
 }
 
+.topbar-gear .material-icons-round,
+.user-menu__panel > a.user-menu__item:first-child .user-menu__item-icon,
+.user-menu__panel > a.user-menu__item:nth-of-type(3) .user-menu__item-icon,
+.user-menu__panel > a.user-menu__item:nth-of-type(2):last-child .user-menu__item-icon {
+  font-size: 0;
+}
+
+.topbar-gear .material-icons-round::before,
+.user-menu__panel > a.user-menu__item:first-child .user-menu__item-icon::before,
+.user-menu__panel > a.user-menu__item:nth-of-type(3) .user-menu__item-icon::before,
+.user-menu__panel > a.user-menu__item:nth-of-type(2):last-child .user-menu__item-icon::before {
+  font-family: "Material Symbols Rounded";
+  font-size: 1.12rem;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "liga";
+}
+
+.topbar-gear .material-icons-round::before,
+.user-menu__panel > a.user-menu__item:first-child .user-menu__item-icon::before {
+  content: "settings";
+}
+
+.user-menu__panel > a.user-menu__item:nth-of-type(3) .user-menu__item-icon::before,
+.user-menu__panel > a.user-menu__item:nth-of-type(2):last-child .user-menu__item-icon::before {
+  content: "help";
+}
+
 .topbar-gear::-webkit-details-marker,
 .user-menu > summary::-webkit-details-marker {
   display: none;
@@ -597,11 +648,18 @@ body[data-theme="dark"] .app-shell::before {
 .user-menu__item-icon {
   width: 1.25rem;
   min-width: 1.25rem;
+  height: 1.25rem;
   text-align: center;
   opacity: 0.85;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
+  transform: translateY(0.04rem);
+}
+
+.user-menu__item-icon::before {
+  line-height: 1;
 }
 
 .user-menu__item-icon svg {
