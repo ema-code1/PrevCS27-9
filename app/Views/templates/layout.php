@@ -49,6 +49,81 @@
         });
 
     })();
+
+    (function () {
+        const menus = Array.from(document.querySelectorAll('.user-menu'));
+        const closeTimers = new WeakMap();
+        const closeDelay = 170;
+
+        function closeMenu(menu) {
+            if (!menu || !menu.open || menu.classList.contains('is-closing')) {
+                return;
+            }
+
+            menu.classList.remove('is-open');
+            menu.classList.add('is-closing');
+
+            const closeTimer = window.setTimeout(function () {
+                menu.open = false;
+                menu.classList.remove('is-closing');
+                closeTimers.delete(menu);
+            }, closeDelay);
+
+            closeTimers.set(menu, closeTimer);
+        }
+
+        function openMenu(menu) {
+            menus.forEach(function (otherMenu) {
+                if (otherMenu !== menu) {
+                    closeMenu(otherMenu);
+                }
+            });
+
+            if (menu.open && menu.classList.contains('is-open')) {
+                closeMenu(menu);
+                return;
+            }
+
+            if (closeTimers.has(menu)) {
+                window.clearTimeout(closeTimers.get(menu));
+                closeTimers.delete(menu);
+            }
+
+            menu.classList.remove('is-closing');
+            menu.open = true;
+
+            window.requestAnimationFrame(function () {
+                menu.classList.add('is-open');
+            });
+        }
+
+        menus.forEach(function (menu) {
+            const summary = menu.querySelector('summary');
+
+            if (!summary) {
+                return;
+            }
+
+            summary.addEventListener('click', function (event) {
+                event.preventDefault();
+                openMenu(menu);
+            });
+        });
+
+        document.addEventListener('click', function (event) {
+            menus.forEach(function (menu) {
+                if (menu.open && !menu.contains(event.target)) {
+                    closeMenu(menu);
+                }
+            });
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                menus.forEach(closeMenu);
+            }
+        });
+    })();
     </script>
 </body>
 </html>

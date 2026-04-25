@@ -105,15 +105,18 @@
         <?php endif; ?>
 
         <div class="section-switch card" role="tablist" aria-label="Secciones principales">
-            <button class="section-switch__option is-active" type="button" data-section-target="principal" aria-selected="true">
-                Principal
-            </button>
-            <button class="section-switch__option" type="button" data-section-target="graficos" aria-selected="false">
-                Graficos
-            </button>
-            <button class="section-switch__option" type="button" data-section-target="lista" aria-selected="false">
-                Lista de elementos
-            </button>
+            <label class="section-switch__radio" role="tab" aria-selected="true">
+                <input type="radio" name="section-switch" value="principal" data-section-target="principal" checked>
+                <span class="section-switch__name">Principal</span>
+            </label>
+            <label class="section-switch__radio" role="tab" aria-selected="false">
+                <input type="radio" name="section-switch" value="graficos" data-section-target="graficos">
+                <span class="section-switch__name">Gráficos</span>
+            </label>
+            <label class="section-switch__radio" role="tab" aria-selected="false">
+                <input type="radio" name="section-switch" value="lista" data-section-target="lista">
+                <span class="section-switch__name">Lista de elementos</span>
+            </label>
         </div>
 
         <section class="section-pane is-active" data-section-pane="principal">
@@ -254,21 +257,47 @@ document.addEventListener('DOMContentLoaded', function () {
     const panes = document.querySelectorAll('[data-section-pane]');
     const sidebar = document.querySelector('[data-sidebar]');
     const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+    let paneTransitionTimer = null;
 
-    function activatePane(target) {
-        panes.forEach((pane) => {
-            pane.classList.toggle('is-active', pane.dataset.sectionPane === target);
-        });
-
-        switchers.forEach((button) => {
-            const isActive = button.dataset.sectionTarget === target;
-            button.classList.toggle('is-active', isActive);
-            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    function updateSwitchState(target) {
+        switchers.forEach((input) => {
+            const isActive = input.dataset.sectionTarget === target;
+            input.checked = isActive;
+            input.closest('.section-switch__radio')?.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
     }
 
-    switchers.forEach((button) => {
-        button.addEventListener('click', () => activatePane(button.dataset.sectionTarget));
+    function activatePane(target) {
+        const nextPane = Array.from(panes).find((pane) => pane.dataset.sectionPane === target);
+        const activePane = Array.from(panes).find((pane) => pane.classList.contains('is-active'));
+
+        updateSwitchState(target);
+
+        if (!nextPane || activePane === nextPane) {
+            return;
+        }
+
+        if (paneTransitionTimer) {
+            clearTimeout(paneTransitionTimer);
+            panes.forEach((pane) => pane.classList.remove('is-exiting'));
+        }
+
+        if (!activePane) {
+            nextPane.classList.add('is-active');
+            return;
+        }
+
+        activePane.classList.add('is-exiting');
+
+        paneTransitionTimer = window.setTimeout(() => {
+            activePane.classList.remove('is-active', 'is-exiting');
+            nextPane.classList.add('is-active');
+            paneTransitionTimer = null;
+        }, 150);
+    }
+
+    switchers.forEach((input) => {
+        input.addEventListener('change', () => activatePane(input.dataset.sectionTarget));
     });
 
     if (sidebar && sidebarToggle) {

@@ -5,14 +5,16 @@ $headerLabel = $isLoggedIn ? (session('user_name') ?? 'Usuario') : 'Iniciar sesi
 $menuDisplayName = session('user_name') ?? 'Usuario';
 ?>
 <header class="topbar">
-    <div class="brand">
-        <div class="brand__orb"></div>
+    <a class="brand" href="<?= base_url('principal') ?>" aria-label="Ir al menu principal">
+        <div class="brand__logo" aria-hidden="true">
+            <span class="brand__logo-band"></span>
+        </div>
         <div class="brand__text">
             <span>Prevention</span>
             <span>Control</span>
             <span>System</span>
         </div>
-    </div>
+    </a>
 
     <div class="topbar__actions">
         <?php if ($isLoggedIn): ?>
