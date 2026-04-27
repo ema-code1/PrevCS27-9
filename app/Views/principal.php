@@ -2,66 +2,7 @@
 
 <?= $this->section('content') ?>
 <main class="page page--dashboard">
-    <aside class="sidebar card card--dark" data-sidebar>
-        <div class="sidebar__head">
-            <h2 class="sidebar__title">Navegacion</h2>
-            <label class="burger sidebar__toggle" for="burger">
-                <input type="checkbox" id="burger" data-sidebar-toggle aria-label="Contraer menu lateral">
-                <span></span>
-                <span></span>
-                <span></span>
-            </label>
-        </div>
-
-        <nav class="sidebar__nav" aria-label="Menu principal">
-            <a href="#" class="menu-link is-active">
-                <span class="menu-link__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M4 11.5 12 5l8 6.5v7.5a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-                    </svg>
-                </span>
-                <span class="menu-link__label">Panel</span>
-            </a>
-
-            <a href="#" class="menu-link">
-                <span class="menu-link__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M5 18V9m7 9V5m7 13v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                </span>
-                <span class="menu-link__label">Indicadores</span>
-            </a>
-
-            <a href="#" class="menu-link">
-                <span class="menu-link__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <rect x="4.5" y="5" width="15" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
-                        <path d="M8 9h8M8 12h8M8 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                </span>
-                <span class="menu-link__label">Registros</span>
-            </a>
-
-            <a href="#" class="menu-link">
-                <span class="menu-link__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M12 4.75a7.25 7.25 0 1 0 0 14.5 7.25 7.25 0 0 0 0-14.5Z" stroke="currentColor" stroke-width="1.8"/>
-                        <path d="M12 8.5v3.75l2.5 1.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                </span>
-                <span class="menu-link__label">Historial</span>
-            </a>
-
-            <a href="#" class="menu-link">
-                <span class="menu-link__icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M5 12h14M12 5v14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    </svg>
-                </span>
-                <span class="menu-link__label">Crear OT</span>
-            </a>
-        </nav>
-    </aside>
+    <?= $this->include('templates/sidebar') ?>
 
     <section class="content-area">
         <header class="dashboard-head card">
@@ -97,12 +38,6 @@
                 <strong>$65.0k</strong>
             </article>
         </section>
-
-        <?php if (session('isLoggedIn') === true): ?>
-            <div class="page-actions">
-                <span class="chip chip--success">Sesion activa</span>
-            </div>
-        <?php endif; ?>
 
         <div class="section-switch card" role="tablist" aria-label="Secciones principales">
             <label class="section-switch__radio" role="tab" aria-selected="true">
@@ -255,8 +190,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const switchers = document.querySelectorAll('[data-section-target]');
     const panes = document.querySelectorAll('[data-section-pane]');
-    const sidebar = document.querySelector('[data-sidebar]');
-    const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
     let paneTransitionTimer = null;
 
     function updateSwitchState(target) {
@@ -299,12 +232,6 @@ document.addEventListener('DOMContentLoaded', function () {
     switchers.forEach((input) => {
         input.addEventListener('change', () => activatePane(input.dataset.sectionTarget));
     });
-
-    if (sidebar && sidebarToggle) {
-        sidebarToggle.addEventListener('change', () => {
-            sidebar.classList.toggle('is-collapsed', sidebarToggle.checked);
-        });
-    }
 });
 </script>
 <?= $this->endSection() ?>

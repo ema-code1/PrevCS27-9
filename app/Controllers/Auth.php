@@ -31,7 +31,7 @@ class Auth extends BaseController
         $userModel = new UserModel();
         $user = $userModel->where('email', $this->request->getPost('email'))->first();
 
-        if ($user === null || ! password_verify((string) $this->request->getPost('password'), $user['password'])) {
+        if ($user === null || ! password_verify((string) $this->request->getPost('password'), $user['password_hash'])) {
             return redirect()->to(base_url('login'))
                 ->withInput()
                 ->with('activeForm', 'login')
@@ -40,7 +40,7 @@ class Auth extends BaseController
 
         session()->set([
             'user_id'    => $user['id'],
-            'user_name'  => $user['name'],
+            'user_name'  => trim($user['nombre'] . ' ' . $user['apellido']),
             'user_email' => $user['email'],
             'isLoggedIn' => true,
         ]);
@@ -103,10 +103,13 @@ class Auth extends BaseController
         ]);
         // #endregion
 
+        $fullName = preg_split('/\s+/', trim((string) $this->request->getPost('name')), 2);
+
         $insertData = [
-            'name'     => trim((string) $this->request->getPost('name')),
-            'email'    => trim((string) $this->request->getPost('email')),
-            'password' => password_hash((string) $this->request->getPost('password'), PASSWORD_DEFAULT),
+            'nombre'        => $fullName[0] ?? '',
+            'apellido'      => $fullName[1] ?? '',
+            'email'         => trim((string) $this->request->getPost('email')),
+            'password_hash' => (string) $this->request->getPost('password'),
         ];
 
         $allowedFields = [];
@@ -168,7 +171,7 @@ class Auth extends BaseController
 
         session()->set([
             'user_id'    => $user['id'],
-            'user_name'  => $user['name'],
+            'user_name'  => trim($user['nombre'] . ' ' . $user['apellido']),
             'user_email' => $user['email'],
             'isLoggedIn' => true,
         ]);

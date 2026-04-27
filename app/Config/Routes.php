@@ -7,6 +7,7 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 $routes->get('principal', 'Home::index');
+$routes->get('registros-iot', 'Home::registrosIot');
 $routes->get('login', 'Auth::index');
 $routes->get('reg-log', 'Auth::index');
 $routes->post('login', 'Auth::login');

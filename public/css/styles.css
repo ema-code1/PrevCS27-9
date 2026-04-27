@@ -332,6 +332,7 @@ body[data-theme="dark"] .app-shell::before {
   align-items: center;
   gap: 0.65rem;
   position: relative;
+  cursor: pointer;
 }
 
 .theme-switch {
@@ -480,8 +481,9 @@ body[data-theme="dark"] .app-shell::before {
   gap: 0.7rem;
   color: var(--text-primary);
   padding: 0.32rem 0.7rem;
-  border-radius: var(--radius-pill);
+  border-radius: 0.7rem;
   transition: background-color var(--transition-fast), transform var(--transition-fast);
+  cursor: pointer;
 }
 
 .user-chip:hover {
@@ -503,9 +505,46 @@ body[data-theme="dark"] .app-shell::before {
   font-weight: var(--font-weight-medium);
 }
 
+.session-dot {
+  position: relative;
+  width: 0.55rem;
+  height: 0.55rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 0 0.22rem var(--color-success-soft);
+}
+
+.session-dot::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.65rem);
+  padding: 0.32rem 0.48rem;
+  border-radius: 0.42rem;
+  background: var(--text-primary);
+  color: var(--bg-card);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(0.2rem);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  z-index: 60;
+}
+
+.session-dot:hover::after,
+.session-dot:focus-visible::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 .topbar-login {
   min-height: 2.2rem;
   padding: 0 0.85rem;
+  border-radius: 0.7rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -518,7 +557,7 @@ body[data-theme="dark"] .app-shell::before {
   height: 2.2rem;
   display: grid;
   place-items: center;
-  border-radius: 0.65rem;
+  border-radius: 0.7rem;
   background: rgba(94, 127, 188, 0.16);
   list-style: none;
   cursor: pointer;
@@ -533,14 +572,18 @@ body[data-theme="dark"] .app-shell::before {
 
 .topbar-gear .material-icons-round,
 .user-menu__panel > a.user-menu__item:first-child .user-menu__item-icon,
+.user-menu__panel > a.user-menu__item:nth-of-type(2) .user-menu__item-icon,
 .user-menu__panel > a.user-menu__item:nth-of-type(3) .user-menu__item-icon,
+.user-menu__item--danger .user-menu__item-icon,
 .user-menu__panel > a.user-menu__item:nth-of-type(2):last-child .user-menu__item-icon {
   font-size: 0;
 }
 
 .topbar-gear .material-icons-round::before,
 .user-menu__panel > a.user-menu__item:first-child .user-menu__item-icon::before,
+.user-menu__panel > a.user-menu__item:nth-of-type(2) .user-menu__item-icon::before,
 .user-menu__panel > a.user-menu__item:nth-of-type(3) .user-menu__item-icon::before,
+.user-menu__item--danger .user-menu__item-icon::before,
 .user-menu__panel > a.user-menu__item:nth-of-type(2):last-child .user-menu__item-icon::before {
   font-family: "Material Symbols Rounded";
   font-size: 1.12rem;
@@ -559,9 +602,17 @@ body[data-theme="dark"] .app-shell::before {
   content: "settings";
 }
 
+.user-menu__panel > a.user-menu__item:nth-of-type(2) .user-menu__item-icon::before {
+  content: "manage_accounts";
+}
+
 .user-menu__panel > a.user-menu__item:nth-of-type(3) .user-menu__item-icon::before,
 .user-menu__panel > a.user-menu__item:nth-of-type(2):last-child .user-menu__item-icon::before {
   content: "help";
+}
+
+.user-menu__item--danger .user-menu__item-icon::before {
+  content: "logout";
 }
 
 .topbar-gear::-webkit-details-marker,

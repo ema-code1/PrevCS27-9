@@ -51,6 +51,19 @@
     })();
 
     (function () {
+        const sidebar = document.querySelector('[data-sidebar]');
+        const sidebarToggle = document.querySelector('[data-sidebar-toggle]');
+
+        if (!sidebar || !sidebarToggle) {
+            return;
+        }
+
+        sidebarToggle.addEventListener('change', function () {
+            sidebar.classList.toggle('is-collapsed', sidebarToggle.checked);
+        });
+    })();
+
+    (function () {
         const menus = Array.from(document.querySelectorAll('.user-menu'));
         const closeTimers = new WeakMap();
         const closeDelay = 170;

@@ -26,6 +26,7 @@ $menuDisplayName = session('user_name') ?? 'Usuario';
                             <path d="M4 20c1.6-4 5-6 8-6s6.4 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                         </svg>
                     </span>
+                    <span class="session-dot" data-tooltip="Sesion activa" tabindex="0" aria-label="Sesion activa"></span>
                     <span class="user-chip__label"><?= esc($menuDisplayName) ?></span>
                 </summary>
                 <div class="user-menu__panel">
