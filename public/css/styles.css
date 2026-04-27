@@ -1186,7 +1186,11 @@ body[data-theme="dark"] .app-shell::before {
   .section-pane.is-active,
   .section-pane.is-exiting,
   .section-pane.is-active .card,
-  .section-pane.is-exiting .card {
+  .section-pane.is-exiting .card,
+  .iot-shell > .dashboard-head,
+  .iot-shell > .kpi-grid .kpi-card,
+  .iot-shell > .section-switch,
+  .iot-illustration.is-danger {
     animation: none;
   }
 }
@@ -1384,6 +1388,260 @@ body[data-theme="dark"] .app-shell::before {
     conic-gradient(var(--primary) 0 42%, var(--primary-hover) 42% 74%, var(--primary-light) 74% 100%);
 }
 
+.iot-shell > .dashboard-head,
+.iot-shell > .kpi-grid .kpi-card,
+.iot-shell > .section-switch {
+  animation: section-card-enter 430ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.iot-shell > .kpi-grid .kpi-card:nth-child(1) {
+  animation-delay: 35ms;
+}
+
+.iot-shell > .kpi-grid .kpi-card:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+.iot-shell > .kpi-grid .kpi-card:nth-child(3) {
+  animation-delay: 105ms;
+}
+
+.iot-shell > .kpi-grid .kpi-card:nth-child(4) {
+  animation-delay: 140ms;
+}
+
+.iot-shell > .kpi-grid .kpi-card:nth-child(5) {
+  animation-delay: 175ms;
+}
+
+.iot-shell > .section-switch {
+  animation-delay: 210ms;
+}
+
+.iot-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(19rem, 0.85fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.iot-chart-card,
+.iot-status-card {
+  min-height: 25rem;
+}
+
+.iot-chart {
+  min-height: 20rem;
+  display: grid;
+  place-items: center;
+  padding: 0.35rem;
+}
+
+.iot-line-chart {
+  width: 100%;
+  height: auto;
+  min-height: 19rem;
+  overflow: visible;
+}
+
+.iot-line-chart__grid line {
+  stroke: color-mix(in srgb, var(--text-muted) 22%, transparent);
+  stroke-width: 1;
+}
+
+.iot-line-chart__axis text,
+.iot-line-chart__labels text {
+  fill: var(--text-dark-on-light);
+  font-size: 0.82rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.iot-line-chart__axis text {
+  text-anchor: end;
+}
+
+.iot-line-chart__labels text {
+  text-anchor: middle;
+}
+
+.iot-line-chart__stroke {
+  fill: none;
+  stroke: var(--primary-light);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 5px 8px color-mix(in srgb, var(--primary) 22%, transparent));
+}
+
+.iot-line-chart__points circle {
+  fill: var(--primary-light);
+  stroke: var(--primary);
+  stroke-width: 3;
+}
+
+.iot-status-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+
+.iot-illustration {
+  --motor-green: var(--primary);
+  --motor-green-deep: color-mix(in srgb, var(--primary) 76%, #000 24%);
+  --motor-green-soft: var(--primary-hover);
+  --motor-metal: #cfd4d9;
+  --motor-metal-deep: #8c949b;
+  --motor-base: #eef1f4;
+  --motor-base-side: #d4d9df;
+  --motor-state: var(--color-success);
+  --motor-state-soft: var(--color-success-soft);
+  min-height: 20rem;
+  display: grid;
+  place-items: center;
+  transition: transform var(--transition-normal), filter var(--transition-normal);
+}
+
+body[data-theme="dark"] .iot-illustration {
+  --motor-metal: #d8dde3;
+  --motor-metal-deep: #9aa3ad;
+  --motor-base: #f0f2f5;
+  --motor-base-side: #bfc6ce;
+}
+
+.iot-illustration.is-warn {
+  --motor-state: var(--color-warning);
+  --motor-state-soft: var(--color-warning-soft);
+}
+
+.iot-illustration.is-danger {
+  --motor-state: var(--color-error);
+  --motor-state-soft: var(--color-error-soft);
+  animation: iot-danger-shake 520ms ease-in-out infinite;
+}
+
+.motor-iso {
+  width: min(100%, 25rem);
+  height: auto;
+  overflow: visible;
+}
+
+.motor-iso__shadow {
+  fill: rgba(0, 0, 0, 0.18);
+  filter: blur(7px);
+}
+
+.motor-iso__base-top {
+  fill: var(--motor-base);
+}
+
+.motor-iso__base-side,
+.motor-iso__base-face {
+  fill: var(--motor-base-side);
+}
+
+.motor-iso__foot,
+.motor-iso__box,
+.motor-iso__body-front {
+  fill: var(--motor-green);
+}
+
+.motor-iso__foot-side,
+.motor-iso__box-side,
+.motor-iso__body-side {
+  fill: var(--motor-green-soft);
+}
+
+.motor-iso__box-face,
+.motor-iso__body-back,
+.motor-iso__cap {
+  fill: var(--motor-green-deep);
+}
+
+.motor-iso__cap-inner {
+  fill: color-mix(in srgb, var(--motor-green) 70%, #fff 30%);
+}
+
+.motor-iso__shaft {
+  fill: var(--motor-metal);
+  stroke: var(--motor-metal-deep);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+.motor-iso__ribs path {
+  stroke: var(--motor-metal-deep);
+  stroke-width: 14;
+  stroke-linecap: round;
+}
+
+.motor-iso__bolt {
+  fill: var(--motor-metal);
+  stroke: var(--motor-metal-deep);
+  stroke-width: 3;
+}
+
+.motor-iso__state circle {
+  fill: var(--motor-state-soft);
+  stroke: var(--motor-state);
+  stroke-width: 10;
+}
+
+.motor-iso__state path {
+  fill: none;
+  stroke: var(--motor-state);
+  stroke-width: 13;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.iot-illustration.is-warn .motor-iso__state path,
+.iot-illustration.is-danger .motor-iso__state path {
+  stroke-width: 12;
+}
+
+.iot-illustration.is-warn .motor-iso__state circle,
+.iot-illustration.is-danger .motor-iso__state circle {
+  fill: color-mix(in srgb, var(--motor-state-soft) 78%, var(--bg-card) 22%);
+}
+
+.iot-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.metric-panel {
+  min-height: 16rem;
+}
+
+.metric-panel strong {
+  display: block;
+  margin-top: 1.1rem;
+  color: var(--text-dark-on-light);
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  line-height: 1;
+}
+
+.metric-panel p {
+  max-width: 36rem;
+  color: var(--text-muted);
+}
+
+@keyframes iot-danger-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-0.18rem);
+  }
+
+  75% {
+    transform: translateX(0.18rem);
+  }
+}
+
 .list-table {
   display: grid;
   gap: 0.7rem;
@@ -1530,7 +1788,9 @@ body[data-theme="dark"] .app-shell::before {
 
   .kpi-grid,
   .summary-grid,
-  .analytics-grid {
+  .analytics-grid,
+  .iot-grid,
+  .iot-metric-grid {
     grid-template-columns: 1fr;
   }
 }

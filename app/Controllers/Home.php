@@ -14,7 +14,7 @@ class Home extends BaseController
 
     public function registrosIot(): string
     {
-        return view('Registros IoT', [
+        return view('registros-iot', [
             'title'      => 'Registros IoT | Prevention Control System',
             'activeMenu' => 'registros-iot',
         ]);
