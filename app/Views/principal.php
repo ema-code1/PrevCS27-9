@@ -11,9 +11,6 @@
                 <h1>Dashboard</h1>
                 <p class="dashboard-head__text">Resumen general de planta para decision operativa en tiempo real.</p>
             </div>
-            <?php if (session('isLoggedIn') === true): ?>
-                <a class="logout-link" href="<?= base_url('logout') ?>">Cerrar sesion</a>
-            <?php endif; ?>
         </header>
 
         <section class="kpi-grid">
