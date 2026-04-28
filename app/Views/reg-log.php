@@ -69,13 +69,7 @@ $activeForm = old('form_mode', $activeForm ?? 'login');
                         <?php endif; ?>
                     </label>
 
-                    <div class="auth-row">
-                        <label class="auth-check">
-                            <input type="checkbox" name="remember_me">
-                            <span>Recordarme</span>
-                        </label>
-                        <span class="auth-row__hint">Inicio rapido</span>
-                    </div>
+
 
                     <button type="submit" class="auth-submit">Iniciar sesion</button>
                 </form>
