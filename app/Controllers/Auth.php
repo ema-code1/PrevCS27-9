@@ -6,8 +6,12 @@ use App\Models\UserModel;
 
 class Auth extends BaseController
 {
-    public function index(): string
+    public function index()
     {
+        if (session('isLoggedIn') === true) {
+            return redirect()->to(base_url('principal'));
+        }
+
         return view('reg-log', [
             'title'      => 'Acceso | Prevention Control System',
             'activeForm' => session()->getFlashdata('activeForm') ?? 'login',
@@ -183,6 +187,6 @@ class Auth extends BaseController
     {
         session()->destroy();
 
-        return redirect()->to(base_url('principal'));
+        return redirect()->to(base_url('reg-log'));
     }
 }
