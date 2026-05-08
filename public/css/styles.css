@@ -1425,8 +1425,16 @@ body[data-theme="dark"] .app-shell::before {
   align-items: stretch;
 }
 
-.iot-chart-card,
-.iot-status-card {
+.iot-chart-card {
+  min-height: 25rem;
+}
+
+.iot-side-stack {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1rem;
+  min-width: 0;
+  height: 100%;
   min-height: 25rem;
 }
 
@@ -1447,6 +1455,11 @@ body[data-theme="dark"] .app-shell::before {
 .iot-line-chart__grid line {
   stroke: color-mix(in srgb, var(--text-muted) 22%, transparent);
   stroke-width: 1;
+}
+
+.iot-line-chart__grid--x line {
+  stroke: color-mix(in srgb, var(--text-muted) 13%, transparent);
+  stroke-dasharray: 4 8;
 }
 
 .iot-line-chart__axis text,
@@ -1479,129 +1492,277 @@ body[data-theme="dark"] .app-shell::before {
   stroke-width: 3;
 }
 
+.iot-date-controls {
+  display: grid;
+  grid-template-columns: minmax(8.5rem, 0.9fr) repeat(2, minmax(8.5rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.iot-date-field {
+  position: relative;
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.iot-date-field span {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+}
+
+.iot-date-input {
+  width: 100%;
+  min-height: 3.05rem;
+  border: var(--border-normal) solid color-mix(in srgb, var(--border-color) 78%, var(--text-muted) 22%);
+  border-radius: 0.9rem;
+  background: linear-gradient(180deg, var(--bg-card-soft), color-mix(in srgb, var(--bg-card-soft) 88%, var(--bg-body) 12%));
+  color: var(--text-on-card);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  padding: 0.78rem 0.85rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.iot-date-input:hover {
+  border-color: color-mix(in srgb, var(--primary) 58%, var(--border-color) 42%);
+  box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.iot-date-input:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.24rem var(--outline-focus);
+}
+
+.iot-date-input[readonly] {
+  color: var(--text-on-card);
+}
+
+.iot-date-field:has([data-iot-end-date]) .iot-date-input {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.iot-calendar {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  width: min(20rem, 92vw);
+  border: var(--border-normal) solid color-mix(in srgb, var(--primary) 45%, var(--border-color) 55%);
+  border-radius: 0.95rem;
+  background: var(--bg-card);
+  box-shadow: var(--card-shadow-hover);
+  color: var(--text-on-card);
+  padding: 0.9rem;
+}
+
+.iot-calendar__head {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr 2.2rem;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.75rem;
+}
+
+.iot-calendar__head strong {
+  text-align: center;
+  color: var(--text-on-card);
+  font-size: var(--font-size-sm);
+}
+
+.iot-calendar__nav,
+.iot-calendar__day {
+  border: 0;
+  color: var(--text-on-card);
+  cursor: pointer;
+  font: inherit;
+}
+
+.iot-calendar__nav {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--primary) 10%, var(--bg-card) 90%);
+  font-size: 1.25rem;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.iot-calendar__nav:hover {
+  background: color-mix(in srgb, var(--primary) 22%, var(--bg-card) 78%);
+}
+
+.iot-calendar__weekdays,
+.iot-calendar__days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.28rem;
+}
+
+.iot-calendar__weekdays {
+  margin-bottom: 0.35rem;
+}
+
+.iot-calendar__weekdays span {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+}
+
+.iot-calendar__day {
+  min-width: 0;
+  aspect-ratio: 1;
+  border-radius: 0.65rem;
+  background: transparent;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  transition: background-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+}
+
+.iot-calendar__day:hover {
+  background: color-mix(in srgb, var(--primary) 16%, var(--bg-card) 84%);
+}
+
+.iot-calendar__day.is-muted {
+  color: color-mix(in srgb, var(--text-muted) 62%, transparent);
+}
+
+.iot-calendar__day.is-selected {
+  background: linear-gradient(120deg, var(--primary), var(--primary-hover));
+  color: var(--text-on-active-tab);
+  transform: translateY(-1px);
+}
+
 .iot-status-card {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: 1fr;
   overflow: hidden;
+  min-height: 0;
+}
+
+.iot-control-card {
+  min-height: auto;
+  align-self: start;
+}
+
+.iot-status-control {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.iot-status-control span {
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.iot-status-select {
+  width: 100%;
+  min-height: 3.05rem;
+  appearance: none;
+  border: var(--border-normal) solid color-mix(in srgb, var(--border-color) 78%, var(--text-muted) 22%);
+  border-radius: 0.9rem;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--text-on-card) 50%) calc(100% - 1.15rem) 50% / 0.48rem 0.48rem no-repeat,
+    linear-gradient(135deg, var(--text-on-card) 50%, transparent 50%) calc(100% - 0.82rem) 50% / 0.48rem 0.48rem no-repeat,
+    linear-gradient(180deg, var(--bg-card-soft), color-mix(in srgb, var(--bg-card-soft) 88%, var(--bg-body) 12%));
+  color: var(--text-on-card);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  padding: 0.82rem 2.8rem 0.82rem 1rem;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast), box-shadow var(--transition-fast), color var(--transition-fast);
+}
+
+.iot-status-select:hover {
+  border-color: color-mix(in srgb, var(--primary) 58%, var(--border-color) 42%);
+  box-shadow: 0 0 0 0.18rem color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+.iot-status-select:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.24rem var(--outline-focus);
+}
+
+.iot-status-select option {
+  background: var(--bg-card);
+  color: var(--text-on-card);
+  font-weight: var(--font-weight-medium);
+}
+
+@supports (appearance: base-select) {
+  .iot-status-select,
+  .iot-status-select::picker(select) {
+    appearance: base-select;
+  }
+
+  .iot-status-select {
+    background: linear-gradient(180deg, var(--bg-card-soft), color-mix(in srgb, var(--bg-card-soft) 88%, var(--bg-body) 12%));
+    padding-right: 1rem;
+  }
+
+  .iot-status-select::picker-icon {
+    color: var(--text-on-card);
+    transition: transform var(--transition-fast), color var(--transition-fast);
+  }
+
+  .iot-status-select:open::picker-icon {
+    transform: rotate(180deg);
+  }
+
+  .iot-status-select::picker(select) {
+    margin-top: 0.35rem;
+    border: var(--border-normal) solid var(--border-color);
+    border-radius: 0.9rem;
+    background: var(--bg-card);
+    box-shadow: var(--card-shadow-hover);
+    color: var(--text-on-card);
+    overflow: hidden;
+  }
+
+  .iot-status-select option {
+    padding: 0.82rem 1rem;
+  }
+
+  .iot-status-select option:hover,
+  .iot-status-select option:checked {
+    background: color-mix(in srgb, var(--primary) 18%, var(--bg-card) 82%);
+    color: var(--text-on-card);
+  }
 }
 
 .iot-illustration {
-  --motor-green: var(--primary);
-  --motor-green-deep: color-mix(in srgb, var(--primary) 76%, #000 24%);
-  --motor-green-soft: var(--primary-hover);
-  --motor-metal: #cfd4d9;
-  --motor-metal-deep: #8c949b;
-  --motor-base: #eef1f4;
-  --motor-base-side: #d4d9df;
-  --motor-state: var(--color-success);
-  --motor-state-soft: var(--color-success-soft);
-  min-height: 20rem;
+  min-height: 0;
+  height: 100%;
   display: grid;
   place-items: center;
+  padding: clamp(0.55rem, 1vw, 0.9rem);
   transition: transform var(--transition-normal), filter var(--transition-normal);
 }
 
-body[data-theme="dark"] .iot-illustration {
-  --motor-metal: #d8dde3;
-  --motor-metal-deep: #9aa3ad;
-  --motor-base: #f0f2f5;
-  --motor-base-side: #bfc6ce;
-}
-
-.iot-illustration.is-warn {
-  --motor-state: var(--color-warning);
-  --motor-state-soft: var(--color-warning-soft);
-}
-
 .iot-illustration.is-danger {
-  --motor-state: var(--color-error);
-  --motor-state-soft: var(--color-error-soft);
   animation: iot-danger-shake 520ms ease-in-out infinite;
 }
 
-.motor-iso {
-  width: min(100%, 25rem);
+.iot-illustration__image {
+  display: block;
+  width: min(100%, 28rem);
   height: auto;
-  overflow: visible;
-}
-
-.motor-iso__shadow {
-  fill: rgba(0, 0, 0, 0.18);
-  filter: blur(7px);
-}
-
-.motor-iso__base-top {
-  fill: var(--motor-base);
-}
-
-.motor-iso__base-side,
-.motor-iso__base-face {
-  fill: var(--motor-base-side);
-}
-
-.motor-iso__foot,
-.motor-iso__box,
-.motor-iso__body-front {
-  fill: var(--motor-green);
-}
-
-.motor-iso__foot-side,
-.motor-iso__box-side,
-.motor-iso__body-side {
-  fill: var(--motor-green-soft);
-}
-
-.motor-iso__box-face,
-.motor-iso__body-back,
-.motor-iso__cap {
-  fill: var(--motor-green-deep);
-}
-
-.motor-iso__cap-inner {
-  fill: color-mix(in srgb, var(--motor-green) 70%, #fff 30%);
-}
-
-.motor-iso__shaft {
-  fill: var(--motor-metal);
-  stroke: var(--motor-metal-deep);
-  stroke-width: 3;
-  stroke-linejoin: round;
-}
-
-.motor-iso__ribs path {
-  stroke: var(--motor-metal-deep);
-  stroke-width: 14;
-  stroke-linecap: round;
-}
-
-.motor-iso__bolt {
-  fill: var(--motor-metal);
-  stroke: var(--motor-metal-deep);
-  stroke-width: 3;
-}
-
-.motor-iso__state circle {
-  fill: var(--motor-state-soft);
-  stroke: var(--motor-state);
-  stroke-width: 10;
-}
-
-.motor-iso__state path {
-  fill: none;
-  stroke: var(--motor-state);
-  stroke-width: 13;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.iot-illustration.is-warn .motor-iso__state path,
-.iot-illustration.is-danger .motor-iso__state path {
-  stroke-width: 12;
-}
-
-.iot-illustration.is-warn .motor-iso__state circle,
-.iot-illustration.is-danger .motor-iso__state circle {
-  fill: color-mix(in srgb, var(--motor-state-soft) 78%, var(--bg-card) 22%);
+  max-height: 19rem;
+  object-fit: contain;
+  filter: drop-shadow(0 1rem 1.4rem rgba(0, 0, 0, 0.18));
+  transition: opacity var(--transition-normal), transform var(--transition-normal), filter var(--transition-normal);
 }
 
 .iot-metric-grid {
@@ -1761,6 +1922,36 @@ body[data-theme="dark"] .iot-illustration {
   }
 }
 
+@media (max-width: 1180px) {
+  .iot-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .iot-side-stack {
+    height: auto;
+    min-height: auto;
+  }
+
+  .iot-status-card {
+    min-height: 19rem;
+  }
+
+  .iot-calendar {
+    left: 0;
+    right: auto;
+  }
+}
+
+@media (max-width: 1120px) {
+  .iot-date-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .iot-date-field:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 980px) {
   .page {
     grid-template-columns: 1fr;
@@ -1793,6 +1984,23 @@ body[data-theme="dark"] .iot-illustration {
   .iot-metric-grid {
     grid-template-columns: 1fr;
   }
+
+  .iot-date-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .iot-status-card {
+    min-height: 19rem;
+  }
+
+  .iot-illustration {
+    min-height: 18rem;
+  }
+
+  .iot-illustration__image {
+    width: min(100%, 26rem);
+    max-height: 18rem;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1815,6 +2023,26 @@ body[data-theme="dark"] .iot-illustration {
 
   .section-switch__radio {
     flex-basis: 100%;
+  }
+
+  .iot-chart-card,
+  .iot-control-card,
+  .iot-status-card {
+    min-width: 0;
+  }
+
+  .iot-chart {
+    min-height: 16rem;
+    overflow-x: auto;
+    justify-content: start;
+  }
+
+  .iot-line-chart {
+    min-width: 34rem;
+  }
+
+  .iot-calendar {
+    width: min(18.5rem, calc(100vw - 3rem));
   }
 
   .dashboard-head {
