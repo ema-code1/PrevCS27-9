@@ -13,6 +13,7 @@
             </div>
         </header>
 
+        <!-- KPIs NO funcionales -->
         <section class="kpi-grid">
             <article class="kpi-card card">
                 <p>ESP32</p>
