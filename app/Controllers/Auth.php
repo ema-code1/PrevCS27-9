@@ -6,6 +6,11 @@ use App\Models\UserModel;
 
 class Auth extends BaseController
 {
+    private const RESET_TOKEN_EXPIRATION_SECONDS = 900;
+    private const RESET_LINK_SENT_MESSAGE = 'Si el correo existe, se enviara un enlace.';
+    private const RESET_LINK_ERROR_MESSAGE = 'No pudimos procesar la solicitud en este momento. Intentalo nuevamente mas tarde.';
+    private const RESET_LINK_INVALID_MESSAGE = 'El enlace de recuperacion no es valido o ya expiro.';
+
     public function index()
     {
         if (session('isLoggedIn') === true) {
@@ -188,5 +193,212 @@ class Auth extends BaseController
         session()->destroy();
 
         return redirect()->to(base_url('reg-log'));
+    }
+
+    public function forgotPassword()
+    {
+        return view('auth/forgot_password', [
+            'title' => 'Recuperar contrasena | Prevention Control System',
+        ]);
+    }
+
+    public function sendResetLink()
+    {
+        $rules = [
+            'email' => 'required|valid_email',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->to(base_url('forgot-password'))
+                ->withInput()
+                ->with('errors', $this->validator->getErrors());
+        }
+
+        $email = trim((string) $this->request->getPost('email'));
+        $userModel = new UserModel();
+        $user = $userModel->where('email', $email)->first();
+
+        if ($user === null) {
+            return redirect()->to(base_url('forgot-password'))
+                ->with('success', self::RESET_LINK_SENT_MESSAGE);
+        }
+
+        $token = bin2hex(random_bytes(50));
+        $hashedToken = password_hash($token, PASSWORD_DEFAULT);
+
+        $db = \Config\Database::connect();
+        $passwordResetBuilder = $db->table('password_resets');
+
+        try {
+            $passwordResetBuilder->where('email', $email)->delete();
+            $passwordResetBuilder->insert([
+                'email'      => $email,
+                'token'      => $hashedToken,
+                'created_at' => date('Y-m-d H:i:s'),
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', 'Password reset token could not be stored for {email}: {message}', [
+                'email'   => $email,
+                'message' => $e->getMessage(),
+            ]);
+
+            return redirect()->to(base_url('forgot-password'))
+                ->withInput()
+                ->with('error', self::RESET_LINK_ERROR_MESSAGE);
+        }
+
+        $resetLink = base_url("reset-password/{$token}");
+        $emailConfig = config('Email');
+        $fromEmail = $emailConfig->fromEmail !== '' ? $emailConfig->fromEmail : $emailConfig->SMTPUser;
+        $fromName = $emailConfig->fromName !== '' ? $emailConfig->fromName : 'Sistema';
+
+        if ($fromEmail === '') {
+            $passwordResetBuilder->where('email', $email)->delete();
+            log_message('error', 'Password reset email could not be sent because fromEmail/SMTPUser is empty.');
+
+            return redirect()->to(base_url('forgot-password'))
+                ->withInput()
+                ->with('error', self::RESET_LINK_ERROR_MESSAGE);
+        }
+
+        $emailService = \Config\Services::email();
+        $emailService->setFrom($fromEmail, $fromName);
+        $emailService->setTo($email);
+        $emailService->setSubject('Recuperacion de contrasena');
+        $emailService->setMessage(
+            "Hola,<br><br>" .
+            "Recibimos una solicitud para restablecer tu contrasena.<br>" .
+            "Hace clic en el siguiente enlace para continuar:<br>" .
+            '<a href="' . esc($resetLink, 'attr') . '">' . esc($resetLink) . '</a><br><br>' .
+            'Este enlace expira en 15 minutos.'
+        );
+
+        if (! $emailService->send()) {
+            $debug = $emailService->printDebugger(['headers', 'subject']);
+            $passwordResetBuilder->where('email', $email)->delete();
+            log_message('error', 'Password reset email failed for {email}: {debug}', [
+                'email' => $email,
+                'debug' => $debug,
+            ]);
+
+            return redirect()->to(base_url('forgot-password'))
+                ->withInput()
+                ->with('error', self::RESET_LINK_ERROR_MESSAGE);
+        }
+
+        return redirect()->to(base_url('forgot-password'))
+            ->with('success', self::RESET_LINK_SENT_MESSAGE);
+    }
+
+    public function resetPassword(string $token)
+    {
+        $db = \Config\Database::connect();
+        $passwordResetBuilder = $db->table('password_resets');
+        $matchedReset = $this->findPasswordResetByToken($passwordResetBuilder, $token);
+
+        if ($matchedReset === null) {
+            return redirect()->to(base_url('forgot-password'))
+                ->with('error', self::RESET_LINK_INVALID_MESSAGE);
+        }
+
+        if ($this->passwordResetExpired($matchedReset)) {
+            $passwordResetBuilder->where('email', $matchedReset['email'] ?? '')->delete();
+
+            return redirect()->to(base_url('forgot-password'))
+                ->with('error', self::RESET_LINK_INVALID_MESSAGE);
+        }
+
+        return view('auth/reset_password', [
+            'title' => 'Nueva contrasena | Prevention Control System',
+            'token' => $token,
+        ]);
+    }
+
+    public function updatePassword()
+    {
+        $rules = [
+            'token'    => 'required',
+            'password' => 'required|min_length[6]',
+            'password_confirm' => 'required|matches[password]',
+        ];
+
+        $messages = [
+            'password_confirm' => [
+                'matches' => 'Las contrasenas no coinciden.',
+            ],
+        ];
+
+        $token = (string) $this->request->getPost('token');
+
+        if (! $this->validate($rules, $messages)) {
+            $redirectUrl = $token !== '' ? base_url("reset-password/{$token}") : base_url('forgot-password');
+
+            return redirect()->to($redirectUrl)
+                ->withInput()
+                ->with('errors', $this->validator->getErrors());
+        }
+
+        $newPassword = (string) $this->request->getPost('password');
+
+        $db = \Config\Database::connect();
+        $passwordResetBuilder = $db->table('password_resets');
+        $matchedReset = $this->findPasswordResetByToken($passwordResetBuilder, $token);
+
+        if ($matchedReset === null) {
+            return redirect()->to(base_url('forgot-password'))
+                ->with('error', self::RESET_LINK_INVALID_MESSAGE);
+        }
+
+        if ($this->passwordResetExpired($matchedReset)) {
+            $passwordResetBuilder->where('email', $matchedReset['email'] ?? '')->delete();
+
+            return redirect()->to(base_url('forgot-password'))
+                ->with('error', self::RESET_LINK_INVALID_MESSAGE);
+        }
+
+        $userModel = new UserModel();
+        $user = $userModel->where('email', $matchedReset['email'] ?? '')->first();
+        $updated = $user !== null
+            ? $userModel->update($user['id'], ['password_hash' => $newPassword])
+            : false;
+
+        if ($updated === false) {
+            log_message('error', 'Password reset update failed for {email}: {errors}', [
+                'email'  => $matchedReset['email'] ?? '',
+                'errors' => json_encode($userModel->errors(), JSON_UNESCAPED_UNICODE),
+            ]);
+
+            return redirect()->to(base_url("reset-password/{$token}"))
+                ->with('error', 'No pudimos actualizar la contrasena. Intentalo nuevamente.');
+        }
+
+        $passwordResetBuilder->where('email', $matchedReset['email'] ?? '')->delete();
+
+        return redirect()->to(base_url('login'))
+            ->with('success', 'Contrasena actualizada correctamente. Ya puedes iniciar sesion.');
+    }
+
+    private function findPasswordResetByToken($passwordResetBuilder, string $token): ?array
+    {
+        if ($token === '') {
+            return null;
+        }
+
+        $passwordResets = $passwordResetBuilder->get()->getResultArray();
+
+        foreach ($passwordResets as $passwordReset) {
+            if (password_verify($token, (string) ($passwordReset['token'] ?? ''))) {
+                return $passwordReset;
+            }
+        }
+
+        return null;
+    }
+
+    private function passwordResetExpired(array $passwordReset): bool
+    {
+        $createdAt = strtotime((string) ($passwordReset['created_at'] ?? ''));
+
+        return $createdAt === false || (time() - $createdAt) > self::RESET_TOKEN_EXPIRATION_SECONDS;
     }
 }
