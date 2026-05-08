@@ -38,6 +38,17 @@ $errorMessage = session('error');
                         <?php endif; ?>
                     </label>
 
+                    <label class="auth-field">
+                        <span class="auth-field__label">Repetir contrasena</span>
+                        <span class="auth-field__control">
+                            <span class="auth-field__icon">*</span>
+                            <input type="password" name="password_confirm" placeholder="Repeti tu contrasena" required>
+                        </span>
+                        <?php if (isset($errors['password_confirm'])): ?>
+                            <span class="auth-field__error"><?= esc($errors['password_confirm']) ?></span>
+                        <?php endif; ?>
+                    </label>
+
                     <button type="submit" class="auth-submit">Actualizar contrasena</button>
                 </form>
             </section>
