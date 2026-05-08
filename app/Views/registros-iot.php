@@ -24,15 +24,15 @@
             </article>
             <article class="kpi-card card">
                 <p>VIBRACION</p>
-                <strong>9.1</strong>
+                <strong data-iot-kpi="vibration">3.2</strong>
             </article>
             <article class="kpi-card card">
                 <p>RPM</p>
-                <strong>1420</strong>
+                <strong data-iot-kpi="rpm">1420</strong>
             </article>
             <article class="kpi-card card">
                 <p>TEMPERATURA</p>
-                <strong>46 C</strong>
+                <strong data-iot-kpi="temperature">41 C</strong>
             </article>
         </section>
 
@@ -52,11 +52,30 @@
         </div>
 
         <section class="section-pane is-active" data-section-pane="vibracion">
-            <div class="iot-grid">
+            <div class="iot-grid" data-iot-monitor="vibration">
                 <section class="panel card iot-chart-card">
                     <div class="panel__header">
                         <h3>Vibraciones</h3>
-                        <span class="badge badge--warning" data-vibration-status>Evaluando</span>
+                        <span class="badge badge--success" data-iot-chart-status>Normal</span>
+                    </div>
+
+                    <div class="iot-date-controls" data-iot-date-controls>
+                        <label class="iot-date-field">
+                            <span>Rango</span>
+                            <select class="iot-status-select iot-range-select" data-iot-range-select aria-label="Seleccionar rango de vibracion">
+                                <option value="day">Dia</option>
+                                <option value="week">Semana</option>
+                                <option value="month">Mes</option>
+                            </select>
+                        </label>
+                        <label class="iot-date-field">
+                            <span>Desde</span>
+                            <input class="iot-date-input" type="text" data-iot-start-date aria-label="Fecha inicial de vibracion" readonly>
+                        </label>
+                        <label class="iot-date-field">
+                            <span>Hasta</span>
+                            <input class="iot-date-input" type="text" data-iot-end-date aria-label="Fecha final de vibracion" readonly>
+                        </label>
                     </div>
 
                     <div class="iot-chart" aria-label="Grafico de linea de vibracion">
@@ -69,101 +88,179 @@
                                 <line x1="78" y1="240" x2="600" y2="240"></line>
                                 <line x1="78" y1="304" x2="600" y2="304"></line>
                             </g>
-                            <g class="iot-line-chart__axis">
-                                <text x="44" y="52">10</text>
-                                <text x="52" y="116">8</text>
-                                <text x="52" y="180">6</text>
-                                <text x="52" y="244">4</text>
-                                <text x="52" y="308">2</text>
-                            </g>
-                            <polyline class="iot-line-chart__stroke" data-vibration-line points=""></polyline>
-                            <g class="iot-line-chart__points" data-vibration-points></g>
-                            <g class="iot-line-chart__labels" data-vibration-labels></g>
+                            <g class="iot-line-chart__axis" data-iot-axis></g>
+                            <polyline class="iot-line-chart__stroke" data-iot-line points=""></polyline>
+                            <g class="iot-line-chart__points" data-iot-points></g>
+                            <g class="iot-line-chart__labels" data-iot-labels></g>
                         </svg>
                     </div>
                 </section>
 
-                <aside class="panel card iot-status-card">
-                    <div class="panel__header">
-                        <h3 data-vibration-title>Estado</h3>
-                        <span class="badge badge--success" data-vibration-badge>Normal</span>
-                    </div>
+                <div class="iot-side-stack">
+                    <aside class="panel card iot-control-card">
+                        <div class="panel__header">
+                            <h3 data-iot-status-title>Todo OK</h3>
+                            <span class="badge badge--success" data-iot-status-badge>Todo OK</span>
+                        </div>
 
-                    <div class="iot-illustration" data-vibration-illustration="ok" aria-hidden="true">
-                        <svg viewBox="0 0 420 300" class="motor-iso motor-iso--ok">
-                            <path class="motor-iso__shadow" d="M76 218 L228 134 L346 202 L194 286 Z"></path>
-                            <path class="motor-iso__base-top" d="M62 192 L214 106 L364 190 L208 278 Z"></path>
-                            <path class="motor-iso__base-side" d="M62 192 L208 278 L208 300 L62 214 Z"></path>
-                            <path class="motor-iso__base-face" d="M208 278 L364 190 L364 212 L208 300 Z"></path>
-                            <path class="motor-iso__foot" d="M184 204 L252 166 L286 186 L218 226 Z"></path>
-                            <path class="motor-iso__foot-side" d="M184 204 L218 226 L218 250 L184 228 Z"></path>
-                            <path class="motor-iso__body-side" d="M158 130 L270 66 L342 108 L230 174 Z"></path>
-                            <path class="motor-iso__body-front" d="M158 130 L230 174 L230 224 L158 180 Z"></path>
-                            <path class="motor-iso__body-back" d="M230 174 L342 108 L342 158 L230 224 Z"></path>
-                            <g class="motor-iso__ribs">
-                                <path d="M248 164 L338 112"></path>
-                                <path d="M262 172 L352 120"></path>
-                                <path d="M276 180 L366 128"></path>
-                                <path d="M290 188 L380 136"></path>
-                                <path d="M304 196 L394 144"></path>
-                            </g>
-                            <ellipse class="motor-iso__cap" cx="160" cy="176" rx="46" ry="58" transform="rotate(-28 160 176)"></ellipse>
-                            <ellipse class="motor-iso__cap-inner" cx="160" cy="176" rx="28" ry="36" transform="rotate(-28 160 176)"></ellipse>
-                            <path class="motor-iso__shaft" d="M64 180 L144 136 L158 144 L78 190 Z"></path>
-                            <path class="motor-iso__box" d="M134 82 L214 36 L268 66 L188 114 Z"></path>
-                            <path class="motor-iso__box-side" d="M134 82 L188 114 L188 154 L134 122 Z"></path>
-                            <path class="motor-iso__box-face" d="M188 114 L268 66 L268 104 L188 154 Z"></path>
-                            <circle class="motor-iso__bolt" cx="207" cy="124" r="8"></circle>
-                            <circle class="motor-iso__bolt" cx="242" cy="104" r="8"></circle>
-                            <g class="motor-iso__state motor-iso__state--ok">
-                                <circle cx="328" cy="224" r="48"></circle>
-                                <path data-vibration-state-path d="M306 226 L322 244 L354 196"></path>
-                            </g>
-                        </svg>
-                    </div>
-                </aside>
+                        <label class="iot-status-control">
+                            <span>Estado del motor</span>
+                            <select class="iot-status-select" data-iot-state-select aria-label="Seleccionar estado de vibracion">
+                                <option value="ok">Todo OK</option>
+                                <option value="medium">Vibraciones minimas</option>
+                                <option value="high">Vibraciones altas</option>
+                            </select>
+                        </label>
+                    </aside>
+
+                    <aside class="panel card iot-status-card">
+                        <div class="iot-illustration iot-illustration--vibration" data-iot-illustration aria-hidden="true">
+                            <img class="iot-illustration__image" data-iot-illustration-image src="<?= base_url('images/motors_iso/motor-ok.png') ?>" alt="">
+                        </div>
+                    </aside>
+                </div>
             </div>
         </section>
 
         <section class="section-pane" data-section-pane="rpm">
-            <div class="iot-metric-grid">
-                <article class="panel card metric-panel">
+            <div class="iot-grid" data-iot-monitor="rpm">
+                <section class="panel card iot-chart-card">
                     <div class="panel__header">
-                        <h3>RPM actual</h3>
-                        <span class="badge badge--success">Estable</span>
+                        <h3>RPM</h3>
+                        <span class="badge badge--success" data-iot-chart-status>Estable</span>
                     </div>
-                    <strong>1420</strong>
-                    <p>Promedio ficticio del ultimo reporte recibido por la ESP32.</p>
-                </article>
-                <article class="panel card metric-panel">
-                    <div class="panel__header">
-                        <h3>Rango operativo</h3>
-                        <span class="badge badge--info">Demo</span>
+
+                    <div class="iot-date-controls" data-iot-date-controls>
+                        <label class="iot-date-field">
+                            <span>Rango</span>
+                            <select class="iot-status-select iot-range-select" data-iot-range-select aria-label="Seleccionar rango de RPM">
+                                <option value="day">Dia</option>
+                                <option value="week">Semana</option>
+                                <option value="month">Mes</option>
+                            </select>
+                        </label>
+                        <label class="iot-date-field">
+                            <span>Desde</span>
+                            <input class="iot-date-input" type="text" data-iot-start-date aria-label="Fecha inicial de RPM" readonly>
+                        </label>
+                        <label class="iot-date-field">
+                            <span>Hasta</span>
+                            <input class="iot-date-input" type="text" data-iot-end-date aria-label="Fecha final de RPM" readonly>
+                        </label>
                     </div>
-                    <strong>1200 - 1600</strong>
-                    <p>Card temporal hasta conectar la tabla real de mediciones.</p>
-                </article>
+
+                    <div class="iot-chart" aria-label="Grafico de linea de RPM">
+                        <svg class="iot-line-chart" viewBox="0 0 640 360" role="img" aria-labelledby="rpm-chart-title">
+                            <title id="rpm-chart-title">Mediciones periodicas de RPM</title>
+                            <g class="iot-line-chart__grid">
+                                <line x1="78" y1="48" x2="600" y2="48"></line>
+                                <line x1="78" y1="112" x2="600" y2="112"></line>
+                                <line x1="78" y1="176" x2="600" y2="176"></line>
+                                <line x1="78" y1="240" x2="600" y2="240"></line>
+                                <line x1="78" y1="304" x2="600" y2="304"></line>
+                            </g>
+                            <g class="iot-line-chart__axis" data-iot-axis></g>
+                            <polyline class="iot-line-chart__stroke" data-iot-line points=""></polyline>
+                            <g class="iot-line-chart__points" data-iot-points></g>
+                            <g class="iot-line-chart__labels" data-iot-labels></g>
+                        </svg>
+                    </div>
+                </section>
+
+                <div class="iot-side-stack">
+                    <aside class="panel card iot-control-card">
+                        <div class="panel__header">
+                            <h3 data-iot-status-title>Revoluciones normales</h3>
+                            <span class="badge badge--success" data-iot-status-badge>Normal</span>
+                        </div>
+
+                        <label class="iot-status-control">
+                            <span>Estado del motor</span>
+                            <select class="iot-status-select" data-iot-state-select aria-label="Seleccionar estado de RPM">
+                                <option value="ok">Revoluciones normales</option>
+                                <option value="low">Revoluciones bajas</option>
+                                <option value="high">Revoluciones altas</option>
+                            </select>
+                        </label>
+                    </aside>
+
+                    <aside class="panel card iot-status-card">
+                        <div class="iot-illustration iot-illustration--rpm" data-iot-illustration aria-hidden="true">
+                            <img class="iot-illustration__image" data-iot-illustration-image src="<?= base_url('images/motors_iso/motor-ok.png') ?>" alt="">
+                        </div>
+                    </aside>
+                </div>
             </div>
         </section>
 
         <section class="section-pane" data-section-pane="temperatura">
-            <div class="iot-metric-grid">
-                <article class="panel card metric-panel">
+            <div class="iot-grid" data-iot-monitor="temperature">
+                <section class="panel card iot-chart-card">
                     <div class="panel__header">
-                        <h3>Temperatura actual</h3>
-                        <span class="badge badge--warning">Observacion</span>
+                        <h3>Temperatura</h3>
+                        <span class="badge badge--success" data-iot-chart-status>Normal</span>
                     </div>
-                    <strong>46 C</strong>
-                    <p>Dato ficticio para visualizar el estado del futuro sensor.</p>
-                </article>
-                <article class="panel card metric-panel">
-                    <div class="panel__header">
-                        <h3>Promedio diario</h3>
-                        <span class="badge badge--info">Demo</span>
+
+                    <div class="iot-date-controls" data-iot-date-controls>
+                        <label class="iot-date-field">
+                            <span>Rango</span>
+                            <select class="iot-status-select iot-range-select" data-iot-range-select aria-label="Seleccionar rango de temperatura">
+                                <option value="day">Dia</option>
+                                <option value="week">Semana</option>
+                                <option value="month">Mes</option>
+                            </select>
+                        </label>
+                        <label class="iot-date-field">
+                            <span>Desde</span>
+                            <input class="iot-date-input" type="text" data-iot-start-date aria-label="Fecha inicial de temperatura" readonly>
+                        </label>
+                        <label class="iot-date-field">
+                            <span>Hasta</span>
+                            <input class="iot-date-input" type="text" data-iot-end-date aria-label="Fecha final de temperatura" readonly>
+                        </label>
                     </div>
-                    <strong>42 C</strong>
-                    <p>Card de muestra para mantener la estructura del panel.</p>
-                </article>
+
+                    <div class="iot-chart" aria-label="Grafico de linea de temperatura">
+                        <svg class="iot-line-chart" viewBox="0 0 640 360" role="img" aria-labelledby="temperature-chart-title">
+                            <title id="temperature-chart-title">Mediciones periodicas de temperatura</title>
+                            <g class="iot-line-chart__grid">
+                                <line x1="78" y1="48" x2="600" y2="48"></line>
+                                <line x1="78" y1="112" x2="600" y2="112"></line>
+                                <line x1="78" y1="176" x2="600" y2="176"></line>
+                                <line x1="78" y1="240" x2="600" y2="240"></line>
+                                <line x1="78" y1="304" x2="600" y2="304"></line>
+                            </g>
+                            <g class="iot-line-chart__axis" data-iot-axis></g>
+                            <polyline class="iot-line-chart__stroke" data-iot-line points=""></polyline>
+                            <g class="iot-line-chart__points" data-iot-points></g>
+                            <g class="iot-line-chart__labels" data-iot-labels></g>
+                        </svg>
+                    </div>
+                </section>
+
+                <div class="iot-side-stack">
+                    <aside class="panel card iot-control-card">
+                        <div class="panel__header">
+                            <h3 data-iot-status-title>Temperatura normal</h3>
+                            <span class="badge badge--success" data-iot-status-badge>Normal</span>
+                        </div>
+
+                        <label class="iot-status-control">
+                            <span>Estado del motor</span>
+                            <select class="iot-status-select" data-iot-state-select aria-label="Seleccionar estado de temperatura">
+                                <option value="ok">Temperatura normal</option>
+                                <option value="low">Temperatura baja</option>
+                                <option value="high">Temperatura alta</option>
+                            </select>
+                        </label>
+                    </aside>
+
+                    <aside class="panel card iot-status-card">
+                        <div class="iot-illustration iot-illustration--temperature" data-iot-illustration aria-hidden="true">
+                            <img class="iot-illustration__image" data-iot-illustration-image src="<?= base_url('images/motors_iso/motor-ok.png') ?>" alt="">
+                        </div>
+                    </aside>
+                </div>
             </div>
         </section>
     </section>
@@ -175,41 +272,120 @@
 document.addEventListener('DOMContentLoaded', function () {
     const switchers = document.querySelectorAll('[data-section-target]');
     const panes = document.querySelectorAll('[data-section-pane]');
+    const monitors = document.querySelectorAll('[data-iot-monitor]');
+    const body = document.body;
     let paneTransitionTimer = null;
 
-    /*
-     * Periodo de reporte:
-     * Cambia este valor cuando la ESP32 cargue datos cada 3 horas, 6 horas, 24 horas,
-     * una semana, etc. Este valor solo etiqueta/agrupa el grafico en la vista.
-     * El periodo real de escaneo y guardado se configura en el firmware de la ESP32
-     * y en el endpoint/modelo que inserte las mediciones en la base de datos.
-     */
+    const assetBase = '<?= rtrim(base_url('images/motors_iso'), '/') ?>';
+    const readingsEndpoint = '<?= base_url('api/iot-readings') ?>';
     const REPORT_PERIOD_HOURS = 1;
-
-    /*
-     * Rangos de tolerancia para vibracion:
-     * Ajusta estos umbrales cuando definas la unidad real del sensor.
-     * - okMax: valor maximo para mostrar "Todo correcto".
-     * - warnMax: valor maximo para mostrar "Vibracion media".
-     * - jumpToDangerDelta: salto entre reportes que manda directo a "Alta vibracion".
-     * - varianceWarn / varianceDanger: varianza de la serie completa.
-     */
-    const VIBRATION_TOLERANCE = {
-        okMax: 7.4,
-        warnMax: 8.6,
-        jumpToDangerDelta: 1.4,
-        varianceWarn: 0.45,
-        varianceDanger: 0.95
-    };
-
-    const vibrationReadings = [8.0, 8.1, 7.0, 8.0, 7.95, 9.0];
     const chart = {
-        min: 0,
-        max: 10,
         left: 78,
         right: 600,
         top: 48,
         bottom: 304
+    };
+
+    const monitorConfig = {
+        vibration: {
+            kpi: 'vibration',
+            min: 0,
+            max: 10,
+            unit: '',
+            axis: [10, 8, 6, 4, 2],
+            states: {
+                ok: {
+                    title: 'Todo OK',
+                    badge: 'Todo OK',
+                    badgeClass: 'badge badge--success',
+                    image: 'motor-ok.png',
+                    darkImage: 'motor-ok-dark.png',
+                    readings: [3.0, 3.2, 2.9, 3.4, 3.1, 3.2]
+                },
+                medium: {
+                    title: 'Vibraciones minimas',
+                    badge: 'Minimas',
+                    badgeClass: 'badge badge--warning',
+                    image: 'vibration-medium.png',
+                    darkImage: 'vibration-medium-dark.png',
+                    readings: [4.6, 5.1, 5.8, 5.4, 6.2, 6.0]
+                },
+                high: {
+                    title: 'Vibraciones altas',
+                    badge: 'Alerta',
+                    badgeClass: 'badge badge--error',
+                    image: 'vibration-high.png',
+                    darkImage: 'vibration-high-dark.png',
+                    readings: [6.9, 7.8, 8.4, 8.1, 9.2, 9.5]
+                }
+            }
+        },
+        rpm: {
+            kpi: 'rpm',
+            min: 800,
+            max: 2200,
+            unit: '',
+            axis: [2200, 1850, 1500, 1150, 800],
+            states: {
+                ok: {
+                    title: 'Revoluciones normales',
+                    badge: 'Normal',
+                    badgeClass: 'badge badge--success',
+                    image: 'motor-ok.png',
+                    darkImage: 'motor-ok-dark.png',
+                    readings: [1410, 1440, 1390, 1460, 1425, 1430]
+                },
+                low: {
+                    title: 'Revoluciones bajas',
+                    badge: 'Bajas',
+                    badgeClass: 'badge badge--warning',
+                    image: 'rpm-low.png',
+                    darkImage: 'rpm-low-dark.png',
+                    readings: [1150, 1080, 1025, 980, 940, 900]
+                },
+                high: {
+                    title: 'Revoluciones altas',
+                    badge: 'Alerta',
+                    badgeClass: 'badge badge--error',
+                    image: 'rpm-high.png',
+                    darkImage: 'rpm-high-dark.png',
+                    readings: [1620, 1740, 1860, 1910, 2030, 2100]
+                }
+            }
+        },
+        temperature: {
+            kpi: 'temperature',
+            min: 0,
+            max: 90,
+            unit: ' C',
+            axis: [90, 68, 45, 23, 0],
+            states: {
+                ok: {
+                    title: 'Temperatura normal',
+                    badge: 'Normal',
+                    badgeClass: 'badge badge--success',
+                    image: 'motor-ok.png',
+                    darkImage: 'motor-ok-dark.png',
+                    readings: [39, 40, 42, 41, 43, 41]
+                },
+                low: {
+                    title: 'Temperatura baja',
+                    badge: 'Baja',
+                    badgeClass: 'badge badge--warning',
+                    image: 'temperature-low.png',
+                    darkImage: 'temperature-low-dark.png',
+                    readings: [31, 28, 25, 22, 19, 17]
+                },
+                high: {
+                    title: 'Temperatura alta',
+                    badge: 'Alerta',
+                    badgeClass: 'badge badge--error',
+                    image: 'temperature-high.png',
+                    darkImage: 'temperature-high-dark.png',
+                    readings: [54, 61, 66, 72, 77, 82]
+                }
+            }
+        }
     };
 
     function updateSwitchState(target) {
@@ -255,113 +431,309 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 150);
     }
 
-    function getPoint(value, index, total) {
+    function getPoint(value, index, total, config) {
         const x = chart.left + ((chart.right - chart.left) / (total - 1)) * index;
-        const ratio = (value - chart.min) / (chart.max - chart.min);
+        const ratio = Math.max(0, Math.min(1, (value - config.min) / (config.max - config.min)));
         const y = chart.bottom - ratio * (chart.bottom - chart.top);
         return { x, y };
     }
 
-    function getVariance(values) {
-        const average = values.reduce(function (sum, value) {
-            return sum + value;
-        }, 0) / values.length;
-
-        return values.reduce(function (sum, value) {
-            return sum + Math.pow(value - average, 2);
-        }, 0) / values.length;
+    function getThemedImage(state) {
+        return body.getAttribute('data-theme') === 'dark' ? state.darkImage : state.image;
     }
 
-    function getMaxJump(values) {
-        return values.reduce(function (maxJump, value, index) {
-            if (index === 0) {
-                return maxJump;
-            }
+    function renderChartAxis(panel, config) {
+        const axisGroup = panel.querySelector('[data-iot-axis]');
 
-            return Math.max(maxJump, Math.abs(value - values[index - 1]));
-        }, 0);
+        if (!axisGroup) {
+            return;
+        }
+
+        axisGroup.innerHTML = config.axis.map(function (value, index) {
+            const y = 52 + (64 * index);
+            return '<text x="60" y="' + y + '">' + value + '</text>';
+        }).join('');
     }
 
-    function getVibrationState(values) {
-        const latest = values[values.length - 1];
-        const variance = getVariance(values);
-        const maxJump = getMaxJump(values);
+    function toDateInputValue(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
 
-        if (
-            latest > VIBRATION_TOLERANCE.warnMax ||
-            variance >= VIBRATION_TOLERANCE.varianceDanger ||
-            maxJump >= VIBRATION_TOLERANCE.jumpToDangerDelta
-        ) {
-            return {
-                key: 'danger',
-                title: 'Alta vibracion',
-                badge: 'Peligro',
-                badgeClass: 'badge badge--error',
-                illustrationClass: 'iot-illustration is-danger',
-                statusClass: 'badge badge--error',
-                statePath: 'M328 188 L328 224 M328 248 L328 249'
-            };
+    function toDisplayDate(isoDate) {
+        const parts = isoDate.split('-');
+        return parts[2] + '/' + parts[1] + '/' + parts[0];
+    }
+
+    function parseIsoDate(isoDate) {
+        return new Date(isoDate + 'T00:00:00');
+    }
+
+    function addDays(date, days) {
+        const nextDate = new Date(date);
+        nextDate.setDate(nextDate.getDate() + days);
+        return nextDate;
+    }
+
+    function getRangeLength(range) {
+        if (range === 'month') {
+            return 30;
         }
 
-        if (latest > VIBRATION_TOLERANCE.okMax || variance >= VIBRATION_TOLERANCE.varianceWarn) {
-            return {
-                key: 'warn',
-                title: 'Vibracion media',
-                badge: 'Advertencia',
-                badgeClass: 'badge badge--warning',
-                illustrationClass: 'iot-illustration is-warn',
-                statusClass: 'badge badge--warning',
-                statePath: 'M328 190 L328 228 M328 252 L328 253'
-            };
+        if (range === 'week') {
+            return 7;
         }
+
+        return 1;
+    }
+
+    function syncDateControls(panel) {
+        const rangeSelect = panel.querySelector('[data-iot-range-select]');
+        const startInput = panel.querySelector('[data-iot-start-date]');
+        const endInput = panel.querySelector('[data-iot-end-date]');
+
+        if (!rangeSelect || !startInput || !endInput) {
+            return null;
+        }
+
+        if (!startInput.dataset.iso) {
+            startInput.dataset.iso = toDateInputValue(new Date());
+            startInput.value = toDisplayDate(startInput.dataset.iso);
+        }
+
+        const startDate = parseIsoDate(startInput.dataset.iso);
+        const endDate = addDays(startDate, getRangeLength(rangeSelect.value) - 1);
+        endInput.dataset.iso = toDateInputValue(endDate);
+        endInput.value = toDisplayDate(endInput.dataset.iso);
 
         return {
-            key: 'ok',
-            title: 'Todo correcto',
-            badge: 'Normal',
-            badgeClass: 'badge badge--success',
-            illustrationClass: 'iot-illustration is-ok',
-            statusClass: 'badge badge--success',
-            statePath: 'M306 226 L322 244 L354 196'
+            range: rangeSelect.value,
+            start: startInput.dataset.iso,
+            end: endInput.dataset.iso
         };
     }
 
-    function renderVibrationChart() {
-        const line = document.querySelector('[data-vibration-line]');
-        const pointsGroup = document.querySelector('[data-vibration-points]');
-        const labelsGroup = document.querySelector('[data-vibration-labels]');
-        const statusBadge = document.querySelector('[data-vibration-status]');
-        const title = document.querySelector('[data-vibration-title]');
-        const badge = document.querySelector('[data-vibration-badge]');
-        const illustration = document.querySelector('[data-vibration-illustration]');
-        const statePath = document.querySelector('[data-vibration-state-path]');
+    function closeDatePickers(exceptPicker) {
+        document.querySelectorAll('.iot-calendar').forEach(function (picker) {
+            if (picker !== exceptPicker) {
+                picker.remove();
+            }
+        });
+    }
+
+    function renderDatePicker(input, panel) {
+        closeDatePickers();
+
+        const field = input.closest('.iot-date-field');
+        const selectedDate = parseIsoDate(input.dataset.iso || toDateInputValue(new Date()));
+        let visibleMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const dayNames = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'];
+        const picker = document.createElement('div');
+        picker.className = 'iot-calendar';
+
+        function draw() {
+            const firstDay = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+            const gridStart = new Date(firstDay);
+            gridStart.setDate(firstDay.getDate() - firstDay.getDay());
+            const selectedIso = input.dataset.iso;
+
+            picker.innerHTML = [
+                '<div class="iot-calendar__head">',
+                    '<button type="button" class="iot-calendar__nav" data-calendar-prev aria-label="Mes anterior">&lsaquo;</button>',
+                    '<strong>' + monthNames[visibleMonth.getMonth()] + ' ' + visibleMonth.getFullYear() + '</strong>',
+                    '<button type="button" class="iot-calendar__nav" data-calendar-next aria-label="Mes siguiente">&rsaquo;</button>',
+                '</div>',
+                '<div class="iot-calendar__weekdays">' + dayNames.map(function (day) {
+                    return '<span>' + day + '</span>';
+                }).join('') + '</div>',
+                '<div class="iot-calendar__days"></div>',
+            ].join('');
+
+            const days = picker.querySelector('.iot-calendar__days');
+
+            for (let index = 0; index < 42; index++) {
+                const date = new Date(gridStart);
+                date.setDate(gridStart.getDate() + index);
+                const iso = toDateInputValue(date);
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'iot-calendar__day';
+                button.textContent = String(date.getDate());
+                button.dataset.iso = iso;
+
+                if (date.getMonth() !== visibleMonth.getMonth()) {
+                    button.classList.add('is-muted');
+                }
+
+                if (iso === selectedIso) {
+                    button.classList.add('is-selected');
+                }
+
+                days.appendChild(button);
+            }
+        }
+
+        picker.addEventListener('click', function (event) {
+            const previous = event.target.closest('[data-calendar-prev]');
+            const next = event.target.closest('[data-calendar-next]');
+            const day = event.target.closest('.iot-calendar__day');
+
+            if (previous) {
+                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
+                draw();
+                return;
+            }
+
+            if (next) {
+                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1);
+                draw();
+                return;
+            }
+
+            if (day) {
+                input.dataset.iso = day.dataset.iso;
+                input.value = toDisplayDate(day.dataset.iso);
+                closeDatePickers();
+                renderMonitor(panel);
+            }
+        });
+
+        draw();
+        field.appendChild(picker);
+    }
+
+    function renderChartSeries(panel, config, readings, labels) {
+        const line = panel.querySelector('[data-iot-line]');
+        const pointsGroup = panel.querySelector('[data-iot-points]');
+        const labelsGroup = panel.querySelector('[data-iot-labels]');
+        const svg = panel.querySelector('.iot-line-chart');
 
         if (!line || !pointsGroup || !labelsGroup) {
             return;
         }
 
-        const points = vibrationReadings.map(function (value, index) {
-            return getPoint(value, index, vibrationReadings.length);
+        let xGridGroup = panel.querySelector('[data-iot-x-grid]');
+
+        if (!xGridGroup && svg) {
+            xGridGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            xGridGroup.setAttribute('class', 'iot-line-chart__grid iot-line-chart__grid--x');
+            xGridGroup.setAttribute('data-iot-x-grid', '');
+            svg.insertBefore(xGridGroup, panel.querySelector('[data-iot-axis]'));
+        }
+
+        const availableReadings = readings.map(function (value) {
+            return value === null ? null : Number(value);
+        });
+        const pointTotal = Math.max(availableReadings.length, 2);
+        const points = availableReadings.map(function (value, index) {
+            return value === null ? null : getPoint(value, index, pointTotal, config);
         });
 
-        line.setAttribute('points', points.map(function (point) {
+        line.setAttribute('points', points.filter(Boolean).map(function (point) {
             return point.x.toFixed(1) + ',' + point.y.toFixed(1);
         }).join(' '));
 
-        pointsGroup.innerHTML = points.map(function (point) {
-            return '<circle cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="7"></circle>';
+        if (xGridGroup) {
+            xGridGroup.innerHTML = points.map(function (point, index) {
+                const x = point ? point.x : chart.left + ((chart.right - chart.left) / (pointTotal - 1)) * index;
+                return '<line x1="' + x.toFixed(1) + '" y1="' + chart.top + '" x2="' + x.toFixed(1) + '" y2="' + chart.bottom + '"></line>';
+            }).join('');
+        }
+
+        pointsGroup.innerHTML = points.map(function (point, index) {
+            if (!point) {
+                return '';
+            }
+
+            return '<circle cx="' + point.x.toFixed(1) + '" cy="' + point.y.toFixed(1) + '" r="7"><title>' + labels[index] + ': ' + availableReadings[index] + config.unit + '</title></circle>';
         }).join('');
 
-        labelsGroup.innerHTML = points.map(function (point, index) {
-            const label = ((index + 1) * REPORT_PERIOD_HOURS) + 'h';
-            return '<text x="' + point.x.toFixed(1) + '" y="336">' + label + '</text>';
+        const labelStep = labels.length > 14 ? Math.ceil(labels.length / 7) : 1;
+        labelsGroup.innerHTML = labels.map(function (label, index) {
+            if (index % labelStep !== 0 && index !== labels.length - 1) {
+                return '';
+            }
+
+            const x = chart.left + ((chart.right - chart.left) / (pointTotal - 1)) * index;
+            return '<text x="' + x.toFixed(1) + '" y="336">' + label + '</text>';
         }).join('');
+    }
 
-        const state = getVibrationState(vibrationReadings);
+    function renderFallbackChart(panel, config, state) {
+        const labels = state.readings.map(function (_, index) {
+            return ((index + 1) * REPORT_PERIOD_HOURS) + 'h';
+        });
+        renderChartSeries(panel, config, state.readings, labels);
+    }
 
-        if (statusBadge) {
-            statusBadge.textContent = state.badge;
-            statusBadge.className = state.statusClass;
+    async function fetchMonitorSeries(panel, config, state) {
+        const rangeData = syncDateControls(panel);
+        const kpi = document.querySelector('[data-iot-kpi="' + config.kpi + '"]');
+
+        if (!rangeData) {
+            renderFallbackChart(panel, config, state);
+            return;
+        }
+
+        const url = new URL(readingsEndpoint, window.location.origin);
+        url.searchParams.set('metric', panel.dataset.iotMonitor);
+        url.searchParams.set('range', rangeData.range);
+        url.searchParams.set('start', rangeData.start);
+
+        try {
+            const response = await fetch(url.toString(), {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Invalid IoT response');
+            }
+
+            const payload = await response.json();
+            const points = Array.isArray(payload.points) ? payload.points : [];
+            const readings = points.map(function (point) {
+                return point.value;
+            });
+            const labels = points.map(function (point) {
+                return point.label;
+            });
+
+            renderChartSeries(panel, config, readings, labels);
+
+            if (kpi && payload.latest !== null && payload.latest !== undefined) {
+                kpi.textContent = payload.latest + config.unit;
+            }
+        } catch (error) {
+            renderFallbackChart(panel, config, state);
+
+            if (kpi) {
+                kpi.textContent = state.readings[state.readings.length - 1] + config.unit;
+            }
+        }
+    }
+
+    function renderMonitor(panel) {
+        const monitorKey = panel.dataset.iotMonitor;
+        const config = monitorConfig[monitorKey];
+        const select = panel.querySelector('[data-iot-state-select]');
+        const selectedState = select?.value || 'ok';
+        const state = config.states[selectedState] || config.states.ok;
+        const chartStatus = panel.querySelector('[data-iot-chart-status]');
+        const title = panel.querySelector('[data-iot-status-title]');
+        const badge = panel.querySelector('[data-iot-status-badge]');
+        const illustration = panel.querySelector('[data-iot-illustration]');
+        const image = panel.querySelector('[data-iot-illustration-image]');
+
+        renderChartAxis(panel, config);
+
+        if (chartStatus) {
+            chartStatus.textContent = state.badge;
+            chartStatus.className = state.badgeClass;
         }
 
         if (title) {
@@ -374,13 +746,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (illustration) {
-            illustration.className = state.illustrationClass;
-            illustration.dataset.vibrationIllustration = state.key;
+            illustration.dataset.iotState = selectedState;
+            illustration.classList.toggle('is-danger', selectedState === 'high');
+            illustration.classList.toggle('is-warn', selectedState === 'medium' || selectedState === 'low');
+            illustration.classList.toggle('is-ok', selectedState === 'ok');
         }
 
-        if (statePath) {
-            statePath.setAttribute('d', state.statePath);
+        if (image) {
+            image.src = assetBase + '/' + getThemedImage(state);
         }
+
+        fetchMonitorSeries(panel, config, state);
+    }
+
+    function renderAllMonitors() {
+        monitors.forEach(renderMonitor);
     }
 
     switchers.forEach(function (input) {
@@ -389,7 +769,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    renderVibrationChart();
+    monitors.forEach(function (panel) {
+        panel.querySelector('[data-iot-state-select]')?.addEventListener('change', function () {
+            renderMonitor(panel);
+        });
+
+        panel.querySelector('[data-iot-range-select]')?.addEventListener('change', function () {
+            renderMonitor(panel);
+        });
+
+        panel.querySelector('[data-iot-start-date]')?.addEventListener('click', function (event) {
+            renderDatePicker(event.currentTarget, panel);
+        });
+    });
+
+    document.addEventListener('click', function (event) {
+        if (!event.target.closest('.iot-calendar') && !event.target.closest('[data-iot-start-date]')) {
+            closeDatePickers();
+        }
+    });
+
+    new MutationObserver(renderAllMonitors).observe(body, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
+
+    renderAllMonitors();
 });
 </script>
 <?= $this->endSection() ?>
