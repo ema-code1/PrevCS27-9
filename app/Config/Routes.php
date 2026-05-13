@@ -5,7 +5,7 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Auth::index');
+$routes->get('/', 'Landing::index');
 $routes->get('principal', 'Home::index');
 $routes->get('registros-iot', 'Home::registrosIot');
 $routes->get('api/iot-readings', 'IotReadings::index');
