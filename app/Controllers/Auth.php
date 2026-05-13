@@ -230,11 +230,12 @@ class Auth extends BaseController
         $passwordResetBuilder = $db->table('password_resets');
 
         try {
-            $passwordResetBuilder->where('email', $email)->delete();
+            $passwordResetBuilder->where('user_id', $user['id'])->delete();
             $passwordResetBuilder->insert([
-                'email'      => $email,
+                'user_id'    => $user['id'],
                 'token'      => $hashedToken,
                 'created_at' => date('Y-m-d H:i:s'),
+                'expires_at' => date('Y-m-d H:i:s', time() + self::RESET_TOKEN_EXPIRATION_SECONDS),
             ]);
         } catch (\Throwable $e) {
             log_message('error', 'Password reset token could not be stored for {email}: {message}', [
@@ -253,7 +254,7 @@ class Auth extends BaseController
         $fromName = $emailConfig->fromName !== '' ? $emailConfig->fromName : 'Sistema';
 
         if ($fromEmail === '') {
-            $passwordResetBuilder->where('email', $email)->delete();
+            $passwordResetBuilder->where('user_id', $user['id'])->delete();
             log_message('error', 'Password reset email could not be sent because fromEmail/SMTPUser is empty.');
 
             return redirect()->to(base_url('forgot-password'))
@@ -275,7 +276,7 @@ class Auth extends BaseController
 
         if (! $emailService->send()) {
             $debug = $emailService->printDebugger(['headers', 'subject']);
-            $passwordResetBuilder->where('email', $email)->delete();
+            $passwordResetBuilder->where('user_id', $user['id'])->delete();
             log_message('error', 'Password reset email failed for {email}: {debug}', [
                 'email' => $email,
                 'debug' => $debug,
@@ -302,7 +303,7 @@ class Auth extends BaseController
         }
 
         if ($this->passwordResetExpired($matchedReset)) {
-            $passwordResetBuilder->where('email', $matchedReset['email'] ?? '')->delete();
+            $this->deletePasswordReset($passwordResetBuilder, $matchedReset);
 
             return redirect()->to(base_url('forgot-password'))
                 ->with('error', self::RESET_LINK_INVALID_MESSAGE);
@@ -350,21 +351,25 @@ class Auth extends BaseController
         }
 
         if ($this->passwordResetExpired($matchedReset)) {
-            $passwordResetBuilder->where('email', $matchedReset['email'] ?? '')->delete();
+            $this->deletePasswordReset($passwordResetBuilder, $matchedReset);
 
             return redirect()->to(base_url('forgot-password'))
                 ->with('error', self::RESET_LINK_INVALID_MESSAGE);
         }
 
         $userModel = new UserModel();
-        $user = $userModel->where('email', $matchedReset['email'] ?? '')->first();
-        $updated = $user !== null
-            ? $userModel->update($user['id'], ['password_hash' => $newPassword])
-            : false;
+        $user = $userModel->find($matchedReset['user_id'] ?? null);
+        $updated = false;
+
+        if ($user !== null) {
+            $updated = $db->table('users')
+                ->where('id', $user['id'])
+                ->update(['password_hash' => password_hash($newPassword, PASSWORD_DEFAULT)]);
+        }
 
         if ($updated === false) {
-            log_message('error', 'Password reset update failed for {email}: {errors}', [
-                'email'  => $matchedReset['email'] ?? '',
+            log_message('error', 'Password reset update failed for user_id {userId}: {errors}', [
+                'userId' => (string) ($matchedReset['user_id'] ?? ''),
                 'errors' => json_encode($userModel->errors(), JSON_UNESCAPED_UNICODE),
             ]);
 
@@ -372,7 +377,7 @@ class Auth extends BaseController
                 ->with('error', 'No pudimos actualizar la contrasena. Intentalo nuevamente.');
         }
 
-        $passwordResetBuilder->where('email', $matchedReset['email'] ?? '')->delete();
+        $this->deletePasswordReset($passwordResetBuilder, $matchedReset);
 
         return redirect()->to(base_url('login'))
             ->with('success', 'Contrasena actualizada correctamente. Ya puedes iniciar sesion.');
@@ -397,8 +402,27 @@ class Auth extends BaseController
 
     private function passwordResetExpired(array $passwordReset): bool
     {
+        $expiresAt = strtotime((string) ($passwordReset['expires_at'] ?? ''));
+
+        if ($expiresAt !== false) {
+            return time() > $expiresAt;
+        }
+
         $createdAt = strtotime((string) ($passwordReset['created_at'] ?? ''));
 
         return $createdAt === false || (time() - $createdAt) > self::RESET_TOKEN_EXPIRATION_SECONDS;
+    }
+
+    private function deletePasswordReset($passwordResetBuilder, array $passwordReset): void
+    {
+        if (isset($passwordReset['id'])) {
+            $passwordResetBuilder->where('id', $passwordReset['id'])->delete();
+
+            return;
+        }
+
+        if (isset($passwordReset['user_id'])) {
+            $passwordResetBuilder->where('user_id', $passwordReset['user_id'])->delete();
+        }
     }
 }

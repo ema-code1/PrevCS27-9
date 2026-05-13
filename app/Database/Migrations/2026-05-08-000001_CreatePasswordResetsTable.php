@@ -12,12 +12,11 @@ class CreatePasswordResetsTable extends Migration
             'id' => [
                 'type'           => 'INT',
                 'constraint'     => 11,
-                'unsigned'       => true,
                 'auto_increment' => true,
             ],
-            'email' => [
-                'type'       => 'VARCHAR',
-                'constraint' => 200,
+            'user_id' => [
+                'type'       => 'INT',
+                'constraint' => 11,
             ],
             'token' => [
                 'type'       => 'VARCHAR',
@@ -27,11 +26,15 @@ class CreatePasswordResetsTable extends Migration
                 'type' => 'DATETIME',
                 'null' => false,
             ],
+            'expires_at' => [
+                'type' => 'DATETIME',
+                'null' => false,
+            ],
         ]);
 
         $this->forge->addKey('id', true);
-        $this->forge->addKey('email');
-        $this->forge->addKey('created_at');
+        $this->forge->addKey('user_id', false, false, 'fk_password_resets_user');
+        $this->forge->addForeignKey('user_id', 'users', 'id', 'CASCADE', 'CASCADE', 'fk_password_resets_user');
         $this->forge->createTable('password_resets', true);
     }
 
