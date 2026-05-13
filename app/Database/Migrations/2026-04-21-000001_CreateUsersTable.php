@@ -12,28 +12,32 @@ class CreateUsersTable extends Migration
             'id' => [
                 'type'           => 'INT',
                 'constraint'     => 11,
-                'unsigned'       => true,
                 'auto_increment' => true,
             ],
-            'name' => [
-                'type'       => 'VARCHAR',
-                'constraint' => 120,
-            ],
-            'email' => [
+            'nombre' => [
                 'type'       => 'VARCHAR',
                 'constraint' => 150,
             ],
-            'password' => [
+            'apellido' => [
+                'type'       => 'VARCHAR',
+                'constraint' => 150,
+            ],
+            'email' => [
+                'type'       => 'VARCHAR',
+                'constraint' => 200,
+            ],
+            'password_hash' => [
                 'type'       => 'VARCHAR',
                 'constraint' => 255,
             ],
-            'created_at' => [
-                'type' => 'DATETIME',
-                'null' => true,
+            'foto_perfil' => [
+                'type'       => 'VARCHAR',
+                'constraint' => 255,
+                'null'       => true,
             ],
-            'updated_at' => [
-                'type' => 'DATETIME',
-                'null' => true,
+            'created_at' => [
+                'type'    => 'TIMESTAMP',
+                'default' => new \CodeIgniter\Database\RawSql('CURRENT_TIMESTAMP'),
             ],
         ]);
 

@@ -8,6 +8,7 @@
 <?php
 $errors = session('errors') ?? [];
 $errorMessage = session('error');
+$successMessage = session('success');
 $activeForm = old('form_mode', $activeForm ?? 'login');
 ?>
 <main class="auth-page">
@@ -34,6 +35,9 @@ $activeForm = old('form_mode', $activeForm ?? 'login');
         <div class="auth-card card">
             <?php if ($errorMessage): ?>
                 <div class="auth-alert auth-alert--error"><?= esc($errorMessage) ?></div>
+            <?php endif; ?>
+            <?php if ($successMessage): ?>
+                <div class="auth-alert auth-alert--success"><?= esc($successMessage) ?></div>
             <?php endif; ?>
 
             <section class="auth-pane<?= $activeForm === 'login' ? ' is-active' : '' ?>" data-auth-pane="login">
@@ -70,6 +74,10 @@ $activeForm = old('form_mode', $activeForm ?? 'login');
                     </label>
 
 
+
+                    <div class="auth-actions">
+                        <a class="auth-link" href="<?= base_url('forgot-password') ?>">¿Olvidaste tu contraseña?</a>
+                    </div>
 
                     <button type="submit" class="auth-submit">Iniciar sesion</button>
                 </form>
