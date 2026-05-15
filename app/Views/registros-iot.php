@@ -270,6 +270,7 @@
 
 <?= $this->section('pageScripts') ?>
 <script>
+    // Control de Imagnes Iso.
 document.addEventListener('DOMContentLoaded', function () {
     const switchers = document.querySelectorAll('[data-section-target]');
     const panes = document.querySelectorAll('[data-section-pane]');
@@ -528,32 +529,70 @@ document.addEventListener('DOMContentLoaded', function () {
         closeDatePickers();
 
         const field = input.closest('.iot-date-field');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const currentYear = today.getFullYear();
+
         const selectedDate = parseIsoDate(input.dataset.iso || toDateInputValue(new Date()));
-        let visibleMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+        let initialMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+        if (initialMonth > currentMonth) initialMonth = new Date(currentMonth);
+
+        // Rango actualmente seleccionado en el panel (Dia / Semana / Mes). Lo usamos
+        // para resaltar en el calendario todos los dias que abarca la seleccion.
+        const rangeSelect = panel.querySelector('[data-iot-range-select]');
+        const rangeValue = rangeSelect ? rangeSelect.value : 'day';
+        const rangeLength = getRangeLength(rangeValue);
+        const rangeStart = new Date(selectedDate);
+        rangeStart.setHours(0, 0, 0, 0);
+        const rangeEnd = new Date(rangeStart);
+        rangeEnd.setDate(rangeStart.getDate() + rangeLength - 1);
+
+        const YEARS_PER_PAGE = 12;
+        const INITIAL_MONTH_COUNT = 18;
+        const LAZY_LOAD_BATCH = 12;
+        const LAZY_LOAD_THRESHOLD_PX = 320;
+
+        let viewMode = 'days';
+        let yearPageStart = Math.floor(initialMonth.getFullYear() / YEARS_PER_PAGE) * YEARS_PER_PAGE;
+        // Mes "actualmente visible" segun la posicion de scroll. Se actualiza en el handler de scroll.
+        let visibleMonth = new Date(initialMonth);
+
         const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
         const dayNames = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'];
         const picker = document.createElement('div');
         picker.className = 'iot-calendar';
 
-        function draw() {
-            const firstDay = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1);
+        function isSameMonth(a, b) {
+            return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+        }
+
+        function monthKey(d) {
+            return d.getFullYear() + '-' + String(d.getMonth()).padStart(2, '0');
+        }
+
+        function parseMonthKey(key) {
+            const parts = key.split('-');
+            return new Date(Number(parts[0]), Number(parts[1]), 1);
+        }
+
+        function buildMonthSection(monthDate) {
+            const section = document.createElement('section');
+            section.className = 'iot-calendar__month';
+            section.dataset.monthKey = monthKey(monthDate);
+
+            const label = document.createElement('div');
+            label.className = 'iot-calendar__month-label';
+            label.textContent = monthNames[monthDate.getMonth()] + ' ' + monthDate.getFullYear();
+            section.appendChild(label);
+
+            const days = document.createElement('div');
+            days.className = 'iot-calendar__days';
+
+            const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
             const gridStart = new Date(firstDay);
             gridStart.setDate(firstDay.getDate() - firstDay.getDay());
             const selectedIso = input.dataset.iso;
-
-            picker.innerHTML = [
-                '<div class="iot-calendar__head">',
-                    '<button type="button" class="iot-calendar__nav" data-calendar-prev aria-label="Mes anterior">&lsaquo;</button>',
-                    '<strong>' + monthNames[visibleMonth.getMonth()] + ' ' + visibleMonth.getFullYear() + '</strong>',
-                    '<button type="button" class="iot-calendar__nav" data-calendar-next aria-label="Mes siguiente">&rsaquo;</button>',
-                '</div>',
-                '<div class="iot-calendar__weekdays">' + dayNames.map(function (day) {
-                    return '<span>' + day + '</span>';
-                }).join('') + '</div>',
-                '<div class="iot-calendar__days"></div>',
-            ].join('');
-
-            const days = picker.querySelector('.iot-calendar__days');
 
             for (let index = 0; index < 42; index++) {
                 const date = new Date(gridStart);
@@ -565,36 +604,255 @@ document.addEventListener('DOMContentLoaded', function () {
                 button.textContent = String(date.getDate());
                 button.dataset.iso = iso;
 
-                if (date.getMonth() !== visibleMonth.getMonth()) {
+                if (date.getMonth() !== monthDate.getMonth()) {
                     button.classList.add('is-muted');
                 }
-
                 if (iso === selectedIso) {
                     button.classList.add('is-selected');
                 }
-
+                if (rangeLength > 1 && date >= rangeStart && date <= rangeEnd) {
+                    button.classList.add('is-in-range');
+                    if (date.getTime() === rangeStart.getTime()) {
+                        button.classList.add('is-range-start');
+                    }
+                    if (date.getTime() === rangeEnd.getTime()) {
+                        button.classList.add('is-range-end');
+                    }
+                }
+                if (date > today) {
+                    button.classList.add('is-disabled');
+                    button.disabled = true;
+                }
                 days.appendChild(button);
+            }
+
+            section.appendChild(days);
+            return section;
+        }
+
+        function appendOlderMonths(scroll, count) {
+            const lastSection = scroll.lastElementChild;
+            if (! lastSection) return;
+            let last = parseMonthKey(lastSection.dataset.monthKey);
+            for (let i = 0; i < count; i++) {
+                last = new Date(last.getFullYear(), last.getMonth() - 1, 1);
+                scroll.appendChild(buildMonthSection(last));
+            }
+        }
+
+        function ensureMonthLoaded(scroll, target) {
+            let guard = 0;
+            while (guard++ < 240) {
+                const lastSection = scroll.lastElementChild;
+                if (! lastSection) return;
+                const last = parseMonthKey(lastSection.dataset.monthKey);
+                if (target >= last) return;
+                appendOlderMonths(scroll, LAZY_LOAD_BATCH);
+            }
+        }
+
+        function scrollToMonth(scroll, target, smooth) {
+            ensureMonthLoaded(scroll, target);
+            const node = scroll.querySelector('[data-month-key="' + monthKey(target) + '"]');
+            if (! node) return;
+            const top = node.offsetTop;
+            if (smooth) {
+                scroll.scrollTo({ top: top, behavior: 'smooth' });
+            } else {
+                scroll.scrollTop = top;
+            }
+        }
+
+        function updateTitle() {
+            const titleBtn = picker.querySelector('[data-calendar-year-view]');
+            if (titleBtn) {
+                titleBtn.textContent = monthNames[visibleMonth.getMonth()] + ' ' + visibleMonth.getFullYear();
+            }
+            const nextBtn = picker.querySelector('[data-calendar-next]');
+            if (nextBtn) {
+                const atCurrent = isSameMonth(visibleMonth, currentMonth);
+                if (atCurrent) {
+                    nextBtn.setAttribute('disabled', '');
+                    nextBtn.setAttribute('aria-disabled', 'true');
+                } else {
+                    nextBtn.removeAttribute('disabled');
+                    nextBtn.setAttribute('aria-disabled', 'false');
+                }
+            }
+        }
+
+        function updateVisibleMonthFromScroll(scroll) {
+            // Mes "dominante" = el que contiene la linea de referencia (25% desde el tope
+            // del viewport del scroll). Asi el cambio de mes en el titulo se siente natural.
+            const scrollRect = scroll.getBoundingClientRect();
+            const referenceY = scrollRect.top + scrollRect.height * 0.25;
+            const sections = scroll.querySelectorAll('.iot-calendar__month');
+            for (let i = 0; i < sections.length; i++) {
+                const rect = sections[i].getBoundingClientRect();
+                if (rect.top <= referenceY && rect.bottom > referenceY) {
+                    const newMonth = parseMonthKey(sections[i].dataset.monthKey);
+                    if (! isSameMonth(newMonth, visibleMonth)) {
+                        visibleMonth = newMonth;
+                        updateTitle();
+                    }
+                    return;
+                }
+            }
+        }
+
+        function renderDaysView() {
+            picker.innerHTML = [
+                '<div class="iot-calendar__head">',
+                    '<button type="button" class="iot-calendar__nav" data-calendar-prev aria-label="Mes anterior">&lsaquo;</button>',
+                    '<button type="button" class="iot-calendar__title" data-calendar-year-view aria-label="Elegir anio"></button>',
+                    '<button type="button" class="iot-calendar__nav" data-calendar-next aria-label="Mes siguiente">&rsaquo;</button>',
+                '</div>',
+                '<div class="iot-calendar__weekdays">' + dayNames.map(function (day) {
+                    return '<span>' + day + '</span>';
+                }).join('') + '</div>',
+                '<div class="iot-calendar__scroll" data-scroll></div>',
+            ].join('');
+
+            const scroll = picker.querySelector('.iot-calendar__scroll');
+
+            // Stack inicial: del mes actual hacia atras (mas reciente arriba, mas viejo abajo).
+            let m = new Date(currentMonth);
+            for (let i = 0; i < INITIAL_MONTH_COUNT; i++) {
+                scroll.appendChild(buildMonthSection(m));
+                m = new Date(m.getFullYear(), m.getMonth() - 1, 1);
+            }
+
+            // Lazy load al acercarse al fondo + tracking del mes visible.
+            let scheduled = false;
+            scroll.addEventListener('scroll', function () {
+                if (scheduled) return;
+                scheduled = true;
+                requestAnimationFrame(function () {
+                    if (scroll.scrollTop + scroll.clientHeight >= scroll.scrollHeight - LAZY_LOAD_THRESHOLD_PX) {
+                        appendOlderMonths(scroll, LAZY_LOAD_BATCH);
+                    }
+                    updateVisibleMonthFromScroll(scroll);
+                    scheduled = false;
+                });
+            }, { passive: true });
+
+            updateTitle();
+            ensureMonthLoaded(scroll, visibleMonth);
+            // Posicion inicial sin animacion: alinea el mes seleccionado/actual al tope.
+            const initialNode = scroll.querySelector('[data-month-key="' + monthKey(visibleMonth) + '"]');
+            if (initialNode) {
+                scroll.scrollTop = initialNode.offsetTop;
+            }
+        }
+
+        function renderYearsView() {
+            const lastYearOfPage = yearPageStart + YEARS_PER_PAGE - 1;
+            const canGoNext = lastYearOfPage < currentYear;
+            const nextDisabledAttr = canGoNext ? '' : ' disabled aria-disabled="true"';
+            const referenceYear = visibleMonth.getFullYear();
+
+            picker.innerHTML = [
+                '<div class="iot-calendar__head">',
+                    '<button type="button" class="iot-calendar__nav" data-calendar-year-prev aria-label="Anios anteriores">&lsaquo;</button>',
+                    '<strong class="iot-calendar__title iot-calendar__title--static">' + yearPageStart + ' - ' + lastYearOfPage + '</strong>',
+                    '<button type="button" class="iot-calendar__nav" data-calendar-year-next' + nextDisabledAttr + ' aria-label="Anios siguientes">&rsaquo;</button>',
+                '</div>',
+                '<div class="iot-calendar__years"></div>',
+            ].join('');
+
+            const yearsGrid = picker.querySelector('.iot-calendar__years');
+            for (let offset = 0; offset < YEARS_PER_PAGE; offset++) {
+                const year = yearPageStart + offset;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'iot-calendar__year';
+                button.textContent = String(year);
+                button.dataset.year = String(year);
+                if (year === referenceYear) button.classList.add('is-selected');
+                if (year > currentYear) {
+                    button.classList.add('is-disabled');
+                    button.disabled = true;
+                }
+                yearsGrid.appendChild(button);
+            }
+        }
+
+        function draw(direction) {
+            if (viewMode === 'years') {
+                renderYearsView();
+            } else {
+                renderDaysView();
+            }
+            if (direction) {
+                picker.classList.remove('is-anim-forward', 'is-anim-backward');
+                void picker.offsetWidth;
+                picker.classList.add(direction === 'forward' ? 'is-anim-forward' : 'is-anim-backward');
             }
         }
 
         picker.addEventListener('click', function (event) {
+            // El handler global de "click fuera" usa closest('.iot-calendar') sobre event.target.
+            // Cortamos la propagacion aca por las dudas: ciertos re-renders detachan el target
+            // del DOM y el handler global lo confunde con un click externo.
+            event.stopPropagation();
+
             const previous = event.target.closest('[data-calendar-prev]');
-            const next = event.target.closest('[data-calendar-next]');
-            const day = event.target.closest('.iot-calendar__day');
-
             if (previous) {
-                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
-                draw();
+                if (previous.hasAttribute('disabled')) return;
+                const target = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
+                const scroll = picker.querySelector('.iot-calendar__scroll');
+                scrollToMonth(scroll, target, true);
                 return;
             }
 
+            const next = event.target.closest('[data-calendar-next]');
             if (next) {
-                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1);
-                draw();
+                if (next.hasAttribute('disabled')) return;
+                const candidate = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1);
+                if (candidate > currentMonth) return;
+                const scroll = picker.querySelector('.iot-calendar__scroll');
+                scrollToMonth(scroll, candidate, true);
                 return;
             }
 
+            const yearView = event.target.closest('[data-calendar-year-view]');
+            if (yearView) {
+                viewMode = 'years';
+                yearPageStart = Math.floor(visibleMonth.getFullYear() / YEARS_PER_PAGE) * YEARS_PER_PAGE;
+                draw('forward');
+                return;
+            }
+
+            const yearPrev = event.target.closest('[data-calendar-year-prev]');
+            if (yearPrev) {
+                yearPageStart -= YEARS_PER_PAGE;
+                draw('backward');
+                return;
+            }
+
+            const yearNext = event.target.closest('[data-calendar-year-next]');
+            if (yearNext) {
+                if (yearNext.hasAttribute('disabled')) return;
+                yearPageStart += YEARS_PER_PAGE;
+                draw('forward');
+                return;
+            }
+
+            const yearBtn = event.target.closest('.iot-calendar__year');
+            if (yearBtn) {
+                if (yearBtn.disabled) return;
+                const pickedYear = Number(yearBtn.dataset.year);
+                let newMonth = new Date(pickedYear, visibleMonth.getMonth(), 1);
+                if (newMonth > currentMonth) newMonth = new Date(currentMonth);
+                visibleMonth = newMonth;
+                viewMode = 'days';
+                draw('backward');
+                return;
+            }
+
+            const day = event.target.closest('.iot-calendar__day');
             if (day) {
+                if (day.disabled) return;
                 input.dataset.iso = day.dataset.iso;
                 input.value = toDisplayDate(day.dataset.iso);
                 closeDatePickers();

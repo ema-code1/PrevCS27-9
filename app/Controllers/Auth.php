@@ -6,6 +6,7 @@ use App\Models\UserModel;
 
 class Auth extends BaseController
 {
+    //recuperacion de contrasena
     private const RESET_TOKEN_EXPIRATION_SECONDS = 900;
     private const RESET_LINK_SENT_MESSAGE = 'Si el correo existe, se enviara un enlace.';
     private const RESET_LINK_ERROR_MESSAGE = 'No pudimos procesar la solicitud en este momento. Intentalo nuevamente mas tarde.';
@@ -60,6 +61,8 @@ class Auth extends BaseController
     public function register()
     {
         // #region agent log
+        // Crea un playload, convierte a Json y lo añade al archivo log Roothpath. 
+        // Registra mensajes de depuración durante el proceso de registro.
         $debugLog = static function (string $hypothesisId, string $message, array $data = []): void {
             $payload = [
                 'sessionId'    => 'a6e4ca',
@@ -202,6 +205,8 @@ class Auth extends BaseController
         ]);
     }
 
+
+    //recuperacion de contrasena
     public function sendResetLink()
     {
         $rules = [

@@ -63,7 +63,7 @@ $menuDisplayName = session('user_name') ?? 'Usuario';
                             </div>
                         </label>
                     </div>
-                    <a class="user-menu__item" href="#">
+                    <a class="user-menu__item" href="<?= base_url('admin-account') ?>">
                         <span class="user-menu__item-icon" aria-hidden="true">👤</span>
                         <span>Administrar cuenta</span>
                     </a>

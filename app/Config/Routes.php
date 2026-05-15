@@ -18,3 +18,5 @@ $routes->get('forgot-password', 'Auth::forgotPassword');
 $routes->post('forgot-password', 'Auth::sendResetLink');
 $routes->get('reset-password/(:segment)', 'Auth::resetPassword/$1');
 $routes->post('reset-password', 'Auth::updatePassword');
+$routes->get('admin-account', 'Account::index');
+$routes->post('admin-account/update', 'Account::update');
