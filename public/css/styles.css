@@ -734,6 +734,11 @@ body[data-theme="dark"] .app-shell::before {
   color: var(--text-on-card);
 }
 
+.user-menu__item--button {
+  width: 100%;
+  text-align: left;
+}
+
 .user-menu__item:hover {
   background: rgba(94, 127, 188, 0.12);
 }

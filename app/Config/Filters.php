@@ -84,12 +84,12 @@ class Filters extends BaseFilters
                 'reset-password/*',
             ]],
             // 'honeypot',
-            // 'csrf',
+            'csrf',
             // 'invalidchars',
         ],
         'after' => [
             // 'honeypot',
-            // 'secureheaders',
+            'secureheaders',
         ],
     ];
 

@@ -20,7 +20,7 @@
             </article>
             <article class="kpi-card card">
                 <p>MTTO. VENCIDO</p>
-                <strong>8</strong>
+                <strong>18</strong>
             </article>
             <article class="kpi-card card">
                 <p>PROXIMOS MTTO.</p>

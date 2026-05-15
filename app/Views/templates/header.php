@@ -1,7 +1,6 @@
 <?php
 $isLoggedIn = session('isLoggedIn') === true;
 $headerHref = $isLoggedIn ? base_url('principal') : base_url('login');
-$headerLabel = $isLoggedIn ? (session('user_name') ?? 'Usuario') : 'Iniciar sesión';
 $menuDisplayName = session('user_name') ?? 'Usuario';
 ?>
 <header class="topbar">
@@ -68,13 +67,16 @@ $menuDisplayName = session('user_name') ?? 'Usuario';
                         <span>Administrar cuenta</span>
                     </a>
                     <a class="user-menu__item" href="#">
-                        <span class="user-menu__item-icon" aria-hidden="true">❓</span>
+                        <span class="user-menu__item-icon" aria-hidden="true">?</span>
                         <span>Help</span>
                     </a>
-                    <a class="user-menu__item user-menu__item--danger" href="<?= base_url('logout') ?>">
-                        <span class="user-menu__item-icon" aria-hidden="true">⎋</span>
-                        <span>Cerrar sesion</span>
-                    </a>
+                    <form method="post" action="<?= base_url('logout') ?>">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="user-menu__item user-menu__item--danger user-menu__item--button">
+                            <span class="user-menu__item-icon" aria-hidden="true">⎋</span>
+                            <span>Cerrar sesion</span>
+                        </button>
+                    </form>
                 </div>
             </details>
         <?php else: ?>
@@ -114,7 +116,7 @@ $menuDisplayName = session('user_name') ?? 'Usuario';
                         </label>
                     </div>
                     <a class="user-menu__item" href="#">
-                        <span class="user-menu__item-icon" aria-hidden="true">❓</span>
+                        <span class="user-menu__item-icon" aria-hidden="true">?</span>
                         <span>Help</span>
                     </a>
                 </div>
