@@ -5,7 +5,7 @@ namespace App\Filters;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-// ESTA CLASE ES UN FILTRO DE AUTENTICACIÓN QUE VERIFICA SI EL USUARIO ESTÁ LOGUEADO ANTES DE PERMITIR EL ACCESO A CIERTAS RUTAS
+// Clase de Autenticacion. If user logged in, allow access to  requested resource. If not, redirect to login page.
 class AuthGuard implements FilterInterface
 {
     // EL METODO BEFORE SE EJECUTA ANTES DE QUE SE PROCESSE LA SOLICITUD, EN ESTE CASO VERIFICA SI EL USUARIO ESTÁ LOGUEADO

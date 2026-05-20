@@ -72,6 +72,8 @@ class IotReadingRepository
         $this->db = $db ?? Database::connect();
     }
 
+    // Lectura de datos de la db 
+
     public function getSeries(string $metric, DateTimeImmutable $start, DateTimeImmutable $end, string $range): array
     {
         $points = $this->readFromDatabase($metric, $start, $end, $range);

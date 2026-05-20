@@ -48,9 +48,10 @@ class Auth extends BaseController
             return redirect()->to(base_url('login'))
                 ->withInput()
                 ->with('activeForm', 'login')
-                ->with('error', 'Email o contraseña incorrectos.');
+                ->with('error', 'Email o contrasena incorrectos.');
         }
 
+        session()->regenerate(true);
         session()->set([
             'user_id'    => $user['id'],
             'user_name'  => trim($user['nombre'] . ' ' . $user['apellido']),
@@ -63,34 +64,19 @@ class Auth extends BaseController
 
     public function register()
     {
-        // #region agent log
-        $debugLog = static function (string $hypothesisId, string $message, array $data = []): void {
-            $payload = [
-                'sessionId'    => 'a6e4ca',
-                'runId'        => 'reg-register-pre-fix',
-                'hypothesisId' => $hypothesisId,
-                'location'     => 'Auth.php:register',
-                'message'      => $message,
-                'data'         => $data,
-                'timestamp'    => (int) round(microtime(true) * 1000),
-            ];
-            @file_put_contents(ROOTPATH . 'debug-a6e4ca.log', json_encode($payload, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-        };
-        // #endregion
-
         $rules = [
-            'name'              => 'required|min_length[3]|max_length[100]',
-            'email'             => 'required|valid_email|is_unique[users.email]',
-            'password'          => 'required|min_length[6]',
-            'password_confirm'  => 'required|matches[password]',
+            'name'             => 'required|min_length[3]|max_length[100]',
+            'email'            => 'required|valid_email|is_unique[users.email]',
+            'password'         => 'required|min_length[6]',
+            'password_confirm' => 'required|matches[password]',
         ];
 
         $messages = [
             'email' => [
-                'is_unique' => 'Ese email ya está registrado.',
+                'is_unique' => 'Ese email ya esta registrado.',
             ],
             'password_confirm' => [
-                'matches' => 'Las contraseñas no coinciden.',
+                'matches' => 'Las contrasenas no coinciden.',
             ],
         ];
 
@@ -102,20 +88,6 @@ class Auth extends BaseController
         }
 
         $userModel = new UserModel();
-        $columns = [];
-        try {
-            $columnsResult = $userModel->db->query('SHOW COLUMNS FROM users')->getResultArray();
-            $columns = array_map(static fn ($col) => $col['Field'] ?? '', $columnsResult);
-        } catch (\Throwable $e) {
-            $columns = ['show_columns_failed'];
-        }
-
-        // #region agent log
-        $debugLog('H4', 'Users table runtime columns', [
-            'columns' => $columns,
-        ]);
-        // #endregion
-
         $fullName = preg_split('/\s+/', trim((string) $this->request->getPost('name')), 2);
 
         $insertData = [
@@ -125,46 +97,15 @@ class Auth extends BaseController
             'password_hash' => (string) $this->request->getPost('password'),
         ];
 
-        $allowedFields = [];
-        try {
-            $reflection = new \ReflectionClass($userModel);
-            $property = $reflection->getProperty('allowedFields');
-            $property->setAccessible(true);
-            $allowedFields = (array) $property->getValue($userModel);
-        } catch (\Throwable $e) {
-            $allowedFields = ['reflection_failed'];
-        }
-
-        // #region agent log
-        $debugLog('H1', 'Register payload vs model allowed fields', [
-            'insertKeys' => array_keys($insertData),
-            'allowedFields' => $allowedFields,
-        ]);
-        // #endregion
-
         try {
             $insertResult = $userModel->insert($insertData);
-            $dbError = $userModel->db->error();
         } catch (\Throwable $e) {
-            // #region agent log
-            $debugLog('H2', 'Insert threw exception', [
-                'exceptionClass' => get_class($e),
-                'exceptionMessage' => $e->getMessage(),
-            ]);
-            // #endregion
             $insertResult = false;
-            $dbError = ['code' => -1, 'message' => $e->getMessage()];
+            log_message('error', 'Register failed for {email}: {message}', [
+                'email'   => (string) $this->request->getPost('email'),
+                'message' => $e->getMessage(),
+            ]);
         }
-
-        // #region agent log
-        $debugLog('H2', 'Insert result and DB error snapshot', [
-            'insertResult' => $insertResult,
-            'insertId' => $userModel->getInsertID(),
-            'modelErrors' => $userModel->errors(),
-            'dbErrorCode' => $dbError['code'] ?? null,
-            'dbErrorMessage' => $dbError['message'] ?? null,
-        ]);
-        // #endregion
 
         if ($insertResult === false) {
             return redirect()->to(base_url('login'))
@@ -175,13 +116,13 @@ class Auth extends BaseController
 
         $user = $userModel->find($userModel->getInsertID());
 
-        // #region agent log
-        $debugLog('H3', 'Fetched inserted user keys', [
-            'userFound' => $user !== null,
-            'userKeys' => is_array($user) ? array_keys($user) : [],
-        ]);
-        // #endregion
+        if ($user === null) {
+            return redirect()->to(base_url('login'))
+                ->with('activeForm', 'login')
+                ->with('success', 'Cuenta creada correctamente. Inicia sesion para continuar.');
+        }
 
+        session()->regenerate(true);
         session()->set([
             'user_id'    => $user['id'],
             'user_name'  => trim($user['nombre'] . ' ' . $user['apellido']),
@@ -322,8 +263,8 @@ class Auth extends BaseController
     public function updatePassword()
     {
         $rules = [
-            'token'    => 'required',
-            'password' => 'required|min_length[6]',
+            'token'            => 'required',
+            'password'         => 'required|min_length[6]',
             'password_confirm' => 'required|matches[password]',
         ];
 
