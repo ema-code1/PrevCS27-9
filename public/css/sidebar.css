@@ -1,0 +1,211 @@
+/* =====================================================================
+   PrevCS · Sidebar navigation
+   ===================================================================== */
+
+.sidebar {
+  position: sticky;
+  top: calc(var(--header-height) + var(--content-gap));
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-self: start;
+  background: var(--bg-sidebar);
+  color: var(--text-on-sidebar);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hair);
+  width: var(--sidebar-width);
+  transition: width var(--transition-slow), padding var(--transition-slow);
+  overflow: hidden;
+}
+/* Once collapsed, lift overflow:hidden so the footer tooltip can escape
+   the sidebar bounds. The width transition is finished by then. Also bump
+   z-index so the tooltip paints over sibling content (kpi cards, etc) —
+   .sidebar has position:sticky which traps z-index inside its stacking
+   context, so this must live on the sidebar itself. */
+.sidebar.is-collapsed { overflow: visible; z-index: 50; }
+.sidebar.is-collapsed {
+  width: var(--sidebar-width-collapsed);
+  padding: 18px 10px;
+}
+
+body[data-theme="dark"] .sidebar {
+  background: var(--bg-2);
+  border-color: var(--hair);
+}
+
+.sidebar__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+  min-width: 0;
+}
+.sidebar.is-collapsed .sidebar__head {
+  justify-content: center;
+  padding: 0;
+  gap: 0;
+}
+.sidebar__title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--text-on-sidebar) 60%, transparent);
+  font-weight: var(--font-weight-medium);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity var(--transition-fast), max-width var(--transition-slow);
+  max-width: 200px;
+}
+.sidebar.is-collapsed .sidebar__title {
+  opacity: 0;
+  max-width: 0;
+}
+
+/* burger */
+.burger {
+  width: 26px; height: 26px;
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+  flex: 0 0 auto;
+}
+.burger input { position: absolute; inset: 0; opacity: 0; cursor: pointer; padding: 0; border: 0; width: 100%; height: 100%; }
+.burger span {
+  position: absolute;
+  left: 4px; right: 4px;
+  height: 1.5px;
+  background: var(--text-on-sidebar);
+  border-radius: 2px;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
+}
+.burger span:nth-child(2) { top: 8px; }
+.burger span:nth-child(3) { top: 13px; }
+.burger span:nth-child(4) { top: 18px; }
+/* When the menu is EXPANDED (sidebar not collapsed → checkbox unchecked)
+   the burger morphs into an ✕ — clicking it will close the menu.
+   When collapsed, it stays as ☰ — clicking it will open the menu. */
+.burger:not(:has(input:checked)) span:nth-child(2) { transform: translateY(5px) rotate(45deg); }
+.burger:not(:has(input:checked)) span:nth-child(3) { opacity: 0; }
+.burger:not(:has(input:checked)) span:nth-child(4) { transform: translateY(-5px) rotate(-45deg); }
+
+/* nav */
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.menu-link {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: color-mix(in oklab, var(--text-on-sidebar) 80%, transparent);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.menu-link:hover {
+  background: color-mix(in oklab, var(--text-on-sidebar) 8%, transparent);
+  color: var(--text-on-sidebar);
+}
+.menu-link.is-active {
+  background: var(--accent);
+  color: #fff;
+}
+.menu-link.is-active .menu-link__icon { color: #fff; }
+.menu-link__icon {
+  display: inline-grid; place-items: center;
+  width: 22px; height: 22px;
+  color: color-mix(in oklab, var(--text-on-sidebar) 65%, transparent);
+}
+.menu-link__icon svg { width: 18px; height: 18px; }
+.menu-link__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity var(--transition-fast);
+}
+.sidebar.is-collapsed .menu-link__label { opacity: 0; pointer-events: none; }
+/* When collapsed, center the icon column within the link so each icon
+   sits exactly on the sidebar's vertical centerline (matching the burger
+   above). Symmetric padding + justify-content:center kills the 12px
+   left-padding offset that pulled icons left of the burger. The 0-width
+   label column must also have its `gap` zeroed — otherwise the gap
+   still claims 12px of width and pushes the icon off-axis. */
+.sidebar.is-collapsed .menu-link {
+  grid-template-columns: 22px 0fr;
+  justify-content: center;
+  padding: 10px 0;
+  gap: 0;
+}
+
+/* footer slot */
+.sidebar__foot {
+  margin-top: auto;
+  padding: 14px 12px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: color-mix(in oklab, var(--text-on-sidebar) 50%, transparent);
+  border-top: 1px solid color-mix(in oklab, var(--text-on-sidebar) 12%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  position: relative;
+}
+.sidebar__foot > span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity var(--transition-fast), max-width var(--transition-slow);
+  max-width: 200px;
+}
+.sidebar.is-collapsed .sidebar__foot {
+  justify-content: center;
+  padding: 10px 0;
+}
+/* When collapsed, the footer label becomes a tooltip on hover.
+   We pull the label out of layout (max-width:0) and re-render it absolutely
+   on hover/focus so it doesn't crowd the dot. */
+.sidebar.is-collapsed .sidebar__foot > span:last-child {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translate(-4px, -50%);
+  max-width: none;
+  padding: 6px 10px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  z-index: 50;
+}
+.sidebar.is-collapsed .sidebar__foot:hover > span:last-child,
+.sidebar.is-collapsed .sidebar__foot:focus-within > span:last-child {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    position: relative;
+    top: 0;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+  }
+  .sidebar__head { display: none; }
+  .sidebar__nav { flex-direction: row; }
+  .menu-link__label { display: none; }
+  .menu-link { padding: 8px 10px; }
+}

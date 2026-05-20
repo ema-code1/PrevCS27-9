@@ -1,5 +1,9 @@
 <?= $this->extend('templates/layout') ?>
 
+<?= $this->section('pageStyles') ?>
+<link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
+<?= $this->endSection() ?>
+
 <?= $this->section('content') ?>
 <main class="page page--dashboard">
     <?= $this->include('templates/sidebar') ?>
@@ -11,39 +15,47 @@
                 <h1>Dashboard</h1>
                 <p class="dashboard-head__text">Resumen general de planta para decision operativa en tiempo real.</p>
             </div>
+            <div class="dashboard-head__meta">
+                <span class="badge badge--success"><span class="dot dot--live"></span> live</span>
+            </div>
         </header>
 
         <section class="kpi-grid">
             <article class="kpi-card card">
-                <p>TOTAL ELEMENTOS</p>
+                <p>Total elementos</p>
                 <strong>128</strong>
+                <small class="text-muted mono">↗ 4 esta semana</small>
             </article>
             <article class="kpi-card card">
-                <p>MTTO. VENCIDO</p>
-                <strong>8</strong>
+                <p>Mtto. vencido</p>
+                <strong class="text-crit">8</strong>
+                <small class="text-muted mono">requieren atencion</small>
             </article>
             <article class="kpi-card card">
-                <p>PROXIMOS MTTO.</p>
+                <p>Proximos mtto.</p>
                 <strong>21</strong>
+                <small class="text-muted mono">siguientes 30 dias</small>
             </article>
             <article class="kpi-card card">
-                <p>ALERTAS IOT</p>
-                <strong>4</strong>
+                <p>Alertas IoT</p>
+                <strong class="text-warn">4</strong>
+                <small class="text-muted mono">2 criticas</small>
             </article>
             <article class="kpi-card card">
-                <p>GASTO TOTAL MTTO.</p>
+                <p>Gasto total mtto.</p>
                 <strong>$65.0k</strong>
+                <small class="text-up mono">▼ 4.6% vs mes ant.</small>
             </article>
         </section>
 
-        <div class="section-switch card" role="tablist" aria-label="Secciones principales">
+        <div class="section-switch" role="tablist" aria-label="Secciones principales">
             <label class="section-switch__radio" role="tab" aria-selected="true">
                 <input type="radio" name="section-switch" value="principal" data-section-target="principal" checked>
                 <span class="section-switch__name">Principal</span>
             </label>
             <label class="section-switch__radio" role="tab" aria-selected="false">
                 <input type="radio" name="section-switch" value="graficos" data-section-target="graficos">
-                <span class="section-switch__name">Gráficos</span>
+                <span class="section-switch__name">Graficos</span>
             </label>
             <label class="section-switch__radio" role="tab" aria-selected="false">
                 <input type="radio" name="section-switch" value="lista" data-section-target="lista">
@@ -59,9 +71,9 @@
                         <span class="badge badge--error">8 vencidos</span>
                     </div>
                     <div class="event-list">
-                        <article class="event-item"><span class="dot dot--error"></span><strong>Prensa Hidraulica</strong><small>MAQ-001</small><span class="chip chip--danger">Vencido</span></article>
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Prensa hidraulica</strong><small>MAQ-001</small><span class="chip chip--danger">Vencido</span></article>
                         <article class="event-item"><span class="dot dot--error"></span><strong>Centrifuga secundaria</strong><small>MAQ-002</small><span class="chip chip--danger">Vencido</span></article>
-                        <article class="event-item"><span class="dot dot--error"></span><strong>Caldera Industrial</strong><small>MAQ-003</small><span class="chip chip--danger">Vencido</span></article>
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Caldera industrial</strong><small>MAQ-003</small><span class="chip chip--danger">Vencido</span></article>
                         <article class="event-item"><span class="dot dot--error"></span><strong>Taladro banco</strong><small>HER-881</small><span class="chip chip--danger">Vencido</span></article>
                     </div>
                 </section>
@@ -72,10 +84,10 @@
                         <span class="badge badge--info">Actualizado</span>
                     </div>
                     <div class="event-list event-list--activity">
-                        <article class="event-item"><span class="dot dot--error"></span><strong>Reemplazo de rodamiento</strong><small>Centrifuga 2024-12-18</small><span>$2800</span></article>
-                        <article class="event-item"><span class="dot dot--error"></span><strong>Falla en sistema hidraulico</strong><small>Autoelevador 2024-11-28</small><span>$5500</span></article>
-                        <article class="event-item"><span class="dot dot--success"></span><strong>Cambio de aceite</strong><small>Prensa principal 2024-11-15</small><span>$1200</span></article>
-                        <article class="event-item"><span class="dot dot--success"></span><strong>Limpieza de tubos</strong><small>Caldera industrial 2024-10-01</small><span>$2200</span></article>
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Reemplazo de rodamiento</strong><small>Centrifuga · 2024-12-18</small><span class="mono">$2.800</span></article>
+                        <article class="event-item"><span class="dot dot--error"></span><strong>Falla sistema hidraulico</strong><small>Autoelevador · 2024-11-28</small><span class="mono">$5.500</span></article>
+                        <article class="event-item"><span class="dot dot--success"></span><strong>Cambio de aceite</strong><small>Prensa principal · 2024-11-15</small><span class="mono">$1.200</span></article>
+                        <article class="event-item"><span class="dot dot--success"></span><strong>Limpieza de tubos</strong><small>Caldera industrial · 2024-10-01</small><span class="mono">$2.200</span></article>
                     </div>
                 </section>
 
@@ -123,10 +135,7 @@
                         <span class="badge badge--info">7 dias</span>
                     </div>
                     <div class="chart-lines" aria-hidden="true">
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                        <span></span>
+                        <span></span><span></span><span></span><span></span>
                     </div>
                     <div class="chart-area" aria-hidden="true">
                         <span class="chart-area__fill"></span>
@@ -198,27 +207,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function activatePane(target) {
-        const nextPane = Array.from(panes).find((pane) => pane.dataset.sectionPane === target);
-        const activePane = Array.from(panes).find((pane) => pane.classList.contains('is-active'));
+        const nextPane  = Array.from(panes).find((p) => p.dataset.sectionPane === target);
+        const activePane = Array.from(panes).find((p) => p.classList.contains('is-active'));
 
         updateSwitchState(target);
-
-        if (!nextPane || activePane === nextPane) {
-            return;
-        }
+        if (!nextPane || activePane === nextPane) return;
 
         if (paneTransitionTimer) {
             clearTimeout(paneTransitionTimer);
-            panes.forEach((pane) => pane.classList.remove('is-exiting'));
+            panes.forEach((p) => p.classList.remove('is-exiting'));
         }
-
-        if (!activePane) {
-            nextPane.classList.add('is-active');
-            return;
-        }
+        if (!activePane) { nextPane.classList.add('is-active'); return; }
 
         activePane.classList.add('is-exiting');
-
         paneTransitionTimer = window.setTimeout(() => {
             activePane.classList.remove('is-active', 'is-exiting');
             nextPane.classList.add('is-active');

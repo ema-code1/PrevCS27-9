@@ -1,14 +1,12 @@
 <?php
 $activeMenu = $activeMenu ?? 'panel';
 ?>
-<aside class="sidebar card card--dark" data-sidebar>
+<aside class="sidebar" data-sidebar>
     <div class="sidebar__head">
         <h2 class="sidebar__title">Navegacion</h2>
         <label class="burger sidebar__toggle" for="burger">
             <input type="checkbox" id="burger" data-sidebar-toggle aria-label="Contraer menu lateral">
-            <span></span>
-            <span></span>
-            <span></span>
+            <span></span><span></span><span></span>
         </label>
     </div>
 
@@ -60,4 +58,9 @@ $activeMenu = $activeMenu ?? 'panel';
             <span class="menu-link__label">Crear OT</span>
         </a>
     </nav>
+
+    <div class="sidebar__foot" aria-hidden="true">
+        <span class="dot dot--live"></span>
+        <span>ESP32 · online</span>
+    </div>
 </aside>

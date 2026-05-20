@@ -1,0 +1,136 @@
+/* =====================================================================
+   PrevCS · Dashboard (principal.php)
+   ===================================================================== */
+
+.page--dashboard .content-area { gap: var(--content-gap); }
+
+/* ─── Dashboard grid (Urgencias / Actividad / Gastos / Resumen) ── */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--content-gap);
+}
+.panel--urgencias { grid-column: span 1; }
+.panel--actividad { grid-column: span 1; }
+.panel--gastos    { grid-column: span 1; }
+.panel--full      { grid-column: 1 / -1; }
+
+@media (max-width: 1100px) {
+  .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+  .panel--gastos { grid-column: 1 / -1; }
+}
+@media (max-width: 700px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .panel--urgencias, .panel--actividad, .panel--gastos { grid-column: 1 / -1; }
+}
+
+/* event-item refinements for dashboard */
+.event-list--activity .event-item {
+  grid-template-columns: 10px 1fr auto;
+}
+.event-item .chip { font-size: 11px; padding: 3px 8px; }
+
+/* ─── Analytics grid (Tendencia / Distribucion) ──────────────── */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--content-gap);
+}
+.chart-card--large { min-height: 360px; }
+.chart-card { min-height: 320px; position: relative; overflow: hidden; }
+
+.chart-lines {
+  position: relative;
+  height: 4px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 6px 0 18px;
+}
+.chart-lines span {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
+  opacity: .8;
+}
+.chart-lines span:nth-child(1) { opacity: .95; }
+.chart-lines span:nth-child(2) { opacity: .8;  background: var(--success); }
+.chart-lines span:nth-child(3) { opacity: .65; background: var(--warning); }
+.chart-lines span:nth-child(4) { opacity: .5;  background: var(--error); }
+
+.chart-area {
+  position: relative;
+  height: 220px;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(to top, var(--hair) 1px, transparent 1px) 0 0 / 100% 25%,
+    linear-gradient(to right, var(--hair) 1px, transparent 1px) 0 0 / 25% 100%;
+  background-color: var(--bg-card-soft);
+  overflow: hidden;
+}
+.chart-area__fill {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 65%;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--accent) 25%, transparent) 0%, transparent 90%);
+  clip-path: polygon(
+    0 80%, 8% 70%, 16% 75%, 24% 55%, 32% 65%, 40% 45%, 48% 55%, 56% 32%,
+    64% 42%, 72% 25%, 80% 35%, 88% 18%, 100% 30%, 100% 100%, 0 100%
+  );
+}
+.chart-area::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 65%;
+  background:
+    radial-gradient(circle at 56% 32%, var(--accent) 0 4px, transparent 5px);
+}
+
+.donut-chart {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      var(--accent) 0 38%,
+      var(--success) 38% 64%,
+      var(--warning) 64% 82%,
+      var(--error)   82% 100%
+    );
+  position: relative;
+  margin: auto;
+}
+.donut-chart::before {
+  content: "";
+  position: absolute; inset: 22%;
+  border-radius: 50%;
+  background: var(--bg-card);
+}
+
+@media (max-width: 900px) { .analytics-grid { grid-template-columns: 1fr; } }
+
+/* ─── List table (lista de elementos) ────────────────────── */
+.list-card { gap: 10px; }
+.list-table { display: flex; flex-direction: column; gap: 4px; }
+.list-row {
+  display: grid;
+  grid-template-columns: 12px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card-soft);
+  font-size: 13.5px;
+  transition: background var(--transition-fast);
+}
+.list-row:hover { background: var(--hair); }
+.list-row span:not(.list-row__status) { color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
+.list-row__status {
+  width: 8px; height: 8px;
+  border-radius: 999px;
+  background: var(--text-faint);
+}
+.list-row__status.is-ok    { background: var(--success); box-shadow: 0 0 0 3px var(--success-soft); }
+.list-row__status.is-warn  { background: var(--warning); box-shadow: 0 0 0 3px var(--warning-soft); }
+.list-row__status.is-alert { background: var(--error);   box-shadow: 0 0 0 3px var(--error-soft); }

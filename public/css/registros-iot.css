@@ -1,0 +1,592 @@
+/* =====================================================================
+   PrevCS · Registros IoT (registros-iot.php)
+   Vibration / RPM / Temperature monitors with line chart + motor render.
+   ===================================================================== */
+
+.page--iot .content-area { gap: var(--content-gap); }
+
+/* ─── IoT grid: chart left, side stack right ──────────────── */
+.iot-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 1fr);
+  gap: var(--content-gap);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .iot-grid { grid-template-columns: 1fr; }
+}
+
+.iot-chart-card {
+  min-height: 480px;
+  position: relative;
+}
+
+/* date controls */
+.iot-date-controls {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.9fr) minmax(140px, 1.1fr) minmax(140px, 1.1fr);
+  gap: 12px;
+  align-items: stretch;
+  padding: 12px 0 14px;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+}
+.iot-date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  position: relative;
+}
+.iot-date-field > span {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* ─── Picker buttons (Rango / Desde / Hasta) ────────────── */
+.iot-pkr-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg-card-soft);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.iot-pkr-btn:hover { border-color: var(--hair-2); }
+.iot-pkr-btn:focus-visible,
+.iot-pkr-btn[aria-expanded="true"] {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.iot-pkr-btn--date { font-family: var(--font-mono); font-size: 13px; letter-spacing: -0.01em; }
+.iot-pkr-btn--readonly {
+  cursor: default;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: -0.01em;
+}
+.iot-pkr-btn--readonly:hover { border-color: var(--hair); }
+.iot-pkr-caret {
+  width: 11px;
+  height: 7px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+.iot-pkr-btn[aria-expanded="true"] .iot-pkr-caret { transform: rotate(180deg); color: var(--accent); }
+
+/* ─── Range dropdown menu ───────────────────────────────── */
+.iot-range-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 100%;
+  width: max-content;
+  padding: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: pkrPop 0.13s cubic-bezier(.2,.7,.2,1);
+}
+.iot-range-menu[hidden] { display: none !important; }
+@keyframes pkrPop {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+.iot-range-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px 9px 10px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+  transition: background var(--transition-fast);
+}
+.iot-range-opt:hover { background: var(--bg-card-soft); }
+.iot-range-opt.is-selected { color: var(--accent); }
+.iot-range-opt__check {
+  width: 13px;
+  height: 13px;
+  color: var(--accent);
+  flex-shrink: 0;
+  opacity: 0;
+}
+.iot-range-opt.is-selected .iot-range-opt__check { opacity: 1; }
+
+/* ─── Line chart ──────────────────────────────────────── */
+.iot-chart {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 6px;
+  position: relative;
+}
+.iot-line-chart {
+  width: 100%; height: 100%; overflow: visible;
+}
+.iot-line-chart__grid line {
+  stroke: var(--hair);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+.iot-line-chart__axis text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  fill: var(--text-muted);
+}
+.iot-line-chart__stroke {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  filter: drop-shadow(0 6px 12px var(--accent-soft));
+}
+.iot-line-chart__points circle {
+  fill: var(--accent);
+  stroke: var(--bg-card);
+  stroke-width: 2;
+}
+.iot-line-chart__points circle.is-warn { fill: var(--warning); }
+.iot-line-chart__points circle.is-error { fill: var(--error); }
+.iot-line-chart__labels text {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  fill: var(--text-muted);
+  text-anchor: middle;
+}
+
+/* status-specific chart color */
+.iot-chart-card[data-state="warn"] .iot-line-chart__stroke { stroke: var(--warning); filter: drop-shadow(0 6px 12px var(--warning-soft)); }
+.iot-chart-card[data-state="error"] .iot-line-chart__stroke { stroke: var(--error);   filter: drop-shadow(0 6px 12px var(--error-soft)); }
+
+/* ─── Side stack (status control + motor render) ────── */
+.iot-side-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+.iot-control-card .panel__header h3 { font-size: 16px; }
+.iot-status-control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+.iot-status-control > span {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+/* ─── Custom select widget (Rango y Estado del motor) ────── */
+/* El <select> nativo queda invisible (preservando semantica/forms),
+   y se reemplaza visualmente por un boton + dropdown estilizado. */
+.iot-select-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+.iot-select-wrapper .iot-status-select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Si el JS no se ejecuto, mostramos el select nativo decentemente */
+.iot-status-select:not(.iot-select-wrapper .iot-status-select) {
+  display: block;
+  width: 100%;
+  padding: 11px 36px 11px 14px;
+  background-color: var(--bg-card-soft);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7' fill='none'><path d='M1 1l4.5 4.5L10 1' stroke='%236B6E74' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 11px 7px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* boton visible que reemplaza al select */
+.iot-select-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg-card-soft);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color var(--transition-normal),
+    background var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+.iot-select-btn:hover { border-color: var(--hair-2); }
+.iot-select-btn:focus-visible,
+.iot-select-btn[aria-expanded="true"] {
+  outline: none;
+  border-color: color-mix(in oklab, var(--accent) 65%, var(--hair-2));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 14%, transparent);
+}
+.iot-select-btn__label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.iot-select-btn__caret {
+  width: 11px; height: 7px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform var(--transition-normal), color var(--transition-normal);
+}
+.iot-select-btn[aria-expanded="true"] .iot-select-btn__caret {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+/* Dropdown estilizado */
+.iot-select-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  min-width: 100%;
+  width: max-content;
+  max-width: min(360px, calc(100vw - 32px));
+  padding: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transform-origin: top left;
+  animation: iotSelectMenuPop 160ms cubic-bezier(.2,.7,.2,1);
+}
+.iot-select-menu[hidden] { display: none !important; }
+@keyframes iotSelectMenuPop {
+  from { opacity: 0; transform: translateY(-6px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+.iot-select-opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px 9px 10px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.iot-select-opt:hover { background: var(--bg-card-soft); }
+.iot-select-opt:focus-visible {
+  outline: none;
+  background: var(--bg-card-soft);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--accent) 22%, transparent);
+}
+.iot-select-opt.is-selected { color: var(--accent); }
+.iot-select-opt__check {
+  width: 13px;
+  height: 13px;
+  color: var(--accent);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+.iot-select-opt.is-selected .iot-select-opt__check { opacity: 1; }
+
+/* Fecha (input readonly clickeable que abre el calendario) */
+.iot-date-input {
+  width: 100%;
+  padding: 11px 36px 11px 14px;
+  background-color: var(--bg-card-soft);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236B6E74' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='5' width='18' height='16' rx='2'/><line x1='3' y1='9' x2='21' y2='9'/><line x1='8' y1='3' x2='8' y2='7'/><line x1='16' y1='3' x2='16' y2='7'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color var(--transition-normal),
+    background-color var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+.iot-date-input:hover { border-color: var(--hair-2); }
+.iot-date-input:focus {
+  outline: none;
+  border-color: color-mix(in oklab, var(--accent) 65%, var(--hair-2));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 14%, transparent);
+}
+.iot-date-input::placeholder { color: var(--text-faint); }
+
+/* "Hasta" se autocalcula a partir de "Desde" + Rango, no es seleccionable manualmente */
+.iot-date-input[data-iot-end-date] {
+  cursor: default;
+  color: var(--text-muted);
+  background-image: none;
+  padding-right: 14px;
+}
+.iot-date-input[data-iot-end-date]:hover { border-color: var(--hair); }
+
+/* motor render */
+.iot-status-card {
+  align-items: center;
+  text-align: center;
+  padding: 14px;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 30%, var(--accent-soft) 0%, transparent 60%),
+    var(--bg-card);
+  position: relative;
+  overflow: hidden;
+}
+.iot-status-card[data-state="warn"] {
+  background:
+    radial-gradient(circle at 50% 30%, var(--warning-soft) 0%, transparent 60%),
+    var(--bg-card);
+}
+.iot-status-card[data-state="error"] {
+  background:
+    radial-gradient(circle at 50% 30%, var(--error-soft) 0%, transparent 60%),
+    var(--bg-card);
+}
+.iot-illustration {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+}
+.iot-illustration__image {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 24px rgba(11,12,14,.15));
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+}
+body[data-theme="dark"] .iot-illustration__image { filter: drop-shadow(0 12px 32px rgba(0,0,0,.6)); }
+.iot-illustration--vibration .iot-illustration__image { animation: vibrate 0.25s ease-in-out infinite; }
+.iot-status-card[data-state="ok"] .iot-illustration--vibration .iot-illustration__image { animation: none; }
+@keyframes vibrate {
+  0%, 100% { transform: translate(0, 0); }
+  25%      { transform: translate(-1.5px, 1px); }
+  50%      { transform: translate(1.5px, -1px); }
+  75%      { transform: translate(-1px, -1.5px); }
+}
+
+/* fallback iso placeholder when image fails */
+.iot-illustration__placeholder {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, color-mix(in oklab, var(--text-primary) 20%, transparent), transparent 70%),
+    repeating-linear-gradient(135deg, var(--bg-card-soft) 0 8px, var(--bg-card) 8px 16px);
+  display: grid; place-items: center;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* ─── Calendar (popover) ─────────────────────────────── */
+.iot-calendar {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  width: 288px;
+  max-width: calc(100vw - 32px);
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: pkrPop 0.13s cubic-bezier(.2,.7,.2,1);
+}
+.iot-calendar[hidden] { display: none !important; }
+.iot-calendar__head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 6px;
+}
+.iot-calendar__title {
+  flex: 1;
+  text-align: center;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  cursor: pointer;
+  text-transform: capitalize;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.iot-calendar__title:hover { background: var(--bg-card-soft); border-color: var(--hair); }
+.iot-calendar__nav {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-sm);
+  display: grid; place-items: center;
+  background: none;
+  border: 1px solid var(--hair);
+  color: var(--text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.iot-calendar__nav:hover { background: var(--bg-card-soft); border-color: var(--hair-2); }
+.iot-calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 0 4px;
+}
+.iot-calendar__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.iot-calendar__day {
+  aspect-ratio: 1;
+  display: grid; place-items: center;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.iot-calendar__day:hover:not(.is-selected) { background: var(--bg-card-soft); }
+.iot-calendar__day.is-muted { color: var(--text-faint); font-weight: 400; }
+.iot-calendar__day.is-today { color: var(--accent); font-weight: 600; }
+.iot-calendar__day.is-selected {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.iot-calendar__years {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+.iot-calendar__years[hidden] { display: none !important; }
+.iot-calendar__year {
+  padding: 12px 8px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.iot-calendar__year:hover { background: var(--bg-card-soft); border-color: var(--hair); }
+.iot-calendar__year.is-selected {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.iot-calendar__year.is-current { color: var(--accent); font-weight: 600; }
+.iot-calendar__year.is-selected.is-current { color: #fff; }
+
+/* ─── Responsive ──────────────────────────────────── */
+@media (max-width: 560px) {
+  .iot-date-controls { grid-template-columns: 1fr 1fr; }
+  .iot-date-field--range { grid-column: 1 / -1; }
+  .iot-calendar { left: auto; right: 0; }
+}
+@media (max-width: 380px) {
+  .iot-date-controls { grid-template-columns: 1fr; }
+  .iot-date-field--range { grid-column: auto; }
+}

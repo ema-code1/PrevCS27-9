@@ -17,9 +17,13 @@ class Auth extends BaseController
             return redirect()->to(base_url('principal'));
         }
 
+        // Si la URI fue /register, abrir el tab de registro por defecto
+        $path = trim((string) $this->request->getUri()->getPath(), '/');
+        $defaultForm = str_ends_with($path, 'register') ? 'register' : 'login';
+
         return view('reg-log', [
             'title'      => 'Acceso | Prevention Control System',
-            'activeForm' => session()->getFlashdata('activeForm') ?? 'login',
+            'activeForm' => session()->getFlashdata('activeForm') ?? $defaultForm,
         ]);
     }
 

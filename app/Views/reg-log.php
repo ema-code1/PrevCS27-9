@@ -6,10 +6,11 @@
 
 <?= $this->section('content') ?>
 <?php
-$errors = session('errors') ?? [];
-$errorMessage = session('error');
+$errors         = session('errors') ?? [];
+$errorMessage   = session('error');
 $successMessage = session('success');
-$activeForm = old('form_mode', $activeForm ?? 'login');
+$activeForm     = old('form_mode', $activeForm ?? ($_GET['form'] ?? 'login'));
+if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'; }
 ?>
 <main class="auth-page">
     <section class="auth-panel">
@@ -40,6 +41,7 @@ $activeForm = old('form_mode', $activeForm ?? 'login');
                 <div class="auth-alert auth-alert--success"><?= esc($successMessage) ?></div>
             <?php endif; ?>
 
+            <!-- LOGIN -->
             <section class="auth-pane<?= $activeForm === 'login' ? ' is-active' : '' ?>" data-auth-pane="login">
                 <div class="auth-pane__header">
                     <p class="auth-pane__eyebrow">Acceso rapido</p>
@@ -55,7 +57,7 @@ $activeForm = old('form_mode', $activeForm ?? 'login');
                         <span class="auth-field__label">Email</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">@</span>
-                            <input type="email" name="email" placeholder="Ingresa tu email" value="<?= esc(old('email')) ?>" required>
+                            <input type="email" name="email" placeholder="nombre@empresa.com" value="<?= esc(old('email')) ?>" required>
                         </span>
                         <?php if (isset($errors['email']) && $activeForm === 'login'): ?>
                             <span class="auth-field__error"><?= esc($errors['email']) ?></span>
@@ -73,16 +75,15 @@ $activeForm = old('form_mode', $activeForm ?? 'login');
                         <?php endif; ?>
                     </label>
 
-
-
                     <div class="auth-actions">
-                        <a class="auth-link" href="<?= base_url('forgot-password') ?>">¿Olvidaste tu contraseña?</a>
+                        <a class="auth-link" href="<?= base_url('forgot-password') ?>">¿Olvidaste tu contrasena?</a>
                     </div>
 
                     <button type="submit" class="auth-submit">Iniciar sesion</button>
                 </form>
             </section>
 
+            <!-- REGISTER -->
             <section class="auth-pane<?= $activeForm === 'register' ? ' is-active' : '' ?>" data-auth-pane="register">
                 <div class="auth-pane__header">
                     <p class="auth-pane__eyebrow">Primer ingreso</p>
@@ -142,6 +143,10 @@ $activeForm = old('form_mode', $activeForm ?? 'login');
                 </form>
             </section>
         </div>
+
+        <p class="auth-foot">
+            ¿Necesitas mas info? <a href="<?= base_url('/') ?>">Volver a la pagina principal</a>
+        </p>
     </section>
 </main>
 <?= $this->endSection() ?>
@@ -153,20 +158,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const panes = document.querySelectorAll('[data-auth-pane]');
 
     function activatePane(target) {
-        panes.forEach((pane) => {
-            pane.classList.toggle('is-active', pane.dataset.authPane === target);
-        });
-
-        switchers.forEach((button) => {
-            const isActive = button.dataset.authTarget === target;
-            button.classList.toggle('is-active', isActive);
-            button.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        panes.forEach((p) => p.classList.toggle('is-active', p.dataset.authPane === target));
+        switchers.forEach((b) => {
+            const isActive = b.dataset.authTarget === target;
+            b.classList.toggle('is-active', isActive);
+            b.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
     }
 
-    switchers.forEach((button) => {
-        button.addEventListener('click', () => activatePane(button.dataset.authTarget));
-    });
+    switchers.forEach((b) => b.addEventListener('click', () => activatePane(b.dataset.authTarget)));
+
+    // Read ?form=register on load so the landing CTA opens the right tab
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get('form');
+    if (requested === 'register' || requested === 'login') activatePane(requested);
 });
 </script>
 <?= $this->endSection() ?>

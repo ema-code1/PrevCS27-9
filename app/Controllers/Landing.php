@@ -9,6 +9,7 @@ class Landing extends BaseController
         return view('landing', [
             'title'      => 'Prevention Control System | Plataforma de Mantenimiento',
             'activeMenu' => 'landing',
+            'showHeader' => false,
         ]);
     }
 }
