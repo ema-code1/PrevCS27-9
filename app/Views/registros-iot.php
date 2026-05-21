@@ -332,23 +332,14 @@ document.addEventListener('DOMContentLoaded', function () {
             label.textContent = monthNames[monthDate.getMonth()] + ' ' + monthDate.getFullYear();
             section.appendChild(label);
 
-            const days = document.createElement('div');
-            days.className = 'iot-calendar__days';
+            const daysContainer = document.createElement('div');
+            daysContainer.className = 'iot-calendar__days';
 
             const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
             const gridStart = new Date(firstDay);
             gridStart.setDate(firstDay.getDate() - firstDay.getDay());
             const selectedIso = input.dataset.iso;
-            picker.innerHTML = [
-                '<div class="iot-calendar__head">',
-                    '<button type="button" class="iot-calendar__nav" data-calendar-prev aria-label="Mes anterior">&lsaquo;</button>',
-                    '<strong>' + monthNames[visibleMonth.getMonth()] + ' ' + visibleMonth.getFullYear() + '</strong>',
-                    '<button type="button" class="iot-calendar__nav" data-calendar-next aria-label="Mes siguiente">&rsaquo;</button>',
-                '</div>',
-                '<div class="iot-calendar__weekdays">' + dayNames.map(function (d) { return '<span>' + d + '</span>'; }).join('') + '</div>',
-                '<div class="iot-calendar__days"></div>',
-            ].join('');
-            const days = picker.querySelector('.iot-calendar__days');
+
             for (let i = 0; i < 42; i++) {
                 const date = new Date(gridStart);
                 date.setDate(gridStart.getDate() + i);
@@ -358,12 +349,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 button.className = 'iot-calendar__day';
                 button.textContent = String(date.getDate());
                 button.dataset.iso = iso;
-                if (date.getMonth() !== visibleMonth.getMonth()) button.classList.add('is-muted');
+                if (date.getMonth() !== monthDate.getMonth()) button.classList.add('is-muted');
                 if (iso === selectedIso) button.classList.add('is-selected');
-                days.appendChild(button);
+                daysContainer.appendChild(button);
             }
 
-            section.appendChild(days);
+            section.appendChild(daysContainer);
             return section;
         }
 
@@ -531,11 +522,54 @@ document.addEventListener('DOMContentLoaded', function () {
             // Evitar que el click se propague al <label> contenedor (que reabriria el picker).
             e.stopPropagation();
             e.preventDefault();
-            const previous = e.target.closest('[data-calendar-prev]');
-            const next     = e.target.closest('[data-calendar-next]');
-            const day      = e.target.closest('.iot-calendar__day');
-            if (previous) { visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1); draw(); return; }
-            if (next)     { visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1); draw(); return; }
+            const previous    = e.target.closest('[data-calendar-prev]');
+            const next        = e.target.closest('[data-calendar-next]');
+            const yearViewBtn = e.target.closest('[data-calendar-year-view]');
+            const yearPrev    = e.target.closest('[data-calendar-year-prev]');
+            const yearNext    = e.target.closest('[data-calendar-year-next]');
+            const yearBtn     = e.target.closest('.iot-calendar__year');
+            const day         = e.target.closest('.iot-calendar__day');
+
+            if (previous) {
+                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1);
+                const scroll = picker.querySelector('[data-scroll]');
+                if (scroll) { scrollToMonth(scroll, visibleMonth, true); updateTitle(); }
+                else { draw('backward'); }
+                return;
+            }
+            if (next) {
+                if (isSameMonth(visibleMonth, currentMonth)) return;
+                visibleMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1);
+                const scroll = picker.querySelector('[data-scroll]');
+                if (scroll) { scrollToMonth(scroll, visibleMonth, true); updateTitle(); }
+                else { draw('forward'); }
+                return;
+            }
+            if (yearViewBtn) {
+                viewMode = 'years';
+                yearPageStart = Math.floor(visibleMonth.getFullYear() / YEARS_PER_PAGE) * YEARS_PER_PAGE;
+                draw('forward');
+                return;
+            }
+            if (yearPrev) {
+                yearPageStart -= YEARS_PER_PAGE;
+                renderYearsView();
+                return;
+            }
+            if (yearNext) {
+                if (yearNext.disabled) return;
+                yearPageStart += YEARS_PER_PAGE;
+                renderYearsView();
+                return;
+            }
+            if (yearBtn && !yearBtn.disabled) {
+                const selectedYear = parseInt(yearBtn.dataset.year, 10);
+                visibleMonth = new Date(selectedYear, visibleMonth.getMonth(), 1);
+                if (visibleMonth > currentMonth) visibleMonth = new Date(currentMonth);
+                viewMode = 'days';
+                draw('backward');
+                return;
+            }
             if (day) {
                 if (day.disabled) return;
                 input.dataset.iso = day.dataset.iso;

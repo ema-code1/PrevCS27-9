@@ -36,7 +36,7 @@ $showHeader = false;
 
     <div class="hd-cta">
       <a class="l-btn l-btn--ghost" href="<?= base_url('login') ?>">Iniciar sesion</a>
-      <a class="l-btn l-btn--solid" href="<?= base_url('register') ?>">
+      <a class="l-btn l-btn--solid" href="<?= base_url('reg-log') . '?form=register' ?>">
         Crear cuenta
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
@@ -89,7 +89,7 @@ $showHeader = false;
     </p>
 
     <div class="hero-actions">
-      <a class="l-btn l-btn--solid l-btn--lg" href="<?= base_url('register') ?>">
+      <a class="l-btn l-btn--solid l-btn--lg" href="<?= base_url('reg-log') . '?form=register' ?>">
         Crear cuenta
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
@@ -485,10 +485,31 @@ $showHeader = false;
       for ($pass = 0; $pass < 2; $pass++):
         foreach ($sensors as [$g, $name, $meta, $hero]):
       ?>
-        <article class="sensor-card<?= $hero ? ' sensor-hero' : '' ?>">
-          <span class="s-glyph <?= $hero ? 'mono' : '' ?>"><?= $g ?></span>
+        <?php if ($hero): ?>
+        <article class="sensor-card sensor-hero sensor-hero--esp">
+          <div class="sensor-hero__img-wrap">
+            <img src="<?= base_url('images/esp32.png') ?>" alt="ESP32" class="sensor-hero__img" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+            <span class="sensor-hero__img-fallback" style="display:none">
+              <svg viewBox="0 0 80 80" aria-hidden="true" fill="none">
+                <rect x="18" y="18" width="44" height="44" rx="4" fill="#fff" fill-opacity=".18"/>
+                <rect x="24" y="24" width="32" height="32" rx="2" fill="#fff" fill-opacity=".1" stroke="#fff" stroke-opacity=".3" stroke-width="1"/>
+                <rect x="30" y="30" width="20" height="20" rx="2" fill="#fff" fill-opacity=".85"/>
+                <circle cx="40" cy="40" r="6" fill="#E8202F"/>
+                <circle cx="40" cy="40" r="3.5" fill="#E8202F" stroke="#fff" stroke-width="1"/>
+              </svg>
+            </span>
+          </div>
+          <div>
+            <strong><?= $name ?></strong>
+            <span class="mono"><?= $meta ?></span>
+          </div>
+        </article>
+        <?php else: ?>
+        <article class="sensor-card">
+          <span class="s-glyph"><?= $g ?></span>
           <div><strong><?= $name ?></strong><span class="mono"><?= $meta ?></span></div>
         </article>
+        <?php endif; ?>
       <?php endforeach; endfor; ?>
     </div>
   </div>
@@ -527,7 +548,7 @@ $showHeader = false;
       <div class="rec-block"><h4>Sensores</h4><ul class="rec-list" id="rec-sensors"></ul></div>
       <div class="rec-block"><h4>Plantillas de dashboard</h4><ul class="rec-list" id="rec-templates"></ul></div>
       <div class="rec-block"><h4>Alertas sugeridas</h4><ul class="rec-list" id="rec-alerts"></ul></div>
-      <a class="l-btn l-btn--solid" href="<?= base_url('register') ?>">
+      <a class="l-btn l-btn--solid" href="<?= base_url('reg-log') . '?form=register' ?>">
         Crear cuenta con este set
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
@@ -779,7 +800,7 @@ $showHeader = false;
       ponelo en marcha.
     </p>
     <div class="hero-actions center">
-      <a class="l-btn l-btn--solid l-btn--lg" href="<?= base_url('register') ?>">
+      <a class="l-btn l-btn--solid l-btn--lg" href="<?= base_url('reg-log') . '?form=register' ?>">
         Crear cuenta
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
