@@ -19,7 +19,8 @@
                     <!-- Banner header -->
                     <tr>
                         <td style="background-color:#3D5C26;padding:0;line-height:0;">
-                            <img src="<?= base_url('images/motors_iso/email_password_recover/prevcs-lockup-ivory-1200x300.png') ?>"
+                            <?php /* base_url('images/email_password_recover/prevcs-lockup-ivory-1200x300.png') */ ?>
+                            <img src="https://i.imgur.com/L2kb5bQ.png"
                                  alt="Prevention Control System"
                                  width="600"
                                  style="display:block;width:100%;max-width:600px;height:auto;border:0;">

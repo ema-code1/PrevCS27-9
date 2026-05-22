@@ -5,9 +5,9 @@
     <title>Welcome to CodeIgniter 4!</title>
     <meta name="description" content="The small framework with powerful features">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('images/favicon.png') ?>">
-    <link rel="shortcut icon" href="<?= base_url('images/favicon.png') ?>" type="image/png">
-    <link rel="apple-touch-icon" href="<?= base_url('images/favicon.png') ?>">
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('images/prevcs-favicon-32-32x32.png') ?>">
+    <link rel="shortcut icon" href="<?= base_url('images/prevcs-favicon-32-32x32.png') ?>" type="image/png">
+    <link rel="apple-touch-icon" href="<?= base_url('images/prevcs-favicon-32-32x32.png') ?>">
 
     <!-- STYLES -->
 
