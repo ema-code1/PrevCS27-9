@@ -212,13 +212,8 @@ class Auth extends BaseController
         $emailService->setFrom($fromEmail, $fromName);
         $emailService->setTo($email);
         $emailService->setSubject('Recuperacion de contrasena');
-        $emailService->setMessage(
-            "Hola,<br><br>" .
-            "Recibimos una solicitud para restablecer tu contrasena.<br>" .
-            "Hace clic en el siguiente enlace para continuar:<br>" .
-            '<a href="' . esc($resetLink, 'attr') . '">' . esc($resetLink) . '</a><br><br>' .
-            'Este enlace expira en 15 minutos.'
-        );
+        $emailService->setMailType('html');
+        $emailService->setMessage(view('emails/reset_password', ['resetLink' => $resetLink]));
 
         if (! $emailService->send()) {
             $debug = $emailService->printDebugger(['headers', 'subject']);

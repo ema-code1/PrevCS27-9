@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= esc($title ?? 'PrevCS · Prevention Control System') ?></title>
 
+    <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('images/favicon.png') ?>">
+    <link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('images/favicon.png') ?>">
+    <link rel="shortcut icon" href="<?= base_url('images/favicon.png') ?>" type="image/png">
+    <link rel="apple-touch-icon" href="<?= base_url('images/favicon.png') ?>">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
