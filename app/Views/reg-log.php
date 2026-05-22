@@ -13,6 +13,11 @@ $activeForm     = old('form_mode', $activeForm ?? ($_GET['form'] ?? 'login'));
 if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'; }
 ?>
 <main class="auth-page">
+    <div class="auth-nebula" aria-hidden="true">
+        <div class="auth-nebula__blob"></div>
+        <div class="auth-nebula__blob"></div>
+        <div class="auth-nebula__blob"></div>
+    </div>
     <section class="auth-panel">
         <div class="auth-switch" role="tablist" aria-label="Seleccionar formulario">
             <button

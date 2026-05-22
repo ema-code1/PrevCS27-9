@@ -1,6 +1,6 @@
 <?php
 $isLoggedIn   = session('isLoggedIn') === true;
-$headerHref   = $isLoggedIn ? base_url('principal') : base_url('login');
+$headerHref   = $isLoggedIn ? base_url('principal') : base_url('/');
 $menuDisplay  = session('user_name') ?? 'Usuario';
 ?>
 <header class="topbar">
@@ -83,8 +83,10 @@ $menuDisplay  = session('user_name') ?? 'Usuario';
                 </div>
             </details>
         <?php else: ?>
+            <?php if (!($hideAuthButtons ?? false)): ?>
             <a class="btn btn--secondary topbar-login" href="<?= esc($headerHref) ?>">Iniciar sesion</a>
             <a class="btn btn--primary topbar-login" href="<?= base_url('register') ?>">Crear cuenta</a>
+            <?php endif; ?>
             <details class="user-menu">
                 <summary class="topbar-gear" aria-label="Abrir menu de configuracion">
                     <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>

@@ -22,8 +22,9 @@ class Auth extends BaseController
         $defaultForm = str_ends_with($path, 'register') ? 'register' : 'login';
 
         return view('reg-log', [
-            'title'      => 'Acceso | Prevention Control System',
-            'activeForm' => session()->getFlashdata('activeForm') ?? $defaultForm,
+            'title'           => 'Acceso | Prevention Control System',
+            'activeForm'      => session()->getFlashdata('activeForm') ?? $defaultForm,
+            'hideAuthButtons' => true,
         ]);
     }
 

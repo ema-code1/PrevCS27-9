@@ -25,6 +25,7 @@ $routes->get('register', 'Auth::index');
 $routes->post('login', 'Auth::login');
 $routes->post('register', 'Auth::register');
 $routes->post('logout', 'Auth::logout');
+$routes->get('logout', 'Auth::logout');
 $routes->get('forgot-password', 'Auth::forgotPassword');
 $routes->post('forgot-password', 'Auth::sendResetLink');
 $routes->get('reset-password/(:segment)', 'Auth::resetPassword/$1');
