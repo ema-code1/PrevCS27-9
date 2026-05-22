@@ -76,6 +76,8 @@ class Filters extends BaseFilters
         'before' => [
             'authGuard' => ['except' => [
                 '/',
+                'portfolio',
+                'api/form-metrics',
                 'reg-log',
                 'login',
                 'register',

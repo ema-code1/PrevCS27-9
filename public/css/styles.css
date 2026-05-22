@@ -644,11 +644,43 @@ input:focus, select:focus, textarea:focus {
 [data-reveal][data-delay="3"].in { transition-delay: .24s; }
 [data-reveal][data-delay="4"].in { transition-delay: .32s; }
 
-/* ─────────────────────────────── SCROLLBAR (subtle) ──────── */
+/* ─────────────────────────────── SCROLLBAR (universal) ──────
+   Estilo global, discreto, que reacciona al tema via tokens.
+   Firefox usa scrollbar-width + scrollbar-color (1ª regla).
+   Chromium/Webkit usan ::-webkit-scrollbar* (resto).
+   ─────────────────────────────────────────────────────────── */
+:root {
+  --scrollbar-thumb:        color-mix(in oklab, var(--text-primary) 22%, transparent);
+  --scrollbar-thumb-hover:  color-mix(in oklab, var(--text-primary) 38%, transparent);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
 *::-webkit-scrollbar { width: 10px; height: 10px; }
-*::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb { background: var(--hair-2); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
-*::-webkit-scrollbar-thumb:hover { background: var(--text-faint); background-clip: padding-box; border: 2px solid transparent; }
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color var(--transition-fast);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+/* En mobile / coarse pointer, ocultamos para evitar que el scroll-bar
+   ocupe espacio sobre el contenido. iOS / Android lo manejan nativos. */
+@media (pointer: coarse) {
+  * { scrollbar-width: none; }
+  *::-webkit-scrollbar { display: none; }
+}
 
 /* ─────────────────────────────── HELPERS ─────────────────── */
 .text-up   { color: var(--success); }

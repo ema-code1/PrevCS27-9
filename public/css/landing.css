@@ -1027,3 +1027,226 @@ body[data-theme="dark"] {
   .hdp-metric { width: 180px; right: -8px; }
   .hdp-rec { width: 230px; right: 8px; }
 }
+
+/* =====================================================================
+   Portfolio mega-menu — hover dropdown estilo Apple, glassmorphism
+   ===================================================================== */
+.hd-portfolio {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.hd-portfolio-trigger {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px;
+  line-height: 1;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+.hd-portfolio-trigger:hover { background: var(--accent-soft); color: var(--accent); }
+.hd-portfolio-caret {
+  transition: transform var(--transition-normal);
+  color: currentColor;
+}
+.hd-portfolio:hover .hd-portfolio-trigger { background: var(--accent-soft); color: var(--accent); }
+.hd-portfolio:hover .hd-portfolio-caret { transform: rotate(180deg); }
+
+/* Bridge: invisible hover-strip below trigger so dropdown does not close in the gap */
+.hd-portfolio::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: -20px;
+  right: -20px;
+  height: 18px;
+  pointer-events: auto;
+}
+.hd-portfolio:not(:hover)::before { pointer-events: none; }
+
+.hd-portfolio-mega {
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 50%;
+  transform: translate(-50%, -8px);
+  width: min(760px, 92vw);
+  padding: 18px;
+  border-radius: var(--radius-xl);
+  background: var(--bg-card);
+  border: 1px solid var(--hair);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--transition-normal),
+    transform var(--transition-normal),
+    visibility 0s linear var(--transition-normal);
+  z-index: 100;
+}
+.hd-portfolio:hover .hd-portfolio-mega,
+.hd-portfolio:focus-within .hd-portfolio-mega,
+.hd-portfolio.is-open .hd-portfolio-mega {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+  transition:
+    opacity var(--transition-normal),
+    transform var(--transition-normal),
+    visibility 0s linear 0s;
+}
+
+/* Subtle top arrow (alineado con header) */
+.hd-portfolio-mega::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--hair);
+  border-left: 1px solid var(--hair);
+  border-radius: 2px;
+}
+
+.hpm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 6px 12px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--hair);
+}
+.hpm-eyebrow {
+  display: inline-block;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.hpm-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 12.5px;
+  font-weight: var(--font-weight-medium);
+  background: var(--accent);
+  color: #ffffff !important;
+  white-space: nowrap;
+  transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 6px 16px -8px var(--accent-ring);
+  border: 1px solid transparent;
+}
+.hpm-cta:hover { transform: translateY(-1px); background: var(--accent-hover); box-shadow: 0 10px 22px -10px var(--accent-ring); color: #ffffff !important; }
+.hpm-cta svg { width: 12px; height: 12px; stroke: #ffffff; }
+.hpm-cta:hover svg { stroke: #ffffff; }
+
+.hpm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.hpm-col { display: flex; flex-direction: column; gap: 4px; }
+.hpm-col-label {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  padding: 0 10px 6px;
+}
+
+.hpm-item {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  transition:
+    background var(--transition-fast),
+    transform var(--transition-fast),
+    color var(--transition-fast);
+}
+.hpm-item:hover {
+  background: var(--accent-soft);
+  transform: translateX(2px);
+}
+.hpm-item:hover .hpm-ico { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 25%, transparent); }
+.hpm-item:hover strong { color: var(--accent); }
+.hpm-ico {
+  width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--bg-2);
+  border: 1px solid var(--hair);
+  color: var(--text-secondary);
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+.hpm-ico svg { width: 16px; height: 16px; }
+.hpm-item-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hpm-item-text strong {
+  font-size: 13.5px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.012em;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+.hpm-item-text small {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+.hpm-badge {
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+.hpm-item--active {
+  background: color-mix(in oklab, var(--accent) 6%, transparent);
+}
+.hpm-item--active .hpm-ico { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 25%, transparent); }
+.hpm-item--active strong { color: var(--accent); }
+
+/* Modo oscuro: usa shadow más profunda para destacar la card sobre el fondo */
+body[data-theme="dark"] .hd-portfolio-mega {
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.03) inset,
+    0 24px 60px -18px rgba(0,0,0,.6),
+    0 10px 28px -12px rgba(0,0,0,.45);
+}
+
+/* Tablet: dropdown más estrecho */
+@media (max-width: 1180px) {
+  .hd-portfolio-mega { width: min(720px, 92vw); padding: 18px; }
+  .hpm-item-text small { display: none; }
+  .hpm-item { grid-template-columns: 30px 1fr auto; }
+}
+
+/* Mobile: dropdown se transforma en lista vertical accesible */
+@media (max-width: 980px) {
+  .hd-portfolio { display: none; }
+}
+
+/* Accessibility: si el usuario prefiere menos movimiento */
+@media (prefers-reduced-motion: reduce) {
+  .hd-portfolio-mega { transform: translate(-50%, 0); }
+  .hd-portfolio:hover .hd-portfolio-caret { transform: none; }
+}

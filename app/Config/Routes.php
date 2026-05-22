@@ -6,6 +6,14 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Landing::index');
+$routes->get('portfolio', 'Portfolio::index');
+$routes->get('portfolio.php', 'Portfolio::index');
+
+// Form answers — metrics es publico (consumido por la vista de Portfolio);
+// import esta protegido por AuthGuard global (solo usuarios logueados).
+$routes->get('api/form-metrics', 'FormAnswers::metrics');
+$routes->get('form-answers/import', 'FormAnswers::import');
+
 $routes->get('principal', 'Home::index');
 $routes->get('registros-iot', 'Home::registrosIot');
 $routes->get('admin-account', 'AdminAccount::index');

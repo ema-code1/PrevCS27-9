@@ -25,13 +25,82 @@ $showHeader = false;
     </a>
 
     <nav class="hd-nav" aria-label="Principal">
-      <a href="#funcionalidades">Funcionalidades</a>
-      <a href="#como-funciona">Como funciona</a>
-      <a href="#metricas">Metricas</a>
-      <a href="#sensores">Sensores</a>
-      <a href="#plantillas">Plantillas</a>
-      <a href="#casos">Casos de uso</a>
-      <a href="#contacto">Contacto</a>
+      <a href="<?= base_url() ?>#funcionalidades">Funcionalidades</a>
+      <a href="<?= base_url() ?>#como-funciona">Como funciona</a>
+      <a href="<?= base_url() ?>#metricas">Metricas</a>
+      <a href="<?= base_url() ?>#sensores">Sensores</a>
+      <a href="<?= base_url() ?>#plantillas">Plantillas</a>
+      <a href="<?= base_url() ?>#casos">Casos de uso</a>
+
+      <div class="hd-portfolio" data-portfolio-menu>
+        <a class="hd-portfolio-trigger" href="<?= base_url('portfolio') ?>" aria-haspopup="true" aria-expanded="false">
+          Portfolio
+          <svg class="hd-portfolio-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+            <path d="M2 3.6 5 6.6 8 3.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+
+        <div class="hd-portfolio-mega" role="menu" aria-label="Portfolio">
+          <div class="hpm-grid">
+            <div class="hpm-col">
+              <span class="hpm-col-label mono">Identidad</span>
+              <a class="hpm-item" href="<?= base_url('portfolio') ?>#pagina-principal" role="menuitem">
+                <span class="hpm-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="hpm-item-text"><strong>Pagina principal</strong></span>
+              </a>
+              <a class="hpm-item" href="<?= base_url('portfolio') ?>#quienes-somos" role="menuitem">
+                <span class="hpm-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><circle cx="9" cy="9" r="3" stroke="currentColor" stroke-width="1.5"/><circle cx="17" cy="10" r="2.4" stroke="currentColor" stroke-width="1.5"/><path d="M3 19c1-3 3.5-4.5 6-4.5s5 1.5 6 4.5M14.5 19c.8-2.2 2.5-3.5 4.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+                <span class="hpm-item-text"><strong>Quienes somos</strong></span>
+              </a>
+              <a class="hpm-item" href="<?= base_url('portfolio') ?>#acerca-de-prevcs" role="menuitem">
+                <span class="hpm-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                </span>
+                <span class="hpm-item-text"><strong>Acerca de PrevCS</strong></span>
+              </a>
+            </div>
+
+            <div class="hpm-col">
+              <span class="hpm-col-label mono">Estrategia</span>
+              <a class="hpm-item" href="<?= base_url('portfolio') ?>#imagen-corporativa" role="menuitem">
+                <span class="hpm-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M12 21a9 9 0 1 1 9-9c0 2.5-2 3-4 3h-2a2 2 0 0 0-2 2c0 1.5 1 2-1 4z" stroke="currentColor" stroke-width="1.5"/><circle cx="7.5" cy="11" r="1" fill="currentColor"/><circle cx="11" cy="7.5" r="1" fill="currentColor"/><circle cx="15" cy="8" r="1" fill="currentColor"/><circle cx="17.5" cy="12" r="1" fill="currentColor"/></svg>
+                </span>
+                <span class="hpm-item-text"><strong>Imagen corporativa</strong></span>
+              </a>
+              <a class="hpm-item" href="<?= base_url('portfolio') ?>#plan-operativo" role="menuitem">
+                <span class="hpm-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3 9h18M8 13h5M8 16h7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </span>
+                <span class="hpm-item-text"><strong>Plan Operativo</strong></span>
+              </a>
+            </div>
+
+            <div class="hpm-col">
+              <span class="hpm-col-label mono">Investigacion</span>
+              <a class="hpm-item" href="<?= base_url('portfolio') ?>#analisis-mercado" role="menuitem">
+                <span class="hpm-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 19V5M4 19h16M8 15v-4M12 15V9M16 15v-7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+                </span>
+                <span class="hpm-item-text"><strong>Analisis de mercado</strong></span>
+              </a>
+              <a class="hpm-item" href="<?= base_url('portfolio') ?>#analisis-competencia" role="menuitem">
+                <span class="hpm-ico" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="m9 9 6 1.5L13.5 16 7 14.5z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+                </span>
+                <span class="hpm-item-text"><strong>Analisis de la competencia</strong></span>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <a href="<?= base_url() ?>#contacto">Contacto</a>
     </nav>
 
     <div class="hd-cta">
