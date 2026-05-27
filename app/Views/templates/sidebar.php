@@ -1,6 +1,7 @@
 <?php
 $activeMenu = $activeMenu ?? 'panel';
 ?>
+<div class="sidebar-backdrop" data-sidebar-backdrop aria-hidden="true"></div>
 <aside class="sidebar" data-sidebar>
     <div class="sidebar__head">
         <h2 class="sidebar__title">Navegacion</h2>
@@ -58,6 +59,8 @@ $activeMenu = $activeMenu ?? 'panel';
             <span class="menu-link__label">Crear OT</span>
         </a>
     </nav>
+
+    <div class="sidebar__user-slot" data-sidebar-user-slot></div>
 
     <div class="sidebar__foot" aria-hidden="true">
         <span class="dot dot--live"></span>

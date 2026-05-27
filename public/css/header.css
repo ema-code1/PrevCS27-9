@@ -128,7 +128,45 @@
 
 @media (max-width: 900px) {
   .topbar__nav { display: none; }
-  .topbar { grid-template-columns: auto 1fr auto; }
+  .topbar { grid-template-columns: auto 1fr auto; gap: 12px; }
+  /* When a sidebar drawer exists on this page, the topbar shows a burger
+     at the left. Tighten brand text so it shares space gracefully. */
+  body:has([data-sidebar]) .brand__text span:nth-child(2),
+  body:has([data-sidebar]) .brand__text span:nth-child(3) { display: none; }
+  body:has([data-sidebar]) .brand__text span:first-child { font-size: 15px; }
+}
+
+/* ─── Topbar burger (opens mobile sidebar drawer) ─────────── */
+.topbar-burger {
+  display: none;
+  place-items: center;
+  width: 38px; height: 38px;
+  padding: 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hair);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.topbar-burger:hover { background: var(--bg-2); border-color: var(--hair-2); }
+.topbar-burger span {
+  position: absolute;
+  left: 10px; right: 10px;
+  height: 1.6px;
+  background: currentColor;
+  border-radius: 2px;
+  transition: transform var(--transition-normal), opacity var(--transition-fast);
+}
+.topbar-burger span:nth-child(1) { top: 13px; }
+.topbar-burger span:nth-child(2) { top: 18px; }
+.topbar-burger span:nth-child(3) { top: 23px; }
+.topbar-burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(5px) rotate(45deg); }
+.topbar-burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.topbar-burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
+@media (max-width: 900px) {
+  .topbar-burger { display: inline-grid; }
 }
 
 /* ─── USER MENU (chip + dropdown) ─────────────────────────── */

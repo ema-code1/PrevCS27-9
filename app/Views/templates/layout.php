@@ -60,7 +60,7 @@
         });
     })();
 
-    /* ─── Sidebar collapse ────────────────────────────────────────────── */
+    /* ─── Sidebar collapse (desktop) ──────────────────────────────────── */
     (function () {
         const sidebar = document.querySelector('[data-sidebar]');
         const toggle = document.querySelector('[data-sidebar-toggle]');
@@ -68,6 +68,65 @@
         toggle.addEventListener('change', function () {
             sidebar.classList.toggle('is-collapsed', toggle.checked);
         });
+    })();
+
+    /* ─── User menu placement: topbar (desktop) ↔ sidebar foot (mobile) ─ */
+    (function () {
+        const userMenu = document.querySelector('.topbar .user-menu, .sidebar [data-sidebar-user-slot] .user-menu');
+        if (!userMenu) return;
+        const topbarHome = document.querySelector('.topbar__actions');
+        const sidebarHome = document.querySelector('[data-sidebar-user-slot]');
+        if (!topbarHome || !sidebarHome) return;
+
+        const mq = window.matchMedia('(max-width: 900px)');
+        function place(matches) {
+            const targetHome = matches ? sidebarHome : topbarHome;
+            if (targetHome.contains(userMenu)) return;
+            // Close before re-parenting so transitions don't get stranded.
+            if (userMenu.open) {
+                userMenu.open = false;
+                userMenu.classList.remove('is-open', 'is-closing');
+            }
+            targetHome.appendChild(userMenu);
+            userMenu.classList.toggle('user-menu--in-sidebar', matches);
+        }
+        place(mq.matches);
+        const handler = function (e) { place(e.matches); };
+        if (mq.addEventListener) mq.addEventListener('change', handler);
+        else mq.addListener(handler);
+    })();
+
+    /* ─── Sidebar drawer (mobile) ─────────────────────────────────────── */
+    (function () {
+        const sidebar = document.querySelector('[data-sidebar]');
+        const mobileToggle = document.querySelector('[data-sidebar-mobile-toggle]');
+        const backdrop = document.querySelector('[data-sidebar-backdrop]');
+        if (!sidebar || !mobileToggle || !backdrop) return;
+
+        const body = document.body;
+        const mq = window.matchMedia('(max-width: 900px)');
+
+        function setOpen(open) {
+            sidebar.classList.toggle('is-drawer-open', open);
+            backdrop.classList.toggle('is-active', open);
+            body.classList.toggle('is-drawer-open', open);
+            mobileToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        mobileToggle.addEventListener('click', function () {
+            setOpen(!sidebar.classList.contains('is-drawer-open'));
+        });
+        backdrop.addEventListener('click', function () { setOpen(false); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && sidebar.classList.contains('is-drawer-open')) setOpen(false);
+        });
+        sidebar.querySelectorAll('.menu-link').forEach(function (link) {
+            link.addEventListener('click', function () { setOpen(false); });
+        });
+        // Snap back to a clean state when crossing the desktop breakpoint.
+        const handleMq = function (e) { if (!e.matches) setOpen(false); };
+        if (mq.addEventListener) mq.addEventListener('change', handleMq);
+        else mq.addListener(handleMq);
     })();
 
     /* ─── Topbar scrolled state ──────────────────────────────────────── */

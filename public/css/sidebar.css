@@ -195,17 +195,123 @@ body[data-theme="dark"] .sidebar {
   transform: translate(0, -50%);
 }
 
+/* ─── Mobile backdrop (default: not rendered) ─────────────── */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 16, 0.42);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 90;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-slow);
+}
+.sidebar-backdrop.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 @media (max-width: 900px) {
+  /* Drawer: hidden off-canvas by default, slides in on toggle */
   .sidebar {
-    position: relative;
+    position: fixed;
     top: 0;
-    width: 100%;
-    flex-direction: row;
-    align-items: center;
-    overflow-x: auto;
+    left: 0;
+    height: 100dvh;
+    width: min(82vw, 304px);
+    max-width: 100%;
+    padding: 22px 16px;
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+    border-right: 1px solid var(--hair);
+    z-index: 100;
+    transform: translateX(-101%);
+    transition: transform var(--transition-slow), box-shadow var(--transition-slow);
+    box-shadow: none;
+    /* Scroll lives on the nav so the user-menu dropdown can escape upward
+       without being clipped by the drawer's overflow box. */
+    overflow: visible;
   }
-  .sidebar__head { display: none; }
-  .sidebar__nav { flex-direction: row; }
-  .menu-link__label { display: none; }
-  .menu-link { padding: 8px 10px; }
+  /* Cancel desktop is-collapsed quirks on mobile */
+  .sidebar.is-collapsed {
+    width: min(82vw, 304px);
+    padding: 22px 16px;
+    overflow: visible;
+  }
+  .sidebar.is-collapsed .sidebar__title,
+  .sidebar.is-collapsed .menu-link__label { opacity: 1; max-width: none; pointer-events: auto; }
+  .sidebar.is-collapsed .menu-link { grid-template-columns: 22px 1fr; gap: 12px; padding: 10px 12px; justify-content: start; }
+  .sidebar.is-collapsed .sidebar__head { justify-content: space-between; padding: 0 6px; gap: 8px; }
+
+  .sidebar.is-drawer-open {
+    transform: translateX(0);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.18);
+  }
+  body[data-theme="dark"] .sidebar.is-drawer-open {
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar-backdrop { display: block; }
+
+  /* Hide the in-drawer burger; the topbar burger is the single toggle */
+  .sidebar__head .burger { display: none; }
+  .sidebar__head { padding: 4px 6px 6px; }
+
+  /* Lock body scroll while drawer is open */
+  body.is-drawer-open { overflow: hidden; }
+}
+
+/* =====================================================================
+   User-menu when relocated inside the mobile sidebar (.user-menu--in-sidebar)
+   ===================================================================== */
+.sidebar__user-slot {
+  margin-top: auto;
+  padding: 6px 4px 0;
+}
+.sidebar__user-slot:empty { display: none; }
+
+.user-menu--in-sidebar { width: 100%; }
+
+.user-menu--in-sidebar > .user-chip {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 8px 14px 8px 6px;
+  background: color-mix(in oklab, var(--text-on-sidebar) 6%, transparent);
+  border-color: color-mix(in oklab, var(--text-on-sidebar) 14%, transparent);
+  color: var(--text-on-sidebar);
+}
+.user-menu--in-sidebar > .user-chip:hover {
+  background: color-mix(in oklab, var(--text-on-sidebar) 11%, transparent);
+  border-color: color-mix(in oklab, var(--text-on-sidebar) 22%, transparent);
+}
+.user-menu--in-sidebar > .user-chip .user-chip__label {
+  color: var(--text-on-sidebar);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Panel opens upward, full-width of the slot */
+.user-menu--in-sidebar .user-menu__panel {
+  top: auto;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  min-width: 0;
+  transform: translateY(4px);
+}
+.user-menu--in-sidebar.is-open .user-menu__panel,
+.user-menu--in-sidebar[open] .user-menu__panel { transform: none; }
+.user-menu--in-sidebar.is-closing .user-menu__panel { transform: translateY(4px); }
+
+/* The drawer's overflow would otherwise clip the dropdown — allow the
+   panel to paint over the surrounding chrome while the chip-row still
+   sits cleanly at the bottom. */
+@media (max-width: 900px) {
+  .sidebar { overflow: visible; }
+  .sidebar__nav { overflow-y: auto; overflow-x: hidden; flex: 1 1 auto; min-height: 0; }
 }

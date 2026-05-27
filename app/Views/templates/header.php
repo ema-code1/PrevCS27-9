@@ -4,6 +4,11 @@ $headerHref   = $isLoggedIn ? base_url('principal') : base_url('/');
 $menuDisplay  = session('user_name') ?? 'Usuario';
 ?>
 <header class="topbar">
+    <?php if ($isLoggedIn): ?>
+    <button type="button" class="topbar-burger" data-sidebar-mobile-toggle aria-label="Abrir menu de navegacion" aria-expanded="false">
+        <span></span><span></span><span></span>
+    </button>
+    <?php endif; ?>
     <a class="brand" href="<?= esc($headerHref) ?>" aria-label="Ir al inicio">
         <span class="brand__logo" aria-hidden="true">
             <span></span><span></span><span></span><span></span>
