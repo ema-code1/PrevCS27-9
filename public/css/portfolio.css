@@ -1,3 +1,7 @@
+html {
+  scroll-behavior: smooth;
+}
+
 /* =====================================================================
    PrevCS · Portfolio (portfolio.php)
    Estilos para vista de portfolio de Emprendimientos. Reutiliza tokens
@@ -626,6 +630,7 @@ body:has(.pf-main) { background: var(--bg) !important; }
   color: var(--text-primary) !important;
   letter-spacing: -0.014em;
   max-width: 720px;
+  opacity: 1;
 }
 .pf-editorial-rule {
   margin: 4px 0 0;
@@ -1351,32 +1356,190 @@ body[data-theme="dark"] .pf-form-frame iframe {
   line-height: 1.5;
 }
 
-/* ============================================================
-   CIERRE
-   ============================================================ */
-.pf-closing {
-  text-align: center;
-  padding: clamp(56px, 7vw, 80px) 0;
-}
-.pf-closing-inner {
-  display: flex; flex-direction: column; align-items: center; gap: 14px;
-  max-width: 620px;
-  margin: 0 auto;
-}
-.pf-closing .pf-hero-actions { justify-content: center; }
 
 /* ============================================================
-   Reveal on scroll
+   Reveal on scroll — handled by GSAP; these are kept as
+   no-op fallbacks so elements never get stuck invisible.
    ============================================================ */
-[data-pf-reveal] {
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity 600ms cubic-bezier(.2,.7,.2,1), transform 600ms cubic-bezier(.2,.7,.2,1);
+[data-pf-reveal] { /* GSAP owns this */ }
+
+/* ============================================================
+   02 · PLAN OPERATIVO — Steps (redesign: no card chrome)
+   ============================================================ */
+.pf-steps {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-left: clamp(56px, 10vw, 120px);
 }
-[data-pf-reveal].in {
-  opacity: 1;
-  transform: translateY(0);
+.pf-steps-track {
+  position: absolute;
+  left: clamp(20px, 4.2vw, 44px);
+  top: 20px;
+  bottom: 20px;
+  width: 1px;
 }
+.pf-steps-line {
+  position: absolute;
+  inset: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--accent), color-mix(in oklab, var(--accent) 30%, transparent));
+  transform-origin: top center;
+  border-radius: 999px;
+}
+.pf-step {
+  display: grid;
+  grid-template-columns: clamp(40px, 6vw, 72px) 1fr;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+  padding: clamp(28px, 4vw, 52px) 0;
+  border-bottom: 1px solid var(--hair);
+  position: relative;
+}
+.pf-step:last-child { border-bottom: none; }
+.pf-step-num {
+  font-size: clamp(11px, 1vw, 13px);
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  text-transform: uppercase;
+  padding-top: 6px;
+  font-weight: var(--font-weight-medium);
+  position: relative;
+}
+.pf-step-num::before {
+  content: '';
+  position: absolute;
+  left: calc(-1 * clamp(40px, 8vw, 88px));
+  top: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 0 4px var(--bg);
+}
+.pf-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pf-step-body h3 {
+  font-size: clamp(20px, 2.2vw, 28px);
+  letter-spacing: -0.022em;
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+.pf-step-body p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+/* Gantt inside a step */
+.pf-step-body .pf-gantt { margin-top: 4px; }
+
+/* ============================================================
+   05 · ACERCA DE PREVCS — Editorial (redesign: no card chrome)
+   ============================================================ */
+.pf-acerca-layout {
+  display: grid;
+  grid-template-columns: clamp(200px, 28%, 320px) 1fr;
+  gap: clamp(40px, 5vw, 80px);
+  align-items: start;
+}
+/* Left column sticks while right body scrolls */
+.pf-acerca-layout > .pf-section-head {
+  position: sticky;
+  top: 112px;
+  margin-bottom: 0;
+  max-width: none;
+}
+@media (max-width: 1024px) {
+  .pf-acerca-layout > .pf-section-head { position: static; }
+}
+.pf-about-body {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 4vw, 56px);
+}
+.pf-about-lead {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: clamp(28px, 3.5vw, 44px);
+  border-bottom: 1px solid var(--hair);
+}
+.pf-about-lead .pf-editorial-lead {
+  font-size: clamp(20px, 2.2vw, 30px) !important;
+}
+.pf-about-lead p {
+  font-size: clamp(14px, 1.2vw, 16px);
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-width: 600px;
+}
+
+.pf-about-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 3vw, 48px) clamp(32px, 5vw, 72px);
+}
+.pf-about-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pf-about-item--full { grid-column: span 2; }
+.pf-about-item .pf-about-tag {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.pf-about-item h4 {
+  font-size: clamp(17px, 1.6vw, 20px);
+  letter-spacing: -0.018em;
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+.pf-about-item p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Stat row: floating numbers, no box */
+.pf-about-stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(16px, 2vw, 28px);
+  padding: clamp(24px, 3vw, 36px) 0;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+}
+.pf-about-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.pf-about-stat-num {
+  font-size: clamp(32px, 4vw, 52px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-mono);
+}
+.pf-about-stat span {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+/* ============================================================
+   Smooth scroll offset fix (GSAP doesn't touch CSS scroll-behavior)
+   ============================================================ */
+html { scroll-behavior: smooth; }
 
 /* ============================================================
    Responsive
@@ -1385,6 +1548,8 @@ body[data-theme="dark"] .pf-form-frame iframe {
   .pf-hero-meta { grid-template-columns: repeat(2, 1fr); }
   .pf-plan-grid { grid-template-columns: repeat(2, 1fr); }
   .pf-plan-card--wide { grid-column: span 2; }
+  .pf-acerca-layout { grid-template-columns: 1fr; }
+  .pf-about-stat-row { grid-template-columns: repeat(2, 1fr); }
   .pf-brand-grid { grid-template-columns: repeat(4, 1fr); }
   .pf-brand-card--logo { grid-column: span 4; }
   .pf-brand-card--palette { grid-column: span 4; }
@@ -1412,6 +1577,14 @@ body[data-theme="dark"] .pf-form-frame iframe {
   .pf-hero-meta { grid-template-columns: 1fr 1fr; }
   .pf-plan-grid { grid-template-columns: 1fr; }
   .pf-plan-card--wide { grid-column: span 1; }
+  .pf-steps { padding-left: 40px; }
+  .pf-steps-track { left: 10px; }
+  .pf-step { grid-template-columns: 36px 1fr; gap: 12px; }
+  .pf-step-num::before { left: -30px; }
+  .pf-about-items { grid-template-columns: 1fr; }
+  .pf-about-item--full { grid-column: span 1; }
+  .pf-about-stat-row { grid-template-columns: repeat(2, 1fr); }
+  .pf-about-stat-num { font-size: 32px; }
   .pf-brand-grid { grid-template-columns: 1fr; }
   .pf-brand-card { grid-column: span 1 !important; }
   .pf-palette { grid-template-columns: repeat(2, 1fr); }

@@ -181,63 +181,77 @@ $showHeader = false;
         </span>
       </header>
 
-      <div class="pf-plan-grid">
-        <article class="pf-plan-card" data-plan="objetivos">
-          <span class="pf-plan-num mono">01</span>
-          <h3>Objetivos</h3>
-          <p class="pf-placeholder-text">Reservado para los objetivos generales y especificos del emprendimiento.</p>
-          <ul class="pf-bullet-list pf-placeholder">
-            <li>Objetivo general — <em>placeholder</em></li>
-            <li>Objetivos especificos — <em>placeholder</em></li>
-            <li>Resultados esperados — <em>placeholder</em></li>
-          </ul>
-        </article>
+      <div class="pf-steps" role="list">
+        <div class="pf-steps-track" aria-hidden="true">
+          <div class="pf-steps-line"></div>
+        </div>
 
-        <article class="pf-plan-card" data-plan="recursos">
-          <span class="pf-plan-num mono">02</span>
-          <h3>Recursos</h3>
-          <p class="pf-placeholder-text">Tecnologicos, humanos, materiales y financieros que necesita el proyecto.</p>
-          <ul class="pf-bullet-list pf-placeholder">
-            <li>Hardware (sensores, gateways) — <em>placeholder</em></li>
-            <li>Software (CodeIgniter, MySQL, Chart.js) — <em>placeholder</em></li>
-            <li>Equipo de trabajo — <em>placeholder</em></li>
-          </ul>
-        </article>
-
-        <article class="pf-plan-card" data-plan="etapas">
-          <span class="pf-plan-num mono">03</span>
-          <h3>Etapas</h3>
-          <p class="pf-placeholder-text">Hoja de ruta dividida en fases medibles, con hitos por cada etapa.</p>
-          <ol class="pf-timeline pf-placeholder">
-            <li><span class="pf-tl-dot"></span><b>Fase 1.</b> Investigacion y validacion</li>
-            <li><span class="pf-tl-dot"></span><b>Fase 2.</b> Prototipo funcional</li>
-            <li><span class="pf-tl-dot"></span><b>Fase 3.</b> Pilotaje con cliente</li>
-            <li><span class="pf-tl-dot"></span><b>Fase 4.</b> Lanzamiento</li>
-          </ol>
-        </article>
-
-        <article class="pf-plan-card" data-plan="responsables">
-          <span class="pf-plan-num mono">04</span>
-          <h3>Responsables</h3>
-          <p class="pf-placeholder-text">Quien lidera cada area y como se distribuyen las tareas del equipo.</p>
-          <ul class="pf-bullet-list pf-placeholder">
-            <li>Lider del proyecto — <em>placeholder</em></li>
-            <li>Responsable tecnico — <em>placeholder</em></li>
-            <li>Responsable comercial — <em>placeholder</em></li>
-          </ul>
-        </article>
-
-        <article class="pf-plan-card pf-plan-card--wide" data-plan="tiempos">
-          <span class="pf-plan-num mono">05</span>
-          <h3>Tiempos</h3>
-          <p class="pf-placeholder-text">Cronograma estimado por fase. Se completara con fechas concretas.</p>
-          <div class="pf-gantt pf-placeholder" aria-hidden="true">
-            <div class="pf-gantt-row"><span>Fase 1</span><span class="pf-gantt-bar" style="--from:0; --to:25;"></span></div>
-            <div class="pf-gantt-row"><span>Fase 2</span><span class="pf-gantt-bar" style="--from:20; --to:55;"></span></div>
-            <div class="pf-gantt-row"><span>Fase 3</span><span class="pf-gantt-bar" style="--from:50; --to:80;"></span></div>
-            <div class="pf-gantt-row"><span>Fase 4</span><span class="pf-gantt-bar" style="--from:75; --to:100;"></span></div>
+        <article class="pf-step" role="listitem" data-plan="objetivos">
+          <span class="pf-step-num mono">01</span>
+          <div class="pf-step-body">
+            <h3>Objetivos</h3>
+            <p class="pf-placeholder-text">Reservado para los objetivos generales y especificos del emprendimiento.</p>
+            <ul class="pf-bullet-list pf-placeholder">
+              <li>Objetivo general — <em>placeholder</em></li>
+              <li>Objetivos especificos — <em>placeholder</em></li>
+              <li>Resultados esperados — <em>placeholder</em></li>
+            </ul>
           </div>
-          <div class="pf-gantt-scale mono"><span>inicio</span><span>medio</span><span>cierre</span></div>
+        </article>
+
+        <article class="pf-step" role="listitem" data-plan="recursos">
+          <span class="pf-step-num mono">02</span>
+          <div class="pf-step-body">
+            <h3>Recursos</h3>
+            <p class="pf-placeholder-text">Tecnologicos, humanos, materiales y financieros que necesita el proyecto.</p>
+            <ul class="pf-bullet-list pf-placeholder">
+              <li>Hardware (sensores, gateways) — <em>placeholder</em></li>
+              <li>Software (CodeIgniter, MySQL, Chart.js) — <em>placeholder</em></li>
+              <li>Equipo de trabajo — <em>placeholder</em></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="pf-step" role="listitem" data-plan="etapas">
+          <span class="pf-step-num mono">03</span>
+          <div class="pf-step-body">
+            <h3>Etapas</h3>
+            <p class="pf-placeholder-text">Hoja de ruta dividida en fases medibles, con hitos por cada etapa.</p>
+            <ol class="pf-timeline pf-placeholder">
+              <li><span class="pf-tl-dot"></span><b>Fase 1.</b> Investigacion y validacion</li>
+              <li><span class="pf-tl-dot"></span><b>Fase 2.</b> Prototipo funcional</li>
+              <li><span class="pf-tl-dot"></span><b>Fase 3.</b> Pilotaje con cliente</li>
+              <li><span class="pf-tl-dot"></span><b>Fase 4.</b> Lanzamiento</li>
+            </ol>
+          </div>
+        </article>
+
+        <article class="pf-step" role="listitem" data-plan="responsables">
+          <span class="pf-step-num mono">04</span>
+          <div class="pf-step-body">
+            <h3>Responsables</h3>
+            <p class="pf-placeholder-text">Quien lidera cada area y como se distribuyen las tareas del equipo.</p>
+            <ul class="pf-bullet-list pf-placeholder">
+              <li>Lider del proyecto — <em>placeholder</em></li>
+              <li>Responsable tecnico — <em>placeholder</em></li>
+              <li>Responsable comercial — <em>placeholder</em></li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="pf-step" role="listitem" data-plan="tiempos">
+          <span class="pf-step-num mono">05</span>
+          <div class="pf-step-body">
+            <h3>Tiempos</h3>
+            <p class="pf-placeholder-text">Cronograma estimado por fase. Se completara con fechas concretas.</p>
+            <div class="pf-gantt pf-placeholder" aria-hidden="true">
+              <div class="pf-gantt-row"><span>Fase 1</span><span class="pf-gantt-bar" style="--from:0; --to:25;"></span></div>
+              <div class="pf-gantt-row"><span>Fase 2</span><span class="pf-gantt-bar" style="--from:20; --to:55;"></span></div>
+              <div class="pf-gantt-row"><span>Fase 3</span><span class="pf-gantt-bar" style="--from:50; --to:80;"></span></div>
+              <div class="pf-gantt-row"><span>Fase 4</span><span class="pf-gantt-bar" style="--from:75; --to:100;"></span></div>
+            </div>
+            <div class="pf-gantt-scale mono"><span>inicio</span><span>medio</span><span>cierre</span></div>
+          </div>
         </article>
       </div>
     </section>
@@ -420,77 +434,72 @@ $showHeader = false;
     <!-- ============================================================= -->
     <!-- 05 · ACERCA DE PREVCS                                          -->
     <!-- ============================================================= -->
-    <section id="acerca-de-prevcs" class="pf-section" data-screen-label="05 Acerca de PrevCS">
-      <header class="pf-section-head">
-        <span class="pf-section-eyebrow mono">05 · Acerca de PrevCS</span>
-        <h2 class="pf-section-title">
-          Que es PrevCS y a quien va dirigido.
-          <span class="pf-muted">Proposito, problema y propuesta de valor.</span>
-        </h2>
-        <p class="pf-section-lede">
-          PrevCS — Prevention Control System — es una plataforma de monitoreo industrial personalizada
-          que ayuda a una empresa a definir <b>que datos medir</b> antes de comprar sensores. Empezamos
-          por la operacion, no por el hardware.
-        </p>
-        <span class="pf-status pf-status--partial">
-          <span class="pf-status-dot"></span> Parcial — completado con lo que sabemos hoy del proyecto
-        </span>
-      </header>
+    <section id="acerca-de-prevcs" class="pf-section" -data-screen-label="05 Acerca de PrevCS">
 
-      <div class="pf-about-grid">
-        <article class="pf-about-card pf-about-card--lead">
-          <span class="mono pf-about-tag">descripcion</span>
-          <h3>Una plataforma que entiende la planta antes que los sensores.</h3>
-          <p>
-            PrevCS guia paso a paso: workspace por empresa, eleccion de metricas (temperatura,
-            vibracion, energia, produccion, stock, mantenimiento), recomendacion de sensores compatibles,
-            armado de dashboards en vivo y configuracion de alertas accionables.
-          </p>
-        </article>
+      <div class="pf-acerca-layout">
+        <!-- Left: sticky section head (GSAP pins this on desktop) -->
+        <div class="pf-section-head" style="margin-bottom:0">
+          <span class="pf-section-eyebrow mono">05 · Acerca de PrevCS</span>
+          <h2 class="pf-section-title">
+            Que es PrevCS y a quien va dirigido.
+            <span class="pf-muted">Proposito, problema y propuesta de valor.</span>
+          </h2>
+          <span class="pf-status pf-status--partial">
+            <span class="pf-status-dot"></span> Parcial — completado con lo que sabemos hoy
+          </span>
+        </div>
 
-        <article class="pf-about-card">
-          <span class="mono pf-about-tag">proposito</span>
-          <h4>Para que existe</h4>
-          <p>
-            Reducir las paradas no planificadas y las decisiones tomadas "por instinto"
-            en industria pyme. Llevar la operacion industrial de planillas dispersas a una
-            sola pantalla en tiempo real.
-          </p>
-        </article>
+        <!-- Right: scrollable body -->
+        <div class="pf-about-body">
 
-        <article class="pf-about-card">
-          <span class="mono pf-about-tag">problema</span>
-          <h4>Que resuelve</h4>
-          <ul class="pf-bullet-list">
-            <li>Datos dispersos entre cuadernos, planillas y PLCs sueltos.</li>
-            <li>Mantenimiento reactivo (se repara cuando ya rompio).</li>
-            <li>Sensores comprados por catalogo sin saber si miden lo necesario.</li>
-            <li>Dashboards lindos pero sin lectura accionable.</li>
-          </ul>
-        </article>
+          <!-- Lead statement (no card) -->
+          <div class="pf-about-lead">
+            <p class="pf-editorial-lead">
+              Una plataforma que entiende la planta<br>antes que los sensores.
+            </p>
+            <p>
+              PrevCS guia paso a paso: workspace por empresa, eleccion de metricas (temperatura,
+              vibracion, energia, produccion, stock, mantenimiento), recomendacion de sensores compatibles,
+              armado de dashboards en vivo y configuracion de alertas accionables.
+            </p>
+          </div>
 
-        <article class="pf-about-card">
-          <span class="mono pf-about-tag">valor</span>
-          <h4>Propuesta de valor</h4>
-          <ul class="pf-bullet-list">
-            <li><b>Metricas primero.</b> Decidis que queres saber; los sensores vienen despues.</li>
-            <li><b>Recomendaciones inteligentes.</b> PrevCS sugiere set de sensores y plantillas.</li>
-            <li><b>Workspace propio.</b> Configurado a la empresa, no un panel generico.</li>
-            <li><b>Alertas y predictivo.</b> Por umbral, tendencia o correlacion entre metricas.</li>
-          </ul>
-        </article>
+          <!-- Editorial items in 2-col grid (no card chrome) -->
+          <div class="pf-about-items">
+            <div class="pf-about-item">
+              <span class="mono pf-about-tag">proposito</span>
+              <h4>Para que existe</h4>
+              <p>
+                Reducir las paradas no planificadas y las decisiones tomadas "por instinto"
+                en industria pyme. Llevar la operacion industrial de planillas dispersas a una
+                sola pantalla en tiempo real.
+              </p>
+            </div>
 
-        <article class="pf-about-card pf-about-card--stats">
-          <span class="mono pf-about-tag">cobertura</span>
-          <h4>Que mide PrevCS</h4>
-          <ul class="pf-stat-grid mono">
-            <li><b>8+</b><span>metricas base</span></li>
-            <li><b>10+</b><span>sensores soportados</span></li>
-            <li><b>6</b><span>industrias objetivo</span></li>
-            <li><b>24/7</b><span>monitoreo en vivo</span></li>
-          </ul>
-        </article>
-      </div>
+            <div class="pf-about-item">
+              <span class="mono pf-about-tag">problema</span>
+              <h4>Que resuelve</h4>
+              <ul class="pf-bullet-list">
+                <li>Datos dispersos entre cuadernos, planillas y PLCs sueltos.</li>
+                <li>Mantenimiento reactivo (se repara cuando ya rompio).</li>
+                <li>Sensores comprados por catalogo sin saber que miden.</li>
+                <li>Dashboards lindos pero sin lectura accionable.</li>
+              </ul>
+            </div>
+
+            <div class="pf-about-item pf-about-item--full">
+              <span class="mono pf-about-tag">valor</span>
+              <h4>Propuesta de valor</h4>
+              <ul class="pf-bullet-list">
+                <li><b>Metricas primero.</b> Decidis que queres saber; los sensores vienen despues.</li>
+                <li><b>Recomendaciones inteligentes.</b> PrevCS sugiere set de sensores y plantillas.</li>
+                <li><b>Workspace propio.</b> Configurado a la empresa, no un panel generico.</li>
+                <li><b>Alertas y predictivo.</b> Por umbral, tendencia o correlacion entre metricas.</li>
+              </ul>
+            </div>
+          </div>
+        </div><!-- /.pf-about-body -->
+      </div><!-- /.pf-acerca-layout -->
     </section>
 
     <!-- ============================================================= -->
@@ -1104,28 +1113,6 @@ $showHeader = false;
         </div>
       </article>
     </section>
-
-    <!-- ============================================================= -->
-    <!-- CIERRE                                                          -->
-    <!-- ============================================================= -->
-    <section class="pf-section pf-closing">
-      <div class="pf-closing-inner">
-        <span class="pf-section-eyebrow mono">cierre</span>
-        <h2 class="pf-section-title">
-          Portfolio en construccion.
-          <span class="pf-muted">Cada clase suma una pieza mas.</span>
-        </h2>
-        <p class="pf-section-lede">
-          El portfolio se completa progresivamente durante el ciclo lectivo 2026. Para la
-          Expo Demostrativa, esta vista se accede desde un QR vinculado a esta URL publica.
-        </p>
-        <div class="pf-hero-actions">
-          <a class="l-btn l-btn--solid" href="#pagina-principal">Volver al inicio</a>
-          <a class="l-btn l-btn--line" href="<?= base_url() ?>">Ir a la landing de PrevCS</a>
-        </div>
-      </div>
-    </section>
-
   </div>
 </main>
 
@@ -1178,7 +1165,10 @@ $showHeader = false;
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<!-- Chart.js v4 — UMD desde CDN (no requiere npm) -->
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
+<!-- GSAP + ScrollTrigger — must load before portfolio.js -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="<?= base_url('js/portfolio.js') ?>" defer></script>
 <?= $this->endSection() ?>
