@@ -5,10 +5,17 @@
    ===================================================================== */
 
 /* ──────────────────────────── Layout general ──────────────────────── */
+/* Kill the body-level continuous gradient on portfolio pages so each section
+   can paint its own discrete background band that aligns with section
+   boundaries (the gradient made transitions feel arbitrary). */
+body:has(.pf-main) { background: var(--bg) !important; }
+
 .pf-main {
   max-width: var(--maxw);
   margin: 0 auto;
   padding: 0 var(--pad-x);
+  position: relative;
+  isolation: isolate;
 }
 
 .pf-stage {
@@ -21,16 +28,40 @@
 .pf-section {
   scroll-margin-top: 92px;
   position: relative;
-  padding: clamp(72px, 9vw, 112px) 0;
+  min-width: 0;
+  padding: clamp(64px, 8vw, 104px) 0;
 }
-.pf-section + .pf-section { border-top: 1px solid var(--hair); }
+
+/* Each section paints its own full-bleed background band. The pseudo-element
+   breaks out of pf-main's max-width to span the entire viewport, so the band
+   always starts and ends exactly where the section does — no more body
+   gradient bleeding through and creating "off by N pixels" transitions. */
+.pf-section::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%;
+  transform: translateX(-50vw);
+  width: 100vw;
+  background: var(--bg);
+  z-index: -1;
+}
+.pf-section:nth-of-type(even)::before { background: var(--bg-2); }
+.pf-section.pf-section--hero::before { background: var(--bg); }
+/* Specificity must match (class+pseudo-class) to win against :nth-of-type. */
+.pf-section.pf-section--focus::before {
+  background:
+    radial-gradient(80% 60% at 20% 0%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 70%),
+    var(--bg-2);
+}
 .pf-section--hero {
   padding-top: clamp(40px, 6vw, 80px);
   overflow: hidden;
 }
+
 .pf-section-head {
-  display: flex; flex-direction: column; gap: 10px;
-  margin-bottom: 28px;
+  display: flex; flex-direction: column; gap: 12px;
+  margin-bottom: clamp(32px, 4vw, 48px);
   max-width: 760px;
 }
 .pf-section-eyebrow {
@@ -569,15 +600,272 @@
 /* ============================================================
    06 · ANALISIS DE LA COMPETENCIA
    ============================================================ */
+
+/* Editorial blocks: open-canvas content with no card chrome, used for
+   intro text + closing reflection so the section breathes between dense
+   table / card blocks. */
+.pf-editorial {
+  max-width: 760px;
+  display: flex; flex-direction: column;
+  gap: 18px;
+  margin: 0 0 clamp(40px, 5vw, 64px);
+}
+.pf-editorial--wide { max-width: 900px; }
+.pf-editorial p {
+  font-size: clamp(15.5px, 1.25vw, 17px);
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+.pf-editorial p strong, .pf-editorial p b { color: var(--text-primary); }
+.pf-editorial-lead {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(22px, 2.4vw, 32px) !important;
+  line-height: 1.25 !important;
+  color: var(--text-primary) !important;
+  letter-spacing: -0.014em;
+  max-width: 720px;
+}
+.pf-editorial-rule {
+  margin: 4px 0 0;
+  width: 56px; height: 2px;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+/* "vs mercado" stat strip — big numbers floating without card chrome. */
+.pf-vs-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(20px, 3vw, 40px);
+  padding: clamp(28px, 3.5vw, 44px) 0;
+  margin: 0 0 clamp(32px, 4vw, 48px);
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+}
+.pf-vs-strip > div { display: flex; flex-direction: column; gap: 6px; }
+.pf-vs-num {
+  font-size: clamp(36px, 4.8vw, 56px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+.pf-vs-num--accent { color: var(--accent); }
+.pf-vs-label {
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+/* Pull-quote callout — large editorial quote, no card. */
+.pf-pullquote {
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  gap: clamp(20px, 3vw, 36px);
+  align-items: start;
+  margin: clamp(40px, 5vw, 64px) 0;
+}
+.pf-pullquote-mark {
+  font-family: var(--font-serif);
+  font-size: clamp(72px, 9vw, 120px);
+  line-height: 0.8;
+  color: var(--accent);
+  opacity: .35;
+}
+.pf-pullquote-body {
+  display: flex; flex-direction: column;
+  gap: 16px;
+  max-width: 760px;
+}
+.pf-pullquote-body q {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(20px, 2.2vw, 30px);
+  line-height: 1.3;
+  letter-spacing: -0.012em;
+  color: var(--text-primary);
+  quotes: "“" "”";
+}
+.pf-pullquote-meta {
+  font-size: 11.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+/* Inline (no-card) bullet block with a leading number column. */
+.pf-numbered-block {
+  display: grid;
+  grid-template-columns: clamp(80px, 12vw, 140px) 1fr;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+  margin: clamp(32px, 4vw, 48px) 0;
+  padding-top: clamp(28px, 3vw, 40px);
+  border-top: 1px solid var(--hair);
+}
+.pf-numbered-block-num {
+  font-size: clamp(56px, 7vw, 88px);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-weight: var(--font-weight-semibold);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.pf-numbered-block-num + span {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  margin-top: 8px;
+}
+.pf-numbered-block h4 {
+  font-size: clamp(20px, 2vw, 26px);
+  letter-spacing: -0.018em;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+.pf-numbered-block p {
+  font-size: 14.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 14px;
+  max-width: 640px;
+}
+
+/* Two-up open layout — no card chrome, just a hairline rule between. */
+.pf-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  margin: clamp(32px, 4vw, 48px) 0;
+}
+.pf-split > section { display: flex; flex-direction: column; gap: 12px; }
+.pf-split-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+.pf-split h4 {
+  font-size: clamp(18px, 1.8vw, 22px);
+  letter-spacing: -0.018em;
+  color: var(--text-primary);
+}
+.pf-split p { font-size: 14.5px; color: var(--text-secondary); line-height: 1.55; }
+
+/* Sustain callout — full-bleed within section, tinted band. */
+.pf-sustain-callout {
+  position: relative;
+  margin: clamp(40px, 5vw, 64px) calc(-1 * var(--pad-x));
+  padding: clamp(40px, 5vw, 64px) var(--pad-x);
+  background:
+    radial-gradient(60% 100% at 80% 50%, color-mix(in oklab, var(--success) 14%, transparent), transparent 70%),
+    color-mix(in oklab, var(--success) 6%, var(--bg-card));
+  border-block: 1px solid color-mix(in oklab, var(--success) 22%, var(--hair));
+}
+.pf-sustain-callout-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: clamp(24px, 3vw, 48px);
+  align-items: start;
+}
+.pf-sustain-callout-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--success);
+  font-family: var(--font-mono);
+  margin-bottom: 12px;
+}
+.pf-sustain-callout h3 {
+  font-size: clamp(24px, 2.6vw, 34px);
+  letter-spacing: -0.022em;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+.pf-sustain-callout p {
+  font-size: 14.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-top: 14px;
+  max-width: 520px;
+}
+.pf-sustain-callout ul {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
+}
+.pf-sustain-callout ul li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+.pf-sustain-callout ul li::before {
+  content: "";
+  flex-shrink: 0;
+  margin-top: 7px;
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  background: var(--success);
+}
+
+/* Responsive comparison table — isolated overflow so the whole page
+   never scrolls horizontally on tablets/mobiles. The wrap is the only
+   scrollable region. */
 .pf-comp-table-wrap {
+  position: relative;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--hair);
   border-radius: var(--radius-xl);
   background: var(--bg-card);
+  scrollbar-width: thin;
+  /* edge fade hint that the content scrolls */
+  mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0, #000 calc(100% - 24px), transparent 100%);
 }
+.pf-comp-table-wrap[data-scroll-end="true"] {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+.pf-comp-table-wrap::-webkit-scrollbar { height: 8px; }
+.pf-comp-table-wrap::-webkit-scrollbar-thumb {
+  background: var(--hair-2);
+  border-radius: 999px;
+}
+.pf-comp-hint {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  border-radius: 999px;
+  background: var(--bg-card);
+  border: 1px solid var(--hair);
+  width: max-content;
+}
+.pf-comp-hint svg { width: 14px; height: 14px; flex-shrink: 0; }
+
 .pf-comp-table {
   width: 100%;
-  min-width: 700px;
+  min-width: 720px;
   border-collapse: collapse;
   font-size: 13.5px;
 }
@@ -596,37 +884,35 @@
   text-transform: uppercase;
   color: var(--text-faint);
   background: var(--bg-2);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.pf-comp-table th:first-child,
+.pf-comp-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--bg-card);
+  z-index: 2;
+  border-right: 1px solid var(--hair);
+}
+.pf-comp-table thead th:first-child {
+  background: var(--bg-2);
+  z-index: 3;
 }
 .pf-comp-table tbody tr:last-child td { border-bottom: 0; }
 .pf-comp-table td b { color: var(--text-primary); }
 .pf-comp-table td .mono { font-size: 10.5px; color: var(--text-faint); letter-spacing: 0.05em; }
-.pf-comp-self {
-  background: color-mix(in oklab, var(--accent) 6%, transparent);
-}
-.pf-comp-self td b { color: var(--accent); }
 
-.pf-foda-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-  margin-top: 24px;
+/* PrevCS column highlight (comparison layered by columns). */
+.pf-comp-table td.pf-comp-self-cell {
+  background: color-mix(in oklab, var(--accent) 8%, transparent);
 }
-.pf-foda-card {
-  padding: 18px;
-  border: 1px solid var(--hair);
-  border-radius: var(--radius-lg);
-  background: var(--bg-card);
-  display: flex; flex-direction: column; gap: 8px;
+.pf-comp-table td.pf-comp-self-cell b { color: var(--accent); }
+.pf-comp-table thead th:last-child {
+  color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 12%, var(--bg-2));
 }
-.pf-foda-label {
-  font-size: 10.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.pf-foda-card--f .pf-foda-label { color: var(--success); }
-.pf-foda-card--o .pf-foda-label { color: var(--accent); }
-.pf-foda-card--d .pf-foda-label { color: var(--warning); }
-.pf-foda-card--a .pf-foda-label { color: var(--error); }
 
 /* ============================================================
    07 · ANALISIS DE MERCADO (focus — sin radial bleed)
@@ -1070,8 +1356,7 @@ body[data-theme="dark"] .pf-form-frame iframe {
    ============================================================ */
 .pf-closing {
   text-align: center;
-  padding: 56px 0;
-  border-top: 1px solid var(--hair);
+  padding: clamp(56px, 7vw, 80px) 0;
 }
 .pf-closing-inner {
   display: flex; flex-direction: column; align-items: center; gap: 14px;
@@ -1106,7 +1391,6 @@ body[data-theme="dark"] .pf-form-frame iframe {
   .pf-brand-card--type, .pf-brand-card--voice { grid-column: span 4; }
   .pf-brand-card--apps { grid-column: span 4; }
   .pf-team-grid { grid-template-columns: repeat(2, 1fr); }
-  .pf-foda-grid { grid-template-columns: repeat(2, 1fr); }
   .pf-charts-grid { grid-template-columns: 1fr; }
   .pf-analysis-grid { grid-template-columns: 1fr; }
   .pf-reflexion-grid { grid-template-columns: 1fr; }
@@ -1117,6 +1401,11 @@ body[data-theme="dark"] .pf-form-frame iframe {
   .pf-about-card { grid-column: span 2; }
   .pf-about-card--lead, .pf-about-card--stats { grid-column: span 2; }
   .pf-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .pf-vs-strip { grid-template-columns: repeat(2, 1fr); row-gap: 24px; }
+  .pf-sustain-callout-inner { grid-template-columns: 1fr; }
+  .pf-split { grid-template-columns: 1fr; gap: 32px; }
+  .pf-pullquote { grid-template-columns: 1fr; gap: 8px; }
+  .pf-pullquote-mark { font-size: 64px; line-height: 1; }
 }
 
 @media (max-width: 720px) {
@@ -1128,11 +1417,22 @@ body[data-theme="dark"] .pf-form-frame iframe {
   .pf-palette { grid-template-columns: repeat(2, 1fr); }
   .pf-apps-row { grid-template-columns: repeat(2, 1fr); }
   .pf-team-grid { grid-template-columns: 1fr; }
-  .pf-foda-grid { grid-template-columns: 1fr; }
   .pf-segmentation { grid-template-columns: 1fr; }
   .pf-about-grid { grid-template-columns: 1fr; }
   .pf-about-card { grid-column: span 1 !important; }
   .pf-stat-grid { grid-template-columns: 1fr; }
   .pf-mk-mini-grid { grid-template-columns: 1fr; }
   .pf-mk-card { padding: 18px; }
+
+  /* Section 06 editorial blocks collapse cleanly. */
+  .pf-vs-strip { grid-template-columns: 1fr; row-gap: 18px; padding: 24px 0; }
+  .pf-vs-num { font-size: 38px; }
+  .pf-numbered-block { grid-template-columns: 1fr; gap: 8px; }
+  .pf-numbered-block-num { font-size: 56px; }
+  .pf-sustain-callout ul { grid-template-columns: 1fr; }
+
+  /* Show "swipe to see" hint on small screens only. */
+  .pf-comp-hint { display: inline-flex; }
+  .pf-comp-table { font-size: 12.5px; }
+  .pf-comp-table th, .pf-comp-table td { padding: 10px 12px; }
 }

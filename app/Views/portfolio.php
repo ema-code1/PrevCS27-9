@@ -503,92 +503,327 @@ $showHeader = false;
           Quienes mas estan resolviendo este problema
           <span class="pf-muted">y como nos diferenciamos.</span>
         </h2>
-        <p class="pf-section-lede">
-          Apartado preparado para mapear competidores, criterios de comparacion, fortalezas y
-          debilidades. Cuando lo trabajemos en clase, se carga el detalle real.
-        </p>
-        <span class="pf-status pf-status--todo">
-          <span class="pf-status-dot"></span> Pendiente — se completara en una proxima clase
-        </span>
       </header>
 
-      <div class="pf-comp-table-wrap">
+      <!-- 6.1 · Introduccion editorial (sin card, texto abierto) -->
+      <div class="pf-editorial" data-pf-reveal>
+        <span class="pf-editorial-rule" aria-hidden="true"></span>
+        <p class="pf-editorial-lead">
+          En el marco del desarrollo de nuestra tesina titulada <b>"PrevCS — Sistema Inteligente
+          de Gestion de Mantenimiento Industrial"</b>, mapeamos las principales plataformas que
+          compiten en gestion de mantenimiento, monitoreo IoT y administracion de activos.
+        </p>
+        <p>
+          El objetivo es comprender como funcionan las soluciones que hoy se usan en la industria,
+          identificar fortalezas y limitaciones, y establecer con claridad las ventajas competitivas
+          que ofrece nuestro proyecto frente a sistemas comerciales ya existentes.
+        </p>
+        <p>
+          PrevCS busca brindar una solucion moderna, accesible e integrada para industrias y plantas
+          productivas — gestiona maquinaria, herramientas e insumos mediante mantenimiento preventivo,
+          control de stock, analisis de datos y monitoreo en tiempo real a traves de dispositivos
+          IoT como ESP32.
+        </p>
+      </div>
+
+      <!-- 6.2 · Stat strip "vs mercado" (numeros editoriales, sin card) -->
+      <div class="pf-vs-strip" data-pf-reveal>
+        <div>
+          <span class="pf-vs-num">3</span>
+          <span class="pf-vs-label">plataformas analizadas</span>
+        </div>
+        <div>
+          <span class="pf-vs-num">20</span>
+          <span class="pf-vs-label">criterios comparados</span>
+        </div>
+        <div>
+          <span class="pf-vs-num pf-vs-num--accent">1</span>
+          <span class="pf-vs-label">propuesta local / PyME</span>
+        </div>
+        <div>
+          <span class="pf-vs-num">$$$</span>
+          <span class="pf-vs-label">de high-end a accesible</span>
+        </div>
+      </div>
+
+      <!-- 6.3 · Cuadro comparativo (responsive con overflow aislado) -->
+      <span class="pf-comp-hint mono" aria-hidden="true">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12M10 4l4 4-4 4M6 12l-4-4 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Desliza para ver toda la tabla
+      </span>
+      <div class="pf-comp-table-wrap" data-comp-scroll>
         <table class="pf-comp-table">
           <thead>
             <tr>
-              <th>Competidor</th>
-              <th>Foco</th>
-              <th>Modelo</th>
-              <th>Fortalezas</th>
-              <th>Debilidades</th>
+              <th>Caracteristica</th>
+              <th>MaintainX</th>
+              <th>Fracttal One</th>
+              <th>Oracle NetSuite</th>
+              <th>PrevCS</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="pf-placeholder">
-              <td><b>Competidor A</b><br><span class="mono">placeholder</span></td>
-              <td><em>foco principal</em></td>
-              <td><em>SaaS / hardware</em></td>
-              <td><em>punto fuerte 1, 2</em></td>
-              <td><em>brecha 1, 2</em></td>
+            <tr>
+              <td><b>Localizacion</b></td>
+              <td>Estados Unidos</td>
+              <td>Chile</td>
+              <td>Estados Unidos</td>
+              <td class="pf-comp-self-cell"><b>Argentina</b></td>
             </tr>
-            <tr class="pf-placeholder">
-              <td><b>Competidor B</b><br><span class="mono">placeholder</span></td>
-              <td><em>foco principal</em></td>
-              <td><em>SaaS / hardware</em></td>
-              <td><em>punto fuerte 1, 2</em></td>
-              <td><em>brecha 1, 2</em></td>
+            <tr>
+              <td><b>Productos y servicios</b></td>
+              <td>Gestion de mantenimiento y ordenes de trabajo</td>
+              <td>CMMS + IoT + analisis industrial</td>
+              <td>ERP empresarial con mantenimiento y stock</td>
+              <td class="pf-comp-self-cell"><b>Gestion de mantenimiento, stock e IoT industrial</b></td>
             </tr>
-            <tr class="pf-placeholder">
-              <td><b>Competidor C</b><br><span class="mono">placeholder</span></td>
-              <td><em>foco principal</em></td>
-              <td><em>SaaS / hardware</em></td>
-              <td><em>punto fuerte 1, 2</em></td>
-              <td><em>brecha 1, 2</em></td>
+            <tr>
+              <td><b>Precio de venta</b></td>
+              <td>Suscripcion mensual</td>
+              <td>Planes empresariales pagos</td>
+              <td>Alto costo corporativo</td>
+              <td class="pf-comp-self-cell"><b>Bajo costo y adaptable</b></td>
             </tr>
-            <tr class="pf-comp-self">
-              <td><b>PrevCS</b><br><span class="mono">nosotros</span></td>
-              <td>Monitoreo industrial guiado por metricas</td>
-              <td>Plataforma SaaS + hardware sugerido</td>
-              <td>Onboarding por metricas, recomendaciones de sensores, workspaces a medida</td>
-              <td><em>pendiente de definir tras encuestas</em></td>
+            <tr>
+              <td><b>Medios de pago</b></td>
+              <td>Tarjeta / suscripcion online</td>
+              <td>Facturacion empresarial</td>
+              <td>Contratos corporativos</td>
+              <td class="pf-comp-self-cell"><b>Flexible y adaptable</b></td>
+            </tr>
+            <tr>
+              <td><b>Materia prima / infraestructura</b></td>
+              <td>Software cloud</td>
+              <td>Cloud + IoT</td>
+              <td>Infraestructura ERP cloud</td>
+              <td class="pf-comp-self-cell"><b>Web + ESP32 + MySQL</b></td>
+            </tr>
+            <tr>
+              <td><b>Marca</b></td>
+              <td>Reconocida en mantenimiento industrial</td>
+              <td>Fuerte presencia en LATAM</td>
+              <td>Marca corporativa global</td>
+              <td class="pf-comp-self-cell"><b>Proyecto innovador escolar-industrial</b></td>
+            </tr>
+            <tr>
+              <td><b>Tecnologia</b></td>
+              <td>Cloud y automatizacion</td>
+              <td>IoT, IA y monitoreo</td>
+              <td>ERP integral empresarial</td>
+              <td class="pf-comp-self-cell"><b>MVC + MySQL + ESP32 + IoT</b></td>
+            </tr>
+            <tr>
+              <td><b>Embalaje</b></td>
+              <td>Servicio digital</td>
+              <td>Servicio digital</td>
+              <td>Servicio digital</td>
+              <td class="pf-comp-self-cell"><b>Servicio digital</b></td>
+            </tr>
+            <tr>
+              <td><b>Clientes principales</b></td>
+              <td>Empresas industriales y tecnicas</td>
+              <td>Industrias latinoamericanas</td>
+              <td>Grandes empresas y corporaciones</td>
+              <td class="pf-comp-self-cell"><b>PyMEs e industrias locales</b></td>
+            </tr>
+            <tr>
+              <td><b>Atencion al cliente</b></td>
+              <td>Soporte online</td>
+              <td>Soporte tecnico empresarial</td>
+              <td>Soporte corporativo</td>
+              <td class="pf-comp-self-cell"><b>Atencion personalizada</b></td>
+            </tr>
+            <tr>
+              <td><b>Cumplimiento de entrega</b></td>
+              <td>Alto</td>
+              <td>Alto</td>
+              <td>Alto</td>
+              <td class="pf-comp-self-cell"><b>Desarrollo adaptable y rapido</b></td>
+            </tr>
+            <tr>
+              <td><b>Publicidad</b></td>
+              <td>Marketing digital</td>
+              <td>Publicidad corporativa</td>
+              <td>Publicidad empresarial global</td>
+              <td class="pf-comp-self-cell"><b>Difusion academica y local</b></td>
+            </tr>
+            <tr>
+              <td><b>Puntos fuertes</b></td>
+              <td>Facilidad de uso</td>
+              <td>Integracion IoT</td>
+              <td>Gran integracion empresarial</td>
+              <td class="pf-comp-self-cell"><b>Bajo costo + personalizacion</b></td>
+            </tr>
+            <tr>
+              <td><b>Puntos debiles</b></td>
+              <td>Funciones limitadas en versiones basicas</td>
+              <td>Complejidad tecnica</td>
+              <td>Muy costoso y complejo</td>
+              <td class="pf-comp-self-cell"><b>Proyecto en desarrollo</b></td>
+            </tr>
+            <tr>
+              <td><b>Materiales reciclables</b></td>
+              <td>No aplica</td>
+              <td>No aplica</td>
+              <td>No aplica</td>
+              <td class="pf-comp-self-cell"><b>Uso eficiente de hardware</b></td>
+            </tr>
+            <tr>
+              <td><b>Bajo consumo energetico</b></td>
+              <td>Dependencia cloud</td>
+              <td>Requiere infraestructura</td>
+              <td>Alto consumo empresarial</td>
+              <td class="pf-comp-self-cell"><b>ESP32 de bajo consumo</b></td>
+            </tr>
+            <tr>
+              <td><b>Reduccion de residuos</b></td>
+              <td>Parcial</td>
+              <td>Parcial</td>
+              <td>Parcial</td>
+              <td class="pf-comp-self-cell"><b>Reduce mantenimiento innecesario</b></td>
+            </tr>
+            <tr>
+              <td><b>Packaging ecologico</b></td>
+              <td>No aplica</td>
+              <td>No aplica</td>
+              <td>No aplica</td>
+              <td class="pf-comp-self-cell">No aplica</td>
+            </tr>
+            <tr>
+              <td><b>Reparacion o reutilizacion</b></td>
+              <td>Limitada</td>
+              <td>Media</td>
+              <td>Baja</td>
+              <td class="pf-comp-self-cell"><b>Favorece mantenimiento preventivo</b></td>
+            </tr>
+            <tr>
+              <td><b>Impacto ambiental</b></td>
+              <td>Moderado</td>
+              <td>Moderado</td>
+              <td>Alto consumo de recursos</td>
+              <td class="pf-comp-self-cell"><b>Menor impacto operativo</b></td>
+            </tr>
+            <tr>
+              <td><b>Ventaja sustentable frente a PrevCS</b></td>
+              <td>Mayor estabilidad</td>
+              <td>Mayor automatizacion</td>
+              <td>Mayor capacidad empresarial</td>
+              <td class="pf-comp-self-cell"><b>Menor costo y menor consumo</b></td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="pf-foda-grid">
-        <article class="pf-foda-card pf-foda-card--f">
-          <span class="pf-foda-label mono">F · Fortalezas</span>
-          <ul class="pf-bullet-list pf-placeholder">
-            <li>Fortaleza 1 — <em>placeholder</em></li>
-            <li>Fortaleza 2 — <em>placeholder</em></li>
-            <li>Fortaleza 3 — <em>placeholder</em></li>
+      <!-- 6.4 · Pull-quote: que hace distinto a PrevCS -->
+      <div class="pf-pullquote" data-pf-reveal>
+        <span class="pf-pullquote-mark" aria-hidden="true">&ldquo;</span>
+        <div class="pf-pullquote-body">
+          <q>
+            PrevCS integra en una sola plataforma lo que la competencia ofrece por separado —
+            mantenimiento, stock y monitoreo IoT — pensado para industrias medianas y pequenas
+            que necesitan una solucion funcional sin afrontar costos extremadamente elevados.
+          </q>
+          <span class="pf-pullquote-meta">6.4 · diferencias frente a la competencia</span>
+        </div>
+      </div>
+
+      <!-- 6.5 · Por que elegirian PrevCS — numbered editorial block -->
+      <div class="pf-numbered-block" data-pf-reveal>
+        <div>
+          <span class="pf-numbered-block-num">06</span>
+          <span>razones de adopcion</span>
+        </div>
+        <div>
+          <h4>Por que elegirian PrevCS</h4>
+          <p>
+            Frente a plataformas con herramientas avanzadas pero que requieren infraestructura
+            compleja, capacitacion especializada y altos costos mensuales, los clientes optarian
+            por PrevCS por seis razones concretas:
+          </p>
+          <ul class="pf-bullet-list">
+            <li>Menor costo de implementacion.</li>
+            <li>Sistema mas simple e intuitivo.</li>
+            <li>Posibilidad de personalizacion.</li>
+            <li>Integracion con sensores IoT.</li>
+            <li>Control centralizado de maquinaria y stock.</li>
+            <li>Facilidad de adaptacion a plantas industriales locales.</li>
           </ul>
-        </article>
-        <article class="pf-foda-card pf-foda-card--o">
-          <span class="pf-foda-label mono">O · Oportunidades</span>
-          <ul class="pf-bullet-list pf-placeholder">
-            <li>Oportunidad 1 — <em>placeholder</em></li>
-            <li>Oportunidad 2 — <em>placeholder</em></li>
-            <li>Oportunidad 3 — <em>placeholder</em></li>
+        </div>
+      </div>
+
+      <!-- 6.6 · Ventajas + Beneficios — split layout sin chrome de card -->
+      <div class="pf-split" data-pf-reveal>
+        <section>
+          <span class="pf-split-eyebrow mono">6.6 · ventajas competitivas</span>
+          <h4>Principales ventajas</h4>
+          <ul class="pf-bullet-list">
+            <li>Integracion de mantenimiento + stock + IoT.</li>
+            <li>Bajo costo operativo.</li>
+            <li>Interfaz moderna y visual.</li>
+            <li>Sistema adaptable a cada planta.</li>
+            <li>Monitoreo en tiempo real.</li>
+            <li>Alertas automaticas preventivas.</li>
+            <li>Orientacion especifica al sector industrial local.</li>
           </ul>
-        </article>
-        <article class="pf-foda-card pf-foda-card--d">
-          <span class="pf-foda-label mono">D · Debilidades</span>
-          <ul class="pf-bullet-list pf-placeholder">
-            <li>Debilidad 1 — <em>placeholder</em></li>
-            <li>Debilidad 2 — <em>placeholder</em></li>
-            <li>Debilidad 3 — <em>placeholder</em></li>
+        </section>
+        <section>
+          <span class="pf-split-eyebrow mono">6.7 · beneficios concretos</span>
+          <h4>Lo que cambia en la planta</h4>
+          <p>PrevCS aporta beneficios operativos que muchas empresas actualmente no poseen:</p>
+          <ul class="pf-bullet-list">
+            <li>Seguimiento automatico de mantenimientos.</li>
+            <li>Reduccion de fallas inesperadas.</li>
+            <li>Control eficiente de insumos.</li>
+            <li>Historial centralizado de intervenciones.</li>
+            <li>Alertas inteligentes mediante sensores.</li>
+            <li>Mejor organizacion operativa.</li>
+            <li>Reduccion de tiempos muertos en planta.</li>
           </ul>
-        </article>
-        <article class="pf-foda-card pf-foda-card--a">
-          <span class="pf-foda-label mono">A · Amenazas</span>
-          <ul class="pf-bullet-list pf-placeholder">
-            <li>Amenaza 1 — <em>placeholder</em></li>
-            <li>Amenaza 2 — <em>placeholder</em></li>
-            <li>Amenaza 3 — <em>placeholder</em></li>
+        </section>
+      </div>
+
+      <!-- 6.8 · Sustentabilidad — full-bleed callout (rompe el ancho del main) -->
+      <aside class="pf-sustain-callout" data-pf-reveal>
+        <div class="pf-sustain-callout-inner">
+          <div>
+            <span class="pf-sustain-callout-eyebrow">6.8 · sustentabilidad</span>
+            <h3>La sustentabilidad como diferencial competitivo.</h3>
+            <p>
+              Al digitalizar procesos y registros, PrevCS reduce el uso de papel y documentacion
+              fisica dentro de la planta — y suma una capa de eficiencia energetica que la
+              competencia trata como funcionalidad opcional.
+            </p>
+          </div>
+          <ul>
+            <li>Utiliza dispositivos ESP32 de bajo consumo energetico.</li>
+            <li>Reduce desperdicios mediante mantenimiento preventivo.</li>
+            <li>Disminuye reemplazos innecesarios de maquinaria.</li>
+            <li>Favorece la reutilizacion y reparacion de componentes.</li>
+            <li>Optimiza recursos industriales.</li>
+            <li>Reduce fallas y consumo excesivo de materiales.</li>
           </ul>
-        </article>
+        </div>
+      </aside>
+
+      <!-- 6.9 · Conclusion final — texto editorial de cierre -->
+      <div class="pf-editorial pf-editorial--wide" data-pf-reveal>
+        <span class="pf-editorial-rule" aria-hidden="true"></span>
+        <p class="pf-editorial-lead">
+          PrevCS posee caracteristicas competitivas solidas frente a distintas plataformas del
+          mercado actual.
+        </p>
+        <p>
+          Si bien empresas como <b>MaintainX</b>, <b>Fracttal One</b> y <b>Oracle NetSuite</b>
+          cuentan con amplia trayectoria e infraestructura empresarial, PrevCS busca destacarse
+          mediante una propuesta mas accesible, adaptable y orientada a las necesidades reales de
+          industrias locales y PyMEs.
+        </p>
+        <p>
+          La integracion entre mantenimiento industrial, gestion de stock y monitoreo IoT en
+          tiempo real permite ofrecer una solucion moderna, eficiente y sustentable, capaz de
+          optimizar recursos y mejorar significativamente el control operativo dentro de una
+          planta industrial.
+        </p>
       </div>
     </section>
 

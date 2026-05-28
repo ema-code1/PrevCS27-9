@@ -49,13 +49,20 @@
     sections.forEach(s => so.observe(s));
   }
 
-  /* ---------- Reveal on scroll ---------- */
-  const revealEls = document.querySelectorAll(
+  /* ---------- Reveal on scroll ----------
+     Two paths feed this:
+       1) Class-based: well-known card classes get marked here.
+       2) Attribute-based: any element in the markup that already declares
+          [data-pf-reveal] (editorial blocks, pull-quotes, etc.) is observed
+          as-is, so we don't need to keep updating the class list. */
+  const baseReveal = document.querySelectorAll(
     '.pf-section-head, .pf-plan-card, .pf-brand-card, .pf-member-card, .pf-about-card, ' +
     '.pf-foda-card, .pf-mk-card, .pf-chart-card, .pf-reflexion-card, ' +
     '.pf-hero-head > *, .pf-hero-meta > div, .pf-closing-inner > *'
   );
-  revealEls.forEach(el => el.setAttribute('data-pf-reveal', ''));
+  baseReveal.forEach(el => el.setAttribute('data-pf-reveal', ''));
+  const revealEls = document.querySelectorAll('[data-pf-reveal]');
+
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver((entries) => {
       entries.forEach(en => {
@@ -69,6 +76,20 @@
   } else {
     revealEls.forEach(el => el.classList.add('in'));
   }
+
+  /* ---------- Competencia table: flip edge-fade when scrolled to end ----------
+     The wrap's mask-image fades the right side by default (signaling "more
+     content this way"). Once the user scrolls all the way right, flip the
+     fade to the left side so the affordance points back to remaining content. */
+  document.querySelectorAll('[data-comp-scroll]').forEach(wrap => {
+    const update = () => {
+      const atEnd = wrap.scrollLeft + wrap.clientWidth >= wrap.scrollWidth - 2;
+      wrap.dataset.scrollEnd = atEnd ? 'true' : 'false';
+    };
+    wrap.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update, { passive: true });
+    update();
+  });
 
   /* ---------- Copy form link ---------- */
   const FORM_LINK = 'https://docs.google.com/forms/d/e/1FAIpQLSe8SOVPspfusSJ0TT7QcdSGnLbcb2MOWjdHmdk4HOlrMVANHA/viewform';
