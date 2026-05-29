@@ -8,8 +8,11 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
+  const smoothScroll = () => window.PCSSmoothScroll || null;
+
   /* ── Smooth anchor scroll ── */
   document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || smoothScroll()) return;
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
     const id = a.getAttribute('href').slice(1);
@@ -17,9 +20,18 @@
     const target = document.getElementById(id);
     if (!target) return;
     e.preventDefault();
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToTarget(target);
     history.replaceState(null, '', '#' + id);
   });
+
+  function scrollToTarget(target, immediate = false) {
+    const smooth = smoothScroll();
+    if (smooth && typeof smooth.scrollTo === 'function') {
+      smooth.scrollTo(target, { offset: -84, immediate });
+      return;
+    }
+    target.scrollIntoView({ behavior: immediate ? 'auto' : 'smooth', block: 'start' });
+  }
 
   /* ── Scrollspy ── */
   const sectionIds = [
@@ -43,10 +55,47 @@
 
   /* ── Comparison table edge fade ── */
   document.querySelectorAll('[data-comp-scroll]').forEach(wrap => {
+    let targetScroll = wrap.scrollLeft;
+    let frame = 0;
+
+    const maxScroll = () => Math.max(0, wrap.scrollWidth - wrap.clientWidth);
     const update = () => {
       const atEnd = wrap.scrollLeft + wrap.clientWidth >= wrap.scrollWidth - 2;
       wrap.dataset.scrollEnd = atEnd ? 'true' : 'false';
+      if (!frame) targetScroll = wrap.scrollLeft;
     };
+
+    const animate = () => {
+      const diff = targetScroll - wrap.scrollLeft;
+      if (Math.abs(diff) < 0.5) {
+        wrap.scrollLeft = targetScroll;
+        frame = 0;
+        update();
+        return;
+      }
+      wrap.scrollLeft += diff * 0.22;
+      update();
+      frame = requestAnimationFrame(animate);
+    };
+
+    wrap.addEventListener('wheel', (e) => {
+      const max = maxScroll();
+      if (max <= 0) return;
+
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+
+      const unit = e.deltaMode === 1 ? 18 : (e.deltaMode === 2 ? wrap.clientWidth : 1);
+      const delta = e.deltaX * unit;
+      const next = Math.max(0, Math.min(max, targetScroll + delta));
+      const blockedStart = delta < 0 && wrap.scrollLeft <= 0;
+      const blockedEnd = delta > 0 && wrap.scrollLeft >= max - 1;
+      if (blockedStart || blockedEnd) return;
+
+      e.preventDefault();
+      targetScroll = next;
+      if (!frame) frame = requestAnimationFrame(animate);
+    }, { passive: false });
+
     wrap.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update, { passive: true });
     update();
@@ -72,6 +121,9 @@
   function initGSAP() {
     if (typeof gsap === 'undefined') return;
     if (typeof ScrollTrigger !== 'undefined') gsap.registerPlugin(ScrollTrigger);
+    if (window.PCSLenis && typeof window.PCSLenis.on === 'function' && typeof ScrollTrigger !== 'undefined') {
+      window.PCSLenis.on('scroll', ScrollTrigger.update);
+    }
 
     /* Hero entrance */
     gsap.timeline({ defaults: { ease: 'power3.out' } })
@@ -123,7 +175,7 @@
     gsap.utils.toArray('.pf-step').forEach((el, i) => {
       const num  = el.querySelector('.pf-step-num');
       const body = el.querySelector('.pf-step-body');
-      if (num)  gsap.from(num,  { ...st(el, 'top 86%'), x: -40, opacity: 0, duration: 0.75, ease: 'expo.out' });
+      if (num)  gsap.from(num,  { ...st(el, 'top 86%'), opacity: 0, duration: 0.55, ease: 'power2.out' });
       if (body) gsap.from(body, { ...st(el, 'top 86%'), y: 22, opacity: 0, duration: 0.7, delay: 0.12, ease: 'power2.out' });
     });
 
@@ -233,7 +285,58 @@
       });
     }
 
-    /* Reflexion cards */
+    /* 6.4 / 6.5 / 6.6 stack */
+    const adoptStack = document.querySelector('[data-adopt-stack]');
+    if (adoptStack) {
+      gsap.from(adoptStack.querySelectorAll('.pf-adopt-card'), {
+        scrollTrigger: { trigger: adoptStack, start: 'top 78%', once: true },
+        x: 58, y: 18, opacity: 0,
+        duration: 0.95, stagger: 0.14, ease: 'power3.out'
+      });
+    }
+
+    /* Result stack: cards enter from the right and settle over the previous one */
+    const resultStack = document.querySelector('[data-stack]');
+    if (resultStack) {
+      gsap.from(resultStack.querySelectorAll('.pf-stack-card'), {
+        scrollTrigger: { trigger: resultStack, start: 'top 78%', once: true },
+        x: 70, y: 18, opacity: 0,
+        duration: 1.05, stagger: 0.13, ease: 'power3.out'
+      });
+    }
+
+    /* Sustainability path */
+    const ejes = document.querySelector('[data-ejes]');
+    const ejesLine = document.querySelector('.pf-ejes-path-line');
+    if (ejes && ejesLine) {
+      gsap.fromTo(ejesLine,
+        { strokeDashoffset: 1 },
+        {
+          strokeDashoffset: 0,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: ejes,
+            start: 'top 78%',
+            end: 'bottom 62%',
+            scrub: 1.1
+          }
+        }
+      );
+
+      gsap.utils.toArray('.pf-eje').forEach((el, i) => {
+        gsap.from(el, {
+          scrollTrigger: { trigger: el, start: 'top 82%', once: true },
+          x: el.classList.contains('pf-eje--two') ? -52 : 52,
+          y: 16,
+          opacity: 0,
+          duration: 0.9,
+          delay: i * 0.05,
+          ease: 'power3.out'
+        });
+      });
+    }
+
+    /* Reflexión cards */
     gsap.utils.toArray('.pf-reflexion-card').forEach((el, i) => {
       gsap.from(el, { ...st(el, 'top 86%'), y: 20, opacity: 0, duration: 0.6, delay: i * 0.1, ease: 'power2.out' });
     });
@@ -243,6 +346,18 @@
       gsap.from(el, { ...st(el, 'top 88%'), y: 22, opacity: 0, duration: 0.65, delay: i * 0.1, ease: 'power2.out' });
     });
 
+    ScrollTrigger.refresh();
+    ScrollTrigger.update();
+    if (window.location.hash) {
+      window.setTimeout(() => {
+        const target = document.querySelector(window.location.hash);
+        if (!target) return;
+        scrollToTarget(target, true);
+        ScrollTrigger.refresh();
+        ScrollTrigger.update();
+      }, 120);
+    }
+
   }
 
   if (typeof gsap !== 'undefined') {
@@ -250,6 +365,93 @@
   } else {
     window.addEventListener('load', initGSAP, { once: true });
   }
+
+  /* Safety net: si ScrollTrigger tarda o falla, nada queda invisible. */
+  let revealSafetyReady = false;
+  function initRevealSafetyNet() {
+    if (revealSafetyReady) return;
+    revealSafetyReady = true;
+
+    const selector = [
+      '[data-reveal]',
+      '.pf-section-eyebrow',
+      '.pf-section-title',
+      '.pf-section-lede',
+      '.pf-status',
+      '.pf-step-num',
+      '.pf-step-body',
+      '.pf-editorial > p',
+      '.pf-editorial-lead',
+      '.pf-chart-card',
+      '.pf-adopt-card',
+      '.pf-stack-card',
+      '.pf-eje'
+    ].join(',');
+    const targets = Array.from(new Set(document.querySelectorAll(selector)));
+
+    const reveal = (el) => {
+      el.style.removeProperty('opacity');
+      el.style.removeProperty('transform');
+      el.style.removeProperty('translate');
+      el.style.removeProperty('rotate');
+      el.style.removeProperty('scale');
+      el.classList.add('is-revealed');
+    };
+
+    if (!('IntersectionObserver' in window)) {
+      targets.forEach(reveal);
+      return;
+    }
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        reveal(entry.target);
+        io.unobserve(entry.target);
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.01 });
+
+    targets.forEach(el => io.observe(el));
+  }
+
+  window.addEventListener('load', () => {
+    window.setTimeout(initRevealSafetyNet, 300);
+  }, { once: true });
+  window.setTimeout(initRevealSafetyNet, 800);
+
+  let pathFallbackReady = false;
+  function initPathFallback() {
+    if (pathFallbackReady) return;
+    pathFallbackReady = true;
+
+    const ejes = document.querySelector('[data-ejes]');
+    const line = document.querySelector('.pf-ejes-path-line');
+    if (!ejes || !line) return;
+
+    let ticking = false;
+    const update = () => {
+      const rect = ejes.getBoundingClientRect();
+      const start = window.innerHeight * 0.82;
+      const distance = rect.height + start - window.innerHeight * 0.18;
+      const progress = Math.max(0, Math.min(1, (start - rect.top) / distance));
+      line.style.strokeDashoffset = String(1 - progress);
+      ticking = false;
+    };
+    const requestUpdate = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    window.addEventListener('scroll', requestUpdate, { passive: true });
+    window.addEventListener('resize', requestUpdate, { passive: true });
+    if (window.PCSLenis && typeof window.PCSLenis.on === 'function') {
+      window.PCSLenis.on('scroll', requestUpdate);
+    }
+    update();
+  }
+
+  window.setTimeout(initPathFallback, 900);
 
   /* ══════════════════════════════════════════════
      CHARTS — Chart.js consumiendo /api/form-metrics

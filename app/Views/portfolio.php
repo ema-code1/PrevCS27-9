@@ -42,7 +42,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/landing.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/portfolio.css') ?>">
+<link rel="stylesheet" href="<?= base_url('css/portfolio.css') ?>?v=20260529-8">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -762,9 +762,9 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
         </div>
       </div>
 
-      <!-- 6.4 / 6.5 / 6.6 · Adopcion, ventajas y beneficios — cards con scroll trigger -->
-      <div class="pf-adopt-grid">
-        <article class="pf-adopt-card" data-reveal="left">
+      <!-- 6.4 / 6.5 / 6.6 · Adopción, ventajas y beneficios -->
+      <div class="pf-adopt-stack" data-adopt-stack>
+        <article class="pf-adopt-card" data-reveal="right">
           <span class="pf-adopt-num mono">6.4</span>
           <span class="pf-sub-eyebrow mono"><?= $icon('check', 'pf-ico pf-ico--sm') ?> razones de adopción</span>
           <h4>Por qué elegirían PrevCS</h4>
@@ -783,7 +783,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           </ul>
         </article>
 
-        <article class="pf-adopt-card" data-reveal>
+        <article class="pf-adopt-card" data-reveal="right">
           <span class="pf-adopt-num mono">6.5</span>
           <span class="pf-sub-eyebrow mono"><?= $icon('check', 'pf-ico pf-ico--sm') ?> ventajas competitivas</span>
           <h4>Principales ventajas</h4>
@@ -812,6 +812,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
             <li><?= $icon('clock') ?><span>Reducción de tiempos muertos en planta.</span></li>
           </ul>
         </article>
+
       </div>
 
       <!-- 6.7 · Sustentabilidad — full-bleed callout (rompe el ancho del main) -->
@@ -879,9 +880,8 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
         <span class="pf-sub-eyebrow mono"><?= $icon('target', 'pf-ico pf-ico--sm') ?> 7.1 · objetivo de la encuesta</span>
         <h3 class="pf-block-title">Qué queremos averiguar.</h3>
         <p class="pf-block-lede">
-          Validar decisiones del producto (precio, diseño, utilidad, sustentabilidad) y entender
-          qué tan claro queda el valor de PrevCS para usuarios potenciales que no trabajan
-          directamente en planta industrial.
+          Queremos saber qué necesita el usuario, qué funciones le sirven más y si PrevCS se
+          entiende como una solución útil para la planta.
         </p>
       </div>
 
@@ -892,10 +892,10 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
       ────────────────────────────────────────────────────────────── -->
       <div class="pf-formblock" data-reveal>
         <div class="pf-formblock-aside">
-          <span class="mono pf-form-eyebrow"><?= $icon('clipboard', 'pf-ico pf-ico--sm') ?> 7.2 · cuestionario</span>
+          <span class="mono pf-form-eyebrow"><?= $icon('clipboard', 'pf-ico pf-ico--sm') ?> cuestionario</span>
           <h4 class="pf-formblock-title">Cuestionario PrevCS</h4>
           <p class="pf-formblock-desc">
-            Nos ayudás a saber más sobre lo que te hace falta.
+            Nos ayudas a saber más sobre lo que te hace falta.
           </p>
           <div class="pf-form-actions">
             <a class="l-btn l-btn--solid" href="https://docs.google.com/forms/d/e/1FAIpQLSe8SOVPspfusSJ0TT7QcdSGnLbcb2MOWjdHmdk4HOlrMVANHA/viewform" target="_blank" rel="noopener">
@@ -929,16 +929,16 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
         </div>
       </div>
 
-      <!-- 7.3 · Graficos (Chart.js consumiendo /api/form-metrics) -->
+      <!-- Gráficos de respuestas -->
       <div class="pf-block" data-reveal>
-        <span class="pf-sub-eyebrow mono"><?= $icon('chart', 'pf-ico pf-ico--sm') ?> 7.3 · gráficos de respuestas</span>
+        <span class="pf-sub-eyebrow mono"><?= $icon('chart', 'pf-ico pf-ico--sm') ?> gráficos de respuestas</span>
         <h3 class="pf-block-title">Gráficos de la encuesta.</h3>
 
         <div class="pf-charts-grid" data-charts data-metrics-url="<?= base_url('api/form-metrics') ?>">
           <article class="pf-chart-card" data-chart="rol_empresa">
             <header><span class="mono">torta</span><strong>Rol en la empresa</strong></header>
             <div class="pf-chart-canvas-wrap"><canvas data-chart-canvas="rol_empresa" aria-label="Gráfico de roles en la empresa"></canvas></div>
-            <footer class="mono">distribución · 10 respuestas</footer>
+            <footer class="mono">distribución</footer>
           </article>
 
           <article class="pf-chart-card" data-chart="conoce_similar">
@@ -1020,17 +1020,13 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
               </p>
             </article>
 
-            <span class="pf-stack-hint mono" aria-hidden="true">
-              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              seguí scrolleando
-            </span>
           </div>
         </div>
       </div>
 
-      <!-- 7.4 · Reflexion sobre sustentabilidad (ejes en zig-zag con linea guia) -->
+      <!-- 7.5 · Reflexión sobre sustentabilidad -->
       <div class="pf-block" data-reveal>
-        <span class="pf-sub-eyebrow pf-sub-eyebrow--sustain mono"><?= $icon('leaf', 'pf-ico pf-ico--sm') ?> 7.4 · reflexión sobre sustentabilidad</span>
+        <span class="pf-sub-eyebrow pf-sub-eyebrow--sustain mono"><?= $icon('leaf', 'pf-ico pf-ico--sm') ?> 7.5 · reflexión sobre sustentabilidad</span>
         <h3 class="pf-block-title">Reflexión sobre sustentabilidad.</h3>
         <p class="pf-block-lede">
           Pensamos la sustentabilidad en tres ejes — la importancia que le asignan los encuestados,
@@ -1040,9 +1036,14 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
       </div>
 
       <div class="pf-ejes" data-ejes>
-        <div class="pf-ejes-track" aria-hidden="true"><div class="pf-ejes-line"></div></div>
+        <div class="pf-ejes-path" aria-hidden="true">
+          <svg viewBox="0 0 1000 760" preserveAspectRatio="none">
+            <path class="pf-ejes-path-base" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C315 640 540 615 750 665" />
+            <path class="pf-ejes-path-line" pathLength="1" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C315 640 540 615 750 665" />
+          </svg>
+        </div>
 
-        <article class="pf-eje pf-eje--right" data-reveal="right">
+        <article class="pf-eje pf-eje--one" data-reveal="right">
           <span class="pf-eje-dot" aria-hidden="true"></span>
           <div class="pf-eje-card">
             <span class="mono pf-eje-tag"><?= $icon('leaf', 'pf-ico pf-ico--sm') ?> eje 1</span>
@@ -1055,7 +1056,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           </div>
         </article>
 
-        <article class="pf-eje pf-eje--left" data-reveal="left">
+        <article class="pf-eje pf-eje--two" data-reveal="left">
           <span class="pf-eje-dot" aria-hidden="true"></span>
           <div class="pf-eje-card">
             <span class="mono pf-eje-tag"><?= $icon('scale', 'pf-ico pf-ico--sm') ?> eje 2</span>
@@ -1068,7 +1069,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           </div>
         </article>
 
-        <article class="pf-eje pf-eje--right" data-reveal="right">
+        <article class="pf-eje pf-eje--three" data-reveal="right">
           <span class="pf-eje-dot" aria-hidden="true"></span>
           <div class="pf-eje-card">
             <span class="mono pf-eje-tag"><?= $icon('bulb', 'pf-ico pf-ico--sm') ?> eje 3</span>
@@ -1135,12 +1136,10 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<!-- This view runs its own Lenis instance (synced to GSAP), so skip the global preset. -->
-<script>window.__PCS_LENIS_MANUAL = true;</script>
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js" defer></script>
 <!-- GSAP + ScrollTrigger — must load before portfolio.js (Lenis is loaded by the layout) -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
-<script src="<?= base_url('js/portfolio.js') ?>" defer></script>
+<script src="<?= base_url('js/portfolio.js') ?>?v=20260529-9" defer></script>
 <?= $this->endSection() ?>

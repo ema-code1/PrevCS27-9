@@ -37,6 +37,10 @@ html.pf-anim [data-reveal="right"] { transform: translate3d(42px, 0, 0); }
 html.pf-anim [data-reveal="scale"] { transform: scale(.94); }
 html.pf-anim [data-reveal="fade"]  { transform: none; }
 html.pf-anim [data-reveal].is-revealed { opacity: 1; transform: none; }
+.is-revealed {
+  opacity: 1 !important;
+  transform: none !important;
+}
 @media (prefers-reduced-motion: reduce) {
   html.pf-anim [data-reveal] { opacity: 1 !important; transform: none !important; }
 }
@@ -48,26 +52,11 @@ html.pf-anim [data-reveal].is-revealed { opacity: 1; transform: none; }
 .pf-ico--sm { width: 14px; height: 14px; vertical-align: -0.16em; }
 .pf-ico--head { width: 26px; height: 26px; color: var(--accent); vertical-align: -0.18em; }
 
-/* ── Theme-aware motor figures ────────────────────────────────────────
-   Two <img> (light + dark); CSS shows the variant matching the theme so the
-   isometric art always reads against the current background. */
-.pf-figure { position: relative; margin: 0; width: 100%; max-width: 420px; }
-.pf-figure-img { display: block; width: 100%; height: auto; }
-.pf-figure-img--dark { display: none; }
-body[data-theme="dark"] .pf-figure-img--light { display: none; }
-body[data-theme="dark"] .pf-figure-img--dark  { display: block; }
-.pf-figure--hero {
-  max-width: 460px;
-  filter: drop-shadow(0 28px 56px color-mix(in oklab, var(--accent) 20%, transparent));
-}
-.pf-figure--about { max-width: 300px; margin-top: 26px; }
-.pf-figure--side  { max-width: 360px; justify-self: center; }
-
-/* ── 01 hero — split layout (copy + floating motor) ──────────────────── */
+/* ── 01 hero — texto limpio, sin imágenes ────────────────────────────── */
 .pf-hero-layout {
   display: grid;
-  grid-template-columns: 1.08fr 0.92fr;
-  gap: clamp(32px, 5vw, 80px);
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 48px);
   align-items: center;
 }
 .pf-hero-aside {
@@ -174,7 +163,10 @@ body[data-theme="dark"] .pf-figure-img--dark  { display: block; }
 /* Kill the body-level continuous gradient on portfolio pages so each section
    can paint its own discrete background band that aligns with section
    boundaries (the gradient made transitions feel arbitrary). */
-body:has(.pf-main) { background: var(--bg) !important; }
+body:has(.pf-main) {
+  background: var(--bg) !important;
+  overflow-x: clip;
+}
 
 .pf-main {
   max-width: var(--maxw);
@@ -958,6 +950,10 @@ body:has(.pf-main) { background: var(--bg) !important; }
   max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  overscroll-behavior-y: auto;
+  scroll-behavior: auto;
+  will-change: scroll-position;
   border: 1px solid var(--hair);
   border-radius: var(--radius-xl);
   background: var(--bg-card);
@@ -1042,6 +1038,78 @@ body:has(.pf-main) { background: var(--bg) !important; }
 .pf-comp-table thead th:last-child {
   color: var(--accent);
   background: color-mix(in oklab, var(--accent) 12%, var(--bg-2));
+}
+
+/* 6.4 / 6.5 / 6.6 — cards en pila por capas. */
+.pf-adopt-stack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin: clamp(34px, 5vw, 72px) 0 clamp(48px, 6vw, 84px);
+  padding: 18px 0 34px;
+}
+.pf-adopt-card {
+  position: relative;
+  z-index: 1;
+  width: min(980px, 100%);
+  padding: clamp(20px, 2.6vw, 32px);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--accent) 7%, transparent), transparent 46%),
+    var(--bg-card);
+  box-shadow: 0 18px 48px color-mix(in oklab, var(--ink) 9%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pf-adopt-card + .pf-adopt-card {
+  margin-top: clamp(-26px, -2.4vw, -14px);
+}
+.pf-adopt-card:nth-of-type(2) {
+  z-index: 2;
+  width: min(930px, calc(100% - clamp(34px, 7vw, 92px)));
+}
+.pf-adopt-card:nth-of-type(3) {
+  z-index: 3;
+  width: min(880px, calc(100% - clamp(68px, 12vw, 150px)));
+}
+.pf-adopt-card:nth-of-type(n + 2)::before {
+  content: "";
+  position: absolute;
+  left: clamp(26px, 8%, 90px);
+  right: clamp(26px, 8%, 90px);
+  top: -12px;
+  height: 12px;
+  border: 1px solid var(--hair);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: color-mix(in oklab, var(--accent) 12%, var(--bg-card));
+}
+.pf-adopt-num {
+  align-self: flex-start;
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: var(--text-faint);
+}
+.pf-adopt-card h4 {
+  font-size: clamp(20px, 2vw, 27px);
+  letter-spacing: -0.022em;
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+.pf-adopt-card p {
+  max-width: 680px;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.pf-adopt-card .pf-feature-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 22px;
 }
 
 /* ============================================================
@@ -1347,6 +1415,165 @@ body[data-theme="dark"] .pf-form-frame {
 }
 .pf-results-analysis p b { color: var(--text-primary); font-weight: var(--font-weight-medium); }
 
+.pf-stack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 18px 0 34px;
+}
+.pf-stack-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: clamp(18px, 2.4vw, 28px);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--accent) 6%, transparent), transparent 44%),
+    var(--bg-2);
+  box-shadow: 0 16px 42px color-mix(in oklab, var(--ink) 8%, transparent);
+}
+.pf-stack-card + .pf-stack-card {
+  margin-top: clamp(-24px, -2.2vw, -12px);
+}
+.pf-stack-card:nth-of-type(1) { z-index: 1; }
+.pf-stack-card:nth-of-type(2) {
+  z-index: 2;
+  width: calc(100% - clamp(22px, 4vw, 58px));
+}
+.pf-stack-card:nth-of-type(3) {
+  z-index: 3;
+  width: calc(100% - clamp(44px, 8vw, 116px));
+}
+.pf-stack-card:nth-of-type(4) {
+  z-index: 4;
+  width: calc(100% - clamp(66px, 12vw, 174px));
+}
+.pf-stack-card:nth-of-type(5) {
+  z-index: 5;
+  width: calc(100% - clamp(88px, 16vw, 220px));
+}
+.pf-stack-card:nth-of-type(n + 2)::before {
+  content: "";
+  position: absolute;
+  left: clamp(24px, 8%, 78px);
+  right: clamp(24px, 8%, 78px);
+  top: -12px;
+  height: 12px;
+  border: 1px solid var(--hair);
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
+  background: color-mix(in oklab, var(--accent) 10%, var(--bg-card));
+}
+.pf-stack-num {
+  display: inline-flex;
+  margin-bottom: 10px;
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: .12em;
+}
+.pf-ejes {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(170px, auto));
+  gap: clamp(22px, 4vw, 54px);
+  min-height: 760px;
+  margin-top: clamp(10px, 2vw, 24px);
+  padding: clamp(20px, 4vw, 42px) 0 72px;
+}
+.pf-ejes-path {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.pf-ejes-path svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.pf-ejes-path-base,
+.pf-ejes-path-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.pf-ejes-path-base {
+  stroke: color-mix(in oklab, var(--success) 22%, transparent);
+  stroke-width: 2;
+  stroke-dasharray: 8 14;
+}
+.pf-ejes-path-line {
+  stroke: var(--success);
+  stroke-width: 3;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  filter: drop-shadow(0 0 10px color-mix(in oklab, var(--success) 26%, transparent));
+}
+.pf-eje {
+  position: relative;
+  z-index: 1;
+}
+.pf-eje--one {
+  grid-column: 7 / -1;
+  grid-row: 1;
+}
+.pf-eje--two {
+  grid-column: 1 / 7;
+  grid-row: 2;
+  margin-top: -8px;
+}
+.pf-eje--three {
+  grid-column: 6 / -1;
+  grid-row: 3;
+}
+.pf-eje-dot {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: var(--bg-card);
+  border: 2px solid var(--success);
+  box-shadow: 0 0 0 5px color-mix(in oklab, var(--success) 14%, transparent);
+}
+.pf-eje--one .pf-eje-dot { left: -20px; top: 48%; }
+.pf-eje--two .pf-eje-dot { right: -20px; top: 46%; }
+.pf-eje--three .pf-eje-dot { left: -20px; top: 42%; }
+.pf-eje-card {
+  padding: clamp(20px, 2.5vw, 30px);
+  border: 1px solid color-mix(in oklab, var(--success) 28%, var(--hair));
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--success) 8%, transparent), transparent 46%),
+    var(--bg-card);
+  box-shadow: var(--shadow-sm);
+}
+.pf-eje-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--success);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.pf-eje-card h5 {
+  font-size: clamp(18px, 1.8vw, 24px);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+.pf-eje-card p {
+  font-size: 14.5px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.pf-eje-card .pf-feature-list { margin-top: 10px; }
+.pf-eje-card .pf-feature-list li .pf-ico { color: var(--success); }
 .pf-integration-note {
   margin-top: 10px;
   padding: 16px;
@@ -1477,17 +1704,20 @@ body[data-theme="dark"] .pf-form-frame {
    02 · PLAN OPERATIVO — Steps (redesign: no card chrome)
    ============================================================ */
 .pf-steps {
+  --steps-rail-x: clamp(16px, 3.2vw, 34px);
+  --steps-pad: clamp(44px, 7vw, 88px);
+  --steps-num-col: clamp(34px, 5vw, 58px);
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding-left: clamp(56px, 10vw, 120px);
+  padding-left: var(--steps-pad);
 }
 .pf-steps-track {
   position: absolute;
-  left: clamp(20px, 4.2vw, 44px);
-  top: 20px;
-  bottom: 20px;
+  left: var(--steps-rail-x);
+  top: 24px;
+  bottom: 24px;
   width: 1px;
 }
 .pf-steps-line {
@@ -1500,10 +1730,10 @@ body[data-theme="dark"] .pf-form-frame {
 }
 .pf-step {
   display: grid;
-  grid-template-columns: clamp(40px, 6vw, 72px) 1fr;
-  gap: clamp(20px, 3vw, 40px);
+  grid-template-columns: var(--steps-num-col) 1fr;
+  gap: clamp(14px, 2.2vw, 28px);
   align-items: start;
-  padding: clamp(28px, 4vw, 52px) 0;
+  padding: clamp(22px, 3.2vw, 42px) 0;
   border-bottom: 1px solid var(--hair);
   position: relative;
 }
@@ -1520,7 +1750,7 @@ body[data-theme="dark"] .pf-form-frame {
 .pf-step-num::before {
   content: '';
   position: absolute;
-  left: calc(-1 * clamp(40px, 8vw, 88px));
+  left: calc(var(--steps-rail-x) - var(--steps-pad) - 3.5px);
   top: 9px;
   width: 8px;
   height: 8px;
@@ -1654,10 +1884,8 @@ body[data-theme="dark"] .pf-form-frame {
    ============================================================ */
 @media (max-width: 1024px) {
   .pf-hero-layout { grid-template-columns: 1fr; gap: clamp(28px, 5vw, 48px); }
-  .pf-figure--hero { max-width: 300px; }
   .pf-formblock { grid-template-columns: 1fr; }
   .pf-formblock-aside { position: static; }
-  .pf-acerca-head .pf-figure--about { display: none; }
 }
 
 @media (max-width: 1180px) {
@@ -1676,20 +1904,51 @@ body[data-theme="dark"] .pf-form-frame {
   .pf-pullquote { grid-template-columns: 1fr; gap: 8px; }
   .pf-pullquote-mark { font-size: 64px; line-height: 1; }
   .pf-feature-list--3col { grid-template-columns: 1fr 1fr; }
+  .pf-ejes {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .pf-ejes-path { display: none; }
+  .pf-eje,
+  .pf-eje--one,
+  .pf-eje--two,
+  .pf-eje--three {
+    grid-column: auto;
+    grid-row: auto;
+    margin-top: 0;
+  }
+  .pf-eje-dot { left: -6px !important; right: auto !important; top: 22px !important; }
 }
 
 @media (max-width: 900px) {
   .pf-media-row { grid-template-columns: 1fr; gap: clamp(20px, 4vw, 36px); }
-  .pf-media-row .pf-figure--side { order: -1; max-width: 280px; }
   .pf-feature-list--2col { grid-template-columns: 1fr; }
+  .pf-adopt-card,
+  .pf-stack-card {
+    position: relative;
+    top: auto;
+    margin-left: 0;
+    width: 100% !important;
+  }
+  .pf-adopt-card + .pf-adopt-card,
+  .pf-stack-card + .pf-stack-card { margin-top: 14px; }
+  .pf-adopt-card::before,
+  .pf-stack-card::before { display: none; }
+  .pf-adopt-card .pf-feature-list { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
   .pf-gutter-index { font-size: clamp(48px, 16vw, 88px); left: -6px; opacity: 0.04; }
-  .pf-steps { padding-left: 40px; }
-  .pf-steps-track { left: 10px; }
+  .pf-steps {
+    --steps-rail-x: 10px;
+    --steps-pad: 40px;
+    --steps-num-col: 34px;
+  }
+  .pf-steps-track { left: var(--steps-rail-x); }
   .pf-step { grid-template-columns: 36px 1fr; gap: 12px; }
-  .pf-step-num::before { left: -30px; }
+  .pf-step-num::before { left: calc(var(--steps-rail-x) - var(--steps-pad) - 3.5px); }
   .pf-about-items { grid-template-columns: 1fr; }
   .pf-about-item--full { grid-column: span 1; }
   .pf-brand-grid { grid-template-columns: 1fr; }
