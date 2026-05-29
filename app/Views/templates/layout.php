@@ -17,6 +17,10 @@
     <link rel="stylesheet" href="<?= base_url('css/header.css') ?>">
     <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
     <?= $this->renderSection('pageStyles') ?>
+
+    <!-- Lenis — smooth scroll (global preset for every view) -->
+    <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js" defer></script>
+    <script src="<?= base_url('js/smooth-scroll.js') ?>" defer></script>
 </head>
 <body class="<?= esc($bodyClass ?? 'theme-light') ?>" data-theme="light">
     <div class="app-shell">
