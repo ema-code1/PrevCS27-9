@@ -1,0 +1,115 @@
+/* ─────────────────────────────────────────────────────────────────
+   ESP32 · listado / agregar / detalle
+   Reusa dashboard.css + tokens de styles.css
+   ───────────────────────────────────────────────────────────────── */
+
+/* ── Listado de dispositivos ──────────────────────────────────────── */
+.esp32-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--content-gap);
+}
+
+.esp32-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+    text-decoration: none;
+    color: inherit;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.esp32-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+.esp32-card__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-xs); }
+.esp32-card__head h3 { margin: 0; font-size: var(--font-size-lg); }
+
+.esp32-card__mac {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    color: var(--accent);
+    background: var(--accent-soft);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    align-self: flex-start;
+}
+
+.esp32-card__meta { margin: 0; display: grid; gap: 6px; }
+.esp32-card__meta > div { display: flex; justify-content: space-between; gap: var(--space-sm); }
+.esp32-card__meta dt { color: var(--text-muted); font-size: var(--font-size-xs); margin: 0; }
+.esp32-card__meta dd { margin: 0; font-size: var(--font-size-sm); color: var(--text-primary); text-align: right; }
+
+/* ── Estado vacío ─────────────────────────────────────────────────── */
+.esp32-empty { text-align: center; padding: var(--space-xl); display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); }
+.esp32-empty h3 { margin: 0; }
+.esp32-empty p { color: var(--text-secondary); margin: 0; max-width: 46ch; }
+
+/* ── Banner de token ──────────────────────────────────────────────── */
+.esp32-token-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    padding: var(--space-md);
+    border-left: 4px solid var(--warning);
+}
+.esp32-token-banner p { margin: 4px 0 0; color: var(--text-secondary); font-size: var(--font-size-sm); }
+.esp32-token {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-md);
+    background: var(--bg-3);
+    color: var(--text-primary);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    user-select: all;
+    word-break: break-all;
+}
+
+/* ── Formulario de alta ───────────────────────────────────────────── */
+.esp32-form-card { max-width: 540px; padding: var(--space-lg); }
+
+.esp32-select,
+.esp32-input {
+    width: 100%;
+    font: inherit;
+    color: var(--text-primary);
+    background: var(--input-bg);
+    border: var(--border-thin) solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+}
+.esp32-select:focus,
+.esp32-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+
+/* ── Detalle ──────────────────────────────────────────────────────── */
+.esp32-back { color: var(--accent); text-decoration: none; }
+.esp32-back:hover { text-decoration: underline; }
+
+.esp32-add-sensor { padding: var(--space-md); }
+.esp32-sensor-form { display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center; }
+.esp32-sensor-form .esp32-select { flex: 1 1 180px; width: auto; }
+.esp32-sensor-form .esp32-input { flex: 1 1 180px; width: auto; }
+
+.esp32-sensor-meta { margin: 0; display: grid; gap: var(--space-sm); }
+.esp32-sensor-meta > div { display: flex; flex-direction: column; gap: 2px; }
+.esp32-sensor-meta dt { color: var(--text-muted); font-size: var(--font-size-xs); }
+.esp32-sensor-meta dd { margin: 0; color: var(--text-primary); }
+
+.esp32-observations { color: var(--text-secondary); margin: 0; font-size: var(--font-size-sm); }
+
+.esp32-history { display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; }
+.esp32-history__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    font-size: var(--font-size-sm);
+}
+.esp32-history__row .mono { color: var(--text-muted); }
+
+.esp32-chart-empty { text-align: center; color: var(--text-muted); padding: var(--space-lg); }
+.iot-line-chart__point { fill: var(--accent); }

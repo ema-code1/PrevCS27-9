@@ -84,9 +84,13 @@ class Filters extends BaseFilters
                 'forgot-password',
                 'reset-password',
                 'reset-password/*',
+                'api/iot/lectura', // ingesta IoT: auth por MAC + device_token
             ]],
             // 'honeypot',
-            'csrf',
+            // CSRF global, excepto la ingesta IoT (las ESP32 no envian token CSRF).
+            'csrf' => ['except' => [
+                'api/iot/lectura',
+            ]],
             // 'invalidchars',
         ],
         'after' => [

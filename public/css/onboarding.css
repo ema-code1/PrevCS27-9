@@ -1,0 +1,201 @@
+/* ─────────────────────────────────────────────────────────────────
+   Onboarding · crear-espacio / verificar / unirse-espacio
+   Reusa el lenguaje visual de reg-log.css + tokens de styles.css
+   ───────────────────────────────────────────────────────────────── */
+
+.auth-panel--wide {
+    max-width: 560px;
+    width: 100%;
+}
+
+.onboarding-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.onboarding-card--center {
+    text-align: center;
+    align-items: center;
+}
+
+.onboarding-head h1,
+.onboarding-card--center h1 {
+    margin: 0;
+}
+
+.onboarding-head p {
+    color: var(--text-secondary);
+    margin: var(--space-2xs) 0 0;
+}
+
+/* Check de cuenta verificada */
+.onboarding-check {
+    width: 64px;
+    height: 64px;
+    color: var(--success);
+    background: var(--success-soft);
+    border-radius: var(--radius-pill);
+    display: grid;
+    place-items: center;
+    margin-bottom: var(--space-xs);
+}
+
+.onboarding-check svg { width: 36px; height: 36px; }
+
+.onboarding-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    width: 100%;
+}
+
+.onboarding-foot { margin-top: var(--space-sm); }
+
+/* ── Indicador de pasos ───────────────────────────────────────────── */
+.wizard-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    justify-content: space-between;
+}
+
+.wizard-steps__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--font-size-xs);
+    color: var(--text-faint);
+    transition: color var(--transition-fast);
+}
+
+.wizard-steps__item span {
+    width: 22px;
+    height: 22px;
+    border-radius: var(--radius-pill);
+    display: grid;
+    place-items: center;
+    background: var(--bg-3);
+    color: var(--text-muted);
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.7rem;
+    transition: all var(--transition-fast);
+}
+
+.wizard-steps__item.is-active { color: var(--text-primary); }
+.wizard-steps__item.is-active span {
+    background: var(--accent);
+    color: var(--text-on-active);
+}
+
+/* ── Panes del wizard ─────────────────────────────────────────────── */
+.wizard-pane {
+    display: none;
+    flex-direction: column;
+    gap: var(--space-sm);
+    animation: wizard-in var(--transition-normal);
+}
+.wizard-pane.is-active { display: flex; }
+
+@keyframes wizard-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.wizard-hint {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin: 0;
+}
+
+.wizard-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    margin-top: var(--space-xs);
+}
+
+.wizard-nav .auth-submit { width: auto; min-width: 150px; }
+.wizard-prev {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font: inherit;
+    padding: 8px 4px;
+}
+.wizard-prev:hover { color: var(--text-primary); }
+
+/* ── ID único ─────────────────────────────────────────────────────── */
+.wizard-uid {
+    text-align: center;
+    padding: var(--space-lg) var(--space-md);
+    background: var(--accent-soft);
+    border: var(--border-thin) dashed var(--accent);
+    border-radius: var(--radius-lg);
+}
+
+.wizard-uid__code {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide);
+    color: var(--accent);
+    margin: var(--space-xs) 0;
+}
+
+/* ── Grid de métricas ─────────────────────────────────────────────── */
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-sm);
+}
+
+.metric-option { cursor: pointer; }
+.metric-option input { position: absolute; opacity: 0; pointer-events: none; }
+
+.metric-option__box {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-sm);
+    border: var(--border-thin) solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--input-bg);
+    transition: all var(--transition-fast);
+}
+
+.metric-option__name { font-weight: var(--font-weight-medium); color: var(--text-primary); }
+.metric-option__unit { font-size: var(--font-size-xs); color: var(--text-muted); font-family: var(--font-mono); }
+
+.metric-option input:checked + .metric-option__box {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.metric-option input:focus-visible + .metric-option__box { box-shadow: 0 0 0 3px var(--accent-ring); }
+
+/* ── Sugerencias de gráficos ──────────────────────────────────────── */
+.chart-suggestions { display: flex; flex-direction: column; gap: var(--space-xs); }
+
+.chart-suggestion {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    border: var(--border-thin) solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+}
+.chart-suggestion strong { color: var(--text-primary); }
+.chart-suggestion__chart {
+    font-size: var(--font-size-sm);
+    color: var(--accent);
+    font-weight: var(--font-weight-medium);
+}
+.chart-suggestions__empty { color: var(--text-muted); font-size: var(--font-size-sm); margin: 0; }

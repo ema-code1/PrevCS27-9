@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\IndustryUserModel;
 use App\Models\UserModel;
 
 class Auth extends BaseController
@@ -60,7 +61,28 @@ class Auth extends BaseController
             'isLoggedIn' => true,
         ]);
 
+        // Carga la industria activa (primera membresia) si el usuario ya tiene una.
+        $this->setActiveIndustry((int) $user['id']);
+
         return redirect()->to(base_url('principal'));
+    }
+
+    /**
+     * Setea en sesion la industria activa del usuario (primera membresia),
+     * para scopear las vistas de ESP32/IoT. Si no tiene ninguna, no hace nada.
+     */
+    private function setActiveIndustry(int $userId): void
+    {
+        $industries = (new IndustryUserModel())->industriesForUser($userId);
+
+        if ($industries === []) {
+            return;
+        }
+
+        session()->set([
+            'active_industry_id'   => (int) $industries[0]['id'],
+            'active_industry_role' => $industries[0]['role'],
+        ]);
     }
 
     public function register()
@@ -131,7 +153,9 @@ class Auth extends BaseController
             'isLoggedIn' => true,
         ]);
 
-        return redirect()->to(base_url('principal'));
+        // Tras registrarse el usuario NO va al dashboard: pasa por verificacion
+        // y luego al onboarding de creacion de espacio.
+        return redirect()->to(base_url('verificar-cuenta'));
     }
 
     public function logout()
