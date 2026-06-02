@@ -42,7 +42,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/landing.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/portfolio.css') ?>?v=20260529-8">
+<link rel="stylesheet" href="<?= base_url('css/portfolio.css') ?>?v=20260602-4">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -764,7 +764,8 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 
       <!-- 6.4 / 6.5 / 6.6 · Adopción, ventajas y beneficios -->
       <div class="pf-adopt-stack" data-adopt-stack>
-        <article class="pf-adopt-card" data-reveal="right">
+        <div class="pf-adopt-stage" data-adopt-stage>
+        <article class="pf-adopt-card">
           <span class="pf-adopt-num mono">6.4</span>
           <span class="pf-sub-eyebrow mono"><?= $icon('check', 'pf-ico pf-ico--sm') ?> razones de adopción</span>
           <h4>Por qué elegirían PrevCS</h4>
@@ -783,7 +784,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           </ul>
         </article>
 
-        <article class="pf-adopt-card" data-reveal="right">
+        <article class="pf-adopt-card">
           <span class="pf-adopt-num mono">6.5</span>
           <span class="pf-sub-eyebrow mono"><?= $icon('check', 'pf-ico pf-ico--sm') ?> ventajas competitivas</span>
           <h4>Principales ventajas</h4>
@@ -798,7 +799,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           </ul>
         </article>
 
-        <article class="pf-adopt-card" data-reveal="right">
+        <article class="pf-adopt-card">
           <span class="pf-adopt-num mono">6.6</span>
           <span class="pf-sub-eyebrow mono"><?= $icon('spark', 'pf-ico pf-ico--sm') ?> beneficios concretos</span>
           <h4>Lo que cambia en la planta</h4>
@@ -812,7 +813,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
             <li><?= $icon('clock') ?><span>Reducción de tiempos muertos en planta.</span></li>
           </ul>
         </article>
-
+        </div>
       </div>
 
       <!-- 6.7 · Sustentabilidad — full-bleed callout (rompe el ancho del main) -->
@@ -1038,8 +1039,32 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
       <div class="pf-ejes" data-ejes>
         <div class="pf-ejes-path" aria-hidden="true">
           <svg viewBox="0 0 1000 760" preserveAspectRatio="none">
-            <path class="pf-ejes-path-base" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C315 640 540 615 750 665" />
-            <path class="pf-ejes-path-line" pathLength="1" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C315 640 540 615 750 665" />
+            <defs>
+              <radialGradient id="pf-ejes-fade-start"
+                              gradientUnits="userSpaceOnUse"
+                              cx="110" cy="70" r="150">
+                <stop offset="0%"   stop-color="#000" stop-opacity="1"/>
+                <stop offset="100%" stop-color="#fff" stop-opacity="1"/>
+              </radialGradient>
+              <radialGradient id="pf-ejes-fade-end"
+                              gradientUnits="userSpaceOnUse"
+                              cx="750" cy="665" r="150">
+                <stop offset="0%"   stop-color="#000" stop-opacity="1"/>
+                <stop offset="100%" stop-color="#fff" stop-opacity="1"/>
+              </radialGradient>
+              <mask id="pf-ejes-mask"
+                    maskUnits="userSpaceOnUse"
+                    x="-50" y="-50" width="1100" height="860"
+                    style="mask-type:luminance">
+                <rect x="-50" y="-50" width="1100" height="860" fill="#fff"/>
+                <circle cx="110" cy="70"  r="150" fill="url(#pf-ejes-fade-start)"/>
+                <circle cx="750" cy="665" r="150" fill="url(#pf-ejes-fade-end)"/>
+              </mask>
+            </defs>
+            <g mask="url(#pf-ejes-mask)">
+              <path class="pf-ejes-path-base" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C315 640 540 615 750 665"/>
+              <path class="pf-ejes-path-line" pathLength="1" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C315 640 540 615 750 665"/>
+            </g>
           </svg>
         </div>
 
@@ -1141,5 +1166,5 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 <!-- GSAP + ScrollTrigger — must load before portfolio.js (Lenis is loaded by the layout) -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
-<script src="<?= base_url('js/portfolio.js') ?>?v=20260529-9" defer></script>
+<script src="<?= base_url('js/portfolio.js') ?>?v=20260602-4" defer></script>
 <?= $this->endSection() ?>

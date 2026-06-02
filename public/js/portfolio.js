@@ -285,16 +285,6 @@
       });
     }
 
-    /* 6.4 / 6.5 / 6.6 stack */
-    const adoptStack = document.querySelector('[data-adopt-stack]');
-    if (adoptStack) {
-      gsap.from(adoptStack.querySelectorAll('.pf-adopt-card'), {
-        scrollTrigger: { trigger: adoptStack, start: 'top 78%', once: true },
-        x: 58, y: 18, opacity: 0,
-        duration: 0.95, stagger: 0.14, ease: 'power3.out'
-      });
-    }
-
     /* Result stack: cards enter from the right and settle over the previous one */
     const resultStack = document.querySelector('[data-stack]');
     if (resultStack) {
@@ -304,6 +294,72 @@
         duration: 1.05, stagger: 0.13, ease: 'power3.out'
       });
     }
+
+    /* 6.4 / 6.5 / 6.6 — stackable deck (desktop only ≥1024px). */
+    const PEEK_PX = 14;
+    const SCALE_STEP = 0.025;
+    const OPACITY_STEP = 0.18;
+    const stackState = (i, active, n) => {
+      const d = i - active;
+      const ad = Math.abs(d);
+      if (d === 0) {
+        return { xPercent: -50, yPercent: -50, y: 0, scale: 1, opacity: 1, zIndex: n + 10 };
+      }
+      const dir = d < 0 ? -1 : 1;
+      return {
+        xPercent: -50,
+        yPercent: -50,
+        y: dir * (PEEK_PX * ad),
+        scale: Math.max(0.86, 1 - ad * SCALE_STEP),
+        opacity: Math.max(0.22, 1 - ad * OPACITY_STEP),
+        zIndex: Math.max(1, n - ad)
+      };
+    };
+
+    const setupDeck = (rootEl, stageEl, cardSelector) => {
+      const cards = Array.from(stageEl.querySelectorAll(cardSelector));
+      if (!cards.length) return;
+      const n = cards.length;
+      cards.forEach((c, i) => gsap.set(c, stackState(i, 0, n)));
+
+      const tl = gsap.timeline({
+        defaults: { ease: 'power2.inOut' },
+        scrollTrigger: {
+          trigger: rootEl,
+          start: 'top top+=92',
+          end: () => `+=${(n - 1) * Math.max(window.innerHeight * 0.42, 280)}`,
+          pin: stageEl,
+          pinSpacing: true,
+          scrub: 0.5,
+          anticipatePin: 1,
+          invalidateOnRefresh: true
+        }
+      });
+
+      for (let active = 1; active < n; active++) {
+        cards.forEach((c, i) => {
+          tl.to(c, { ...stackState(i, active, n), duration: 1 }, active - 1);
+        });
+      }
+    };
+
+    const stackMM = gsap.matchMedia();
+    stackMM.add('(min-width: 1024px)', () => {
+      const adoptStackEl = document.querySelector('[data-adopt-stack]');
+      const adoptStage = adoptStackEl && adoptStackEl.querySelector('[data-adopt-stage]');
+      if (adoptStackEl && adoptStage) setupDeck(adoptStackEl, adoptStage, '.pf-adopt-card');
+    });
+
+    stackMM.add('(max-width: 1023px)', () => {
+      const flowCards = document.querySelectorAll('[data-adopt-stack] .pf-adopt-card');
+      flowCards.forEach((c) => gsap.set(c, { clearProps: 'all' }));
+      flowCards.forEach((c) => {
+        gsap.from(c, {
+          scrollTrigger: { trigger: c, start: 'top 86%', once: true },
+          y: 22, opacity: 0, duration: 0.6, ease: 'power2.out'
+        });
+      });
+    });
 
     /* Sustainability path */
     const ejes = document.querySelector('[data-ejes]');
@@ -383,7 +439,6 @@
       '.pf-editorial > p',
       '.pf-editorial-lead',
       '.pf-chart-card',
-      '.pf-adopt-card',
       '.pf-stack-card',
       '.pf-eje'
     ].join(',');
