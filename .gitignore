@@ -26,4 +26,4 @@ Thumbs.db
 
 # Secretos: el .env real (DB, credenciales SMTP) NO va al repo.
 # Usá .env.example como plantilla y copiá el .env a mano en cada PC.
-.env
+# .env

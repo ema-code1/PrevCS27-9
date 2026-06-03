@@ -57,10 +57,10 @@ por espacio (planta/máquina).
                                                                     │ consulta
                                             ┌───────────────────────┘
                                             ▼
-                                   ┌──────────────────┐
-                                   │  Vistas web PHP  │  Registros IoT por espacio
-                                   │ RegistrosController│  (1 gráfico por sensor)
-                                   └──────────────────┘
+                                   ┌───────────────────┐
+                                   │  Vistas web PHP   │  Registros IoT por espacio
+                                   |RegistrosController│  (1 gráfico por sensor)
+                                   └───────────────────┘
 ```
 
 **Cadena de identificación de los datos (modelo relacional):**
