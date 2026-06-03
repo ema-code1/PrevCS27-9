@@ -1,0 +1,29 @@
+# ─── PrevCS .gitignore ───
+
+# Basura de runtime de CodeIgniter (se regenera sola; NO debe ir al repo)
+writable/cache/*
+!writable/cache/index.html
+writable/debugbar/*
+!writable/debugbar/index.html
+writable/logs/*
+!writable/logs/index.html
+writable/session/*
+!writable/session/index.html
+writable/uploads/*
+!writable/uploads/index.html
+writable/*.db
+
+# Firmware: el config.json real de una placa tiene WiFi/token → NO subirlo.
+firmware/config.json
+firmware/__pycache__/
+**/__pycache__/
+
+# Sistema operativo / editores
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
+
+# Secretos: el .env real (DB, credenciales SMTP) NO va al repo.
+# Usá .env.example como plantilla y copiá el .env a mano en cada PC.
+.env

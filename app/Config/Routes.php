@@ -15,10 +15,8 @@ $routes->get('api/form-metrics', 'FormAnswers::metrics');
 $routes->get('form-answers/import', 'FormAnswers::import');
 
 $routes->get('principal', 'Home::index');
-$routes->get('registros-iot', 'Home::registrosIot');
 $routes->get('admin-account', 'AdminAccount::index');
 $routes->post('admin-account', 'AdminAccount::update');
-$routes->get('api/iot-readings', 'IotReadings::index');
 $routes->get('login', 'Auth::index');
 $routes->get('reg-log', 'Auth::index');
 $routes->get('register', 'Auth::index');
@@ -34,6 +32,11 @@ $routes->get('admin-account', 'Account::index');
 $routes->post('admin-account/update', 'Account::update');
 
 // === Modulo IoT multi-industria ===
+// Registros IoT por-espacio (reemplaza la vieja vista global con datos demo)
+$routes->get('registros-iot', 'RegistrosController::index');
+$routes->get('registros-iot/(:num)', 'RegistrosController::space/$1');
+$routes->get('api/espacio/(:num)/lecturas', 'RegistrosController::readings/$1');
+
 // Onboarding post-registro: registro -> verificacion -> crear-espacio
 $routes->get('verificar-cuenta', 'OnboardingController::verify');
 $routes->get('crear-espacio', 'OnboardingController::create');

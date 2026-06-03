@@ -11,7 +11,7 @@ class Esp32DeviceModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $protectFields    = true;
-    protected $allowedFields    = ['industry_id', 'name', 'mac_address', 'sector', 'device_token', 'status', 'last_seen_at'];
+    protected $allowedFields    = ['industry_id', 'name', 'mac_address', 'sector', 'token_hash', 'is_active', 'status', 'last_seen_at'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -31,11 +31,30 @@ class Esp32DeviceModel extends Model
     }
 
     /**
-     * Token secreto que la placa enviara en cada lectura.
+     * Token secreto en claro que la placa enviara en cada lectura.
+     * Solo se muestra UNA vez (al crear la ESP); en la DB guardamos su hash.
      */
     public static function generateToken(): string
     {
         return bin2hex(random_bytes(16)); // 32 chars hex
+    }
+
+    /**
+     * Hash que se persiste (la DB nunca contiene el token en claro).
+     */
+    public static function hashToken(string $plainToken): string
+    {
+        return hash('sha256', $plainToken); // 64 chars hex
+    }
+
+    /**
+     * Compara, en tiempo constante, el token recibido contra el hash guardado.
+     */
+    public static function tokenMatches(array $device, string $plainToken): bool
+    {
+        $stored = (string) ($device['token_hash'] ?? '');
+
+        return $stored !== '' && hash_equals($stored, self::hashToken($plainToken));
     }
 
     public function findByMac(string $mac): ?array
@@ -64,6 +83,16 @@ class Esp32DeviceModel extends Model
             ->join('industry_users', 'industry_users.industry_id = esp32_devices.industry_id')
             ->where('industry_users.user_id', $userId)
             ->orderBy('esp32_devices.created_at', 'DESC')
+            ->findAll();
+    }
+
+    /**
+     * Dispositivos de una industria/espacio (para la vista Registros IoT).
+     */
+    public function devicesForIndustry(int $industryId): array
+    {
+        return $this->where('industry_id', $industryId)
+            ->orderBy('name', 'ASC')
             ->findAll();
     }
 

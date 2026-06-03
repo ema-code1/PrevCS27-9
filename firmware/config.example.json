@@ -1,0 +1,17 @@
+{
+  "device_name": "Extrusora-1",
+
+  "wifi_networks": [
+    { "ssid": "MANGOLD-WIFI", "password": "clave_de_casa" },
+    { "ssid": "WIFI-ESCUELA", "password": "clave_de_escuela" }
+  ],
+
+  "endpoints": [
+    { "url": "http://192.168.1.113/PreventiveControlSystem/public/api/iot/lectura", "token": "TOKEN_QUE_TE_DA_LA_WEB_EN_CASA" },
+    { "url": "http://IP_DE_LA_ESCUELA/PreventiveControlSystem/public/api/iot/lectura", "token": "TOKEN_QUE_TE_DA_LA_WEB_EN_ESCUELA" }
+  ],
+
+  "pulses_per_rev": 1,
+  "window_seconds": 15,
+  "period_seconds": 60
+}

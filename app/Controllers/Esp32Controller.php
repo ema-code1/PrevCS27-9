@@ -99,7 +99,8 @@ class Esp32Controller extends BaseController
             'name'         => $name,
             'mac_address'  => $mac,
             'sector'       => $sector !== '' ? $sector : null,
-            'device_token' => $token,
+            'token_hash'   => Esp32DeviceModel::hashToken($token),
+            'is_active'    => 1,
             'status'       => 'offline',
         ], true);
 

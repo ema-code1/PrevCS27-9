@@ -11,12 +11,4 @@ class Home extends BaseController
             'activeMenu' => 'panel',
         ]);
     }
-
-    public function registrosIot(): string
-    {
-        return view('registros-iot', [
-            'title'      => 'Registros IoT | Prevention Control System',
-            'activeMenu' => 'registros-iot',
-        ]);
-    }
 }

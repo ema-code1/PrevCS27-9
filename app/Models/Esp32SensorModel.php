@@ -36,4 +36,30 @@ class Esp32SensorModel extends Model
             ->where('sensor_type_id', $sensorTypeId)
             ->first();
     }
+
+    /**
+     * Todos los sensores de una industria/espacio (de todas sus placas),
+     * enriquecidos con el tipo y el nombre de la placa. Para Registros IoT.
+     */
+    public function sensorsForIndustry(int $industryId): array
+    {
+        return $this->select('esp32_sensors.*, esp32_devices.name AS device_name, esp32_devices.mac_address, sensor_types.code, sensor_types.name, sensor_types.unit, sensor_types.default_chart')
+            ->join('esp32_devices', 'esp32_devices.id = esp32_sensors.esp32_device_id')
+            ->join('sensor_types', 'sensor_types.id = esp32_sensors.sensor_type_id')
+            ->where('esp32_devices.industry_id', $industryId)
+            ->orderBy('esp32_devices.name', 'ASC')
+            ->orderBy('sensor_types.name', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * ¿El sensor pertenece a alguna placa de esta industria? (scope de la API).
+     */
+    public function belongsToIndustry(int $sensorId, int $industryId): bool
+    {
+        return $this->join('esp32_devices', 'esp32_devices.id = esp32_sensors.esp32_device_id')
+            ->where('esp32_sensors.id', $sensorId)
+            ->where('esp32_devices.industry_id', $industryId)
+            ->countAllResults() > 0;
+    }
 }
