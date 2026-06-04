@@ -43,7 +43,7 @@ class Esp32SensorModel extends Model
      */
     public function sensorsForIndustry(int $industryId): array
     {
-        return $this->select('esp32_sensors.*, esp32_devices.name AS device_name, esp32_devices.mac_address, sensor_types.code, sensor_types.name, sensor_types.unit, sensor_types.default_chart')
+        return $this->select('esp32_sensors.*, esp32_devices.name AS device_name, esp32_devices.mac_address, esp32_devices.sector AS device_sector, sensor_types.code, sensor_types.name, sensor_types.unit, sensor_types.default_chart')
             ->join('esp32_devices', 'esp32_devices.id = esp32_sensors.esp32_device_id')
             ->join('sensor_types', 'sensor_types.id = esp32_sensors.sensor_type_id')
             ->where('esp32_devices.industry_id', $industryId)

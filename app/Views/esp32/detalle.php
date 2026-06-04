@@ -27,6 +27,10 @@
                     <?= esc($device['status'] ?? 'offline') ?>
                 </span>
                 <small class="text-muted mono">Última: <?= esc($device['last_seen_at'] ?? '—') ?></small>
+                <?php if ($isAdmin): ?>
+                    <button type="button" class="btn btn--primary btn--sm" data-open-sensor-modal
+                        <?= $availableTypes === [] ? 'disabled title="Todos los tipos ya están asociados"' : '' ?>>+ Agregar sensor</button>
+                <?php endif; ?>
             </div>
         </header>
 
@@ -39,33 +43,60 @@
 
         <?php if (! empty($deviceToken)): ?>
             <div class="esp32-token-banner card">
-                <div>
-                    <strong>Token del dispositivo</strong>
-                    <p>Configuralo en el firmware. Se envía en cada lectura (header <code>X-Device-Token</code>).</p>
+                <div class="esp32-token-banner__head">
+                    <strong>Token del dispositivo — copialo ahora</strong>
+                    <p>Solo se muestra una vez. Cargalo en el firmware; se envía en cada lectura (header <code>X-Device-Token</code>).</p>
                 </div>
-                <code class="esp32-token"><?= esc($deviceToken) ?></code>
+                <div class="esp32-token-row">
+                    <code class="esp32-token" data-token-value><?= esc($deviceToken) ?></code>
+                    <button type="button" class="btn btn--secondary" data-copy-token>Copiar</button>
+                </div>
+                <details class="esp32-snippet">
+                    <summary>Ver configuración para el firmware</summary>
+                    <pre class="esp32-code"><code># config.py (ESP32 / MicroPython)
+DEVICE_MAC   = "<?= esc($device['mac_address']) ?>"
+DEVICE_TOKEN = "<?= esc($deviceToken) ?>"
+SERVER_URL   = "<?= esc(base_url('api/iot/lectura')) ?>"</code></pre>
+                </details>
             </div>
         <?php endif; ?>
 
         <?php if ($isAdmin): ?>
-            <section class="panel card esp32-add-sensor">
-                <div class="panel__header"><h3>Agregar sensor</h3></div>
-                <?php if ($availableTypes === []): ?>
-                    <p class="text-muted">Todos los tipos de sensor ya están asociados a esta placa.</p>
-                <?php else: ?>
-                    <form action="<?= base_url('esp32/' . $device['id'] . '/sensores') ?>" method="post" class="esp32-sensor-form">
-                        <?= csrf_field() ?>
-                        <select name="sensor_type_id" class="esp32-select" required>
-                            <option value="" disabled selected>Tipo de sensor…</option>
-                            <?php foreach ($availableTypes as $t): ?>
-                                <option value="<?= esc($t['id']) ?>"><?= esc($t['name']) ?><?= !empty($t['unit']) ? ' (' . esc($t['unit']) . ')' : '' ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                        <input type="text" name="label" class="esp32-input" placeholder="Etiqueta (opcional)" maxlength="150">
-                        <button type="submit" class="btn btn--primary">Agregar</button>
-                    </form>
-                <?php endif; ?>
-            </section>
+            <dialog class="modal" data-sensor-modal>
+                <div class="modal__card">
+                    <div class="modal__head">
+                        <h3>Agregar sensor</h3>
+                        <button type="button" class="modal__close" data-close-sensor-modal aria-label="Cerrar">×</button>
+                    </div>
+                    <?php if ($availableTypes === []): ?>
+                        <p class="text-muted">Todos los tipos de sensor ya están asociados a esta placa.</p>
+                        <div class="modal__actions">
+                            <button type="button" class="btn btn--secondary" data-close-sensor-modal>Cerrar</button>
+                        </div>
+                    <?php else: ?>
+                        <form action="<?= base_url('esp32/' . $device['id'] . '/sensores') ?>" method="post" class="modal__form">
+                            <?= csrf_field() ?>
+                            <label class="modal__field">
+                                <span>Tipo de sensor</span>
+                                <select name="sensor_type_id" class="esp32-select" required>
+                                    <option value="" disabled selected>Elegí un tipo…</option>
+                                    <?php foreach ($availableTypes as $t): ?>
+                                        <option value="<?= esc($t['id']) ?>"><?= esc($t['name']) ?><?= !empty($t['unit']) ? ' (' . esc($t['unit']) . ')' : '' ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </label>
+                            <label class="modal__field">
+                                <span>Etiqueta (opcional)</span>
+                                <input type="text" name="label" class="esp32-input" placeholder="Ej: Temp. carcasa" maxlength="150">
+                            </label>
+                            <div class="modal__actions">
+                                <button type="button" class="btn btn--secondary" data-close-sensor-modal>Cancelar</button>
+                                <button type="submit" class="btn btn--primary">Agregar sensor</button>
+                            </div>
+                        </form>
+                    <?php endif; ?>
+                </div>
+            </dialog>
         <?php endif; ?>
 
         <?php if ($sensors === []): ?>
@@ -148,6 +179,40 @@
 <?= $this->section('pageScripts') ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    /* ── Copiar token al portapapeles ── */
+    (function () {
+        const btn = document.querySelector('[data-copy-token]');
+        const val = document.querySelector('[data-token-value]');
+        if (!btn || !val) return;
+        btn.addEventListener('click', function () {
+            const text = val.textContent.trim();
+            const done = () => { btn.textContent = '✓ Copiado'; setTimeout(() => { btn.textContent = 'Copiar'; }, 1800); };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(() => {});
+            } else {
+                const r = document.createRange(); r.selectNode(val);
+                const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+                try { document.execCommand('copy'); done(); } catch (e) {}
+                sel.removeAllRanges();
+            }
+        });
+    })();
+
+    /* ── Modal "Agregar sensor" ── */
+    (function () {
+        const modal = document.querySelector('[data-sensor-modal]');
+        const openBtn = document.querySelector('[data-open-sensor-modal]');
+        if (!modal || !openBtn || typeof modal.showModal !== 'function') return;
+        openBtn.addEventListener('click', function () { modal.showModal(); });
+        modal.querySelectorAll('[data-close-sensor-modal]').forEach(function (b) {
+            b.addEventListener('click', function () { modal.close(); });
+        });
+        // Click en el backdrop cierra
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) modal.close();
+        });
+    })();
+
     /* ── Section switch (mismo patrón que principal/registros-iot) ── */
     const switchers = document.querySelectorAll('[data-section-target]');
     const panes = document.querySelectorAll('[data-section-pane]');

@@ -43,6 +43,8 @@ class Esp32Controller extends BaseController
             'activeMenu'  => 'anadir-esp',
             'industries'  => $adminSpaces,
             'errors'      => session('errors') ?? [],
+            'preselect'   => (int) $this->request->getGet('industry'),
+            'fromOnboarding' => $this->request->getGet('from') === 'onboarding',
         ]);
     }
 

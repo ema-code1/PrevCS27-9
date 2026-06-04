@@ -67,13 +67,17 @@ class RegistrosController extends BaseController
         unset($s);
 
         $devices = (new Esp32DeviceModel())->devicesForIndustry((int) $industry['id']);
+        $isAdmin = (new IndustryUserModel())->roleFor($userId, (int) $industry['id'])
+            === IndustryUserModel::ROLE_ADMIN;
 
         return view('registros-iot/espacio', [
             'title'       => 'Registros IoT · ' . esc($industry['space_name']) . ' | PrevCS',
             'activeMenu'  => 'registros-iot',
             'industry'    => $industry,
             'sensors'     => $sensors,
+            'devices'     => $devices,
             'deviceCount' => count($devices),
+            'isAdmin'     => $isAdmin,
         ]);
     }
 

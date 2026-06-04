@@ -15,95 +15,152 @@
         <header class="dashboard-head card">
             <div>
                 <p class="dashboard-head__eyebrow">
-                    <a href="<?= base_url('registros-iot') ?>" class="esp32-back">← Registros IoT</a>
+                    <a href="<?= base_url('registros-iot') ?>" class="esp32-back">← Mis espacios</a>
                 </p>
                 <h1><?= esc($industry['space_name']) ?></h1>
                 <p class="dashboard-head__text">
-                    <?= esc($industry['company_name']) ?>
+                    Empresa: <strong><?= esc($industry['company_name']) ?></strong>
+                    <?= !empty($industry['sector']) ? ' · ' . esc($industry['sector']) : '' ?>
                     · <code class="esp32-card__mac"><?= esc($industry['industry_uid']) ?></code>
                     · <?= (int) $deviceCount ?> ESP32
                 </p>
             </div>
             <div class="dashboard-head__meta">
                 <span class="badge badge--info"><?= count($sensors) ?> sensor<?= count($sensors) === 1 ? '' : 'es' ?></span>
+                <?php if (($isAdmin ?? false)): ?>
+                    <a class="btn btn--secondary" href="<?= base_url('esp32/agregar?industry=' . $industry['id']) ?>">+ Añadir ESP32</a>
+                <?php endif; ?>
             </div>
         </header>
 
-        <?php if ($sensors === []): ?>
+        <?php
+        // Agrupamos las ESP32 por sector/departamento; cada placa lista sus sensores.
+        $sensorsByDevice = [];
+        foreach ($sensors as $s) {
+            $sensorsByDevice[(int) $s['esp32_device_id']][] = $s;
+        }
+        $bySector = [];
+        foreach (($devices ?? []) as $d) {
+            $key = trim((string) ($d['sector'] ?? '')) !== '' ? $d['sector'] : 'Sin sector';
+            $bySector[$key][] = $d;
+        }
+        $firstSensorId = $sensors !== [] ? (int) $sensors[0]['id'] : null;
+        ?>
+
+        <?php if (($devices ?? []) === []): ?>
             <section class="panel card esp32-empty">
-                <h3>Sin sensores en este espacio</h3>
-                <p>Asociá una ESP32 y sus sensores para ver registros.
-                   Andá a <a href="<?= base_url('esp32/agregar') ?>">Añadir ESP</a>.</p>
+                <h3>Este espacio todavía no tiene ESP32</h3>
+                <?php if (($isAdmin ?? false)): ?>
+                    <p>Vinculá una placa a este espacio para empezar a recibir lecturas. Podés tener varias, en distintos sectores.</p>
+                    <ol class="empty-steps">
+                        <li>Registrá la placa por su MAC.</li>
+                        <li>Copiá el token al firmware.</li>
+                        <li>Encendé la ESP32: las lecturas aparecen acá.</li>
+                    </ol>
+                    <a class="btn btn--primary" href="<?= base_url('esp32/agregar?industry=' . $industry['id']) ?>">Vincular ESP32</a>
+                <?php else: ?>
+                    <p>Este espacio todavía no tiene dispositivos. Pedile al administrador que vincule una ESP32.</p>
+                <?php endif; ?>
             </section>
         <?php else: ?>
-            <div class="section-switch" role="tablist" aria-label="Sensores del espacio">
-                <?php foreach ($sensors as $idx => $s): ?>
-                    <label class="section-switch__radio" role="tab" aria-selected="<?= $idx === 0 ? 'true' : 'false' ?>">
-                        <input type="radio" name="sensor-switch" value="sensor-<?= $s['id'] ?>"
-                            data-section-target="sensor-<?= $s['id'] ?>" <?= $idx === 0 ? 'checked' : '' ?>>
-                        <span class="section-switch__name">
-                            <?= esc($s['device_name']) ?> · <?= esc($s['label'] ?: $s['name']) ?>
-                        </span>
-                    </label>
-                <?php endforeach; ?>
-            </div>
-
-            <?php foreach ($sensors as $idx => $s): ?>
-                <section class="section-pane<?= $idx === 0 ? ' is-active' : '' ?>" data-section-pane="sensor-<?= $s['id'] ?>">
-                    <div class="iot-grid"
-                        data-sensor-id="<?= $s['id'] ?>"
-                        data-sensor-code="<?= esc($s['code']) ?>"
-                        data-sensor-unit="<?= esc($s['unit'] ?? '') ?>"
-                        data-readings-url="<?= base_url('api/espacio/' . $industry['id'] . '/lecturas') ?>">
-                        <section class="panel card iot-chart-card">
-                            <div class="panel__header">
-                                <h3><?= esc($s['name']) ?><?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?></h3>
-                                <span class="badge badge--info"><?= esc($s['device_name']) ?> · <?= esc($s['default_chart']) ?></span>
-                            </div>
-                            <div class="iot-chart">
-                                <svg class="iot-line-chart" viewBox="0 0 640 360" role="img" aria-label="Gráfico de <?= esc($s['name']) ?>">
-                                    <g class="iot-line-chart__grid">
-                                        <line x1="78" y1="48" x2="600" y2="48"></line>
-                                        <line x1="78" y1="112" x2="600" y2="112"></line>
-                                        <line x1="78" y1="176" x2="600" y2="176"></line>
-                                        <line x1="78" y1="240" x2="600" y2="240"></line>
-                                        <line x1="78" y1="304" x2="600" y2="304"></line>
-                                    </g>
-                                    <polyline class="iot-line-chart__stroke" data-sensor-line points=""></polyline>
-                                    <g data-sensor-points></g>
-                                </svg>
-                                <p class="esp32-chart-empty" data-sensor-empty hidden>Sin lecturas todavía para este sensor.</p>
-                            </div>
-                        </section>
-
-                        <div class="iot-side-stack">
-                            <aside class="panel card">
-                                <div class="panel__header"><h3>Resumen</h3></div>
-                                <dl class="esp32-sensor-meta">
-                                    <div><dt>Placa</dt><dd><?= esc($s['device_name']) ?></dd></div>
-                                    <div><dt>MAC</dt><dd class="mono"><?= esc($s['mac_address']) ?></dd></div>
-                                    <div><dt>Última lectura</dt>
-                                        <dd class="mono" data-sensor-latest>
-                                            <?= $s['latest_value'] !== null ? esc($s['latest_value']) . ' ' . esc($s['unit'] ?? '') : '—' ?>
-                                        </dd>
-                                    </div>
-                                    <div><dt>Registrada</dt><dd class="mono"><?= esc($s['latest_at'] ?? '—') ?></dd></div>
-                                </dl>
-                            </aside>
-
-                            <aside class="panel card">
-                                <div class="panel__header"><h3>Observaciones</h3></div>
-                                <p class="esp32-observations" data-sensor-observation>Esperando datos del sensor…</p>
-                            </aside>
-
-                            <aside class="panel card">
-                                <div class="panel__header"><h3>Historial</h3></div>
-                                <div class="esp32-history" data-sensor-history>
-                                    <p class="text-muted">Cargando…</p>
-                                </div>
-                            </aside>
-                        </div>
+            <?php foreach ($bySector as $sectorName => $sectorDevices): ?>
+                <section class="space-sector">
+                    <div class="space-sector__head">
+                        <h2 class="space-sector__title"><?= esc($sectorName) ?></h2>
+                        <span class="space-sector__count"><?= count($sectorDevices) ?> ESP32</span>
                     </div>
+
+                    <?php foreach ($sectorDevices as $d): ?>
+                        <?php $devSensors = $sensorsByDevice[(int) $d['id']] ?? []; ?>
+                        <div class="space-device">
+                            <div class="space-device__head">
+                                <div class="space-device__id">
+                                    <span class="dot <?= ($d['status'] ?? '') === 'online' ? 'dot--live' : '' ?>"></span>
+                                    <strong><?= esc($d['name']) ?></strong>
+                                    <code class="esp32-card__mac"><?= esc($d['mac_address']) ?></code>
+                                </div>
+                                <a class="btn btn--secondary btn--sm" href="<?= base_url('esp32/' . $d['id']) ?>">Configurar</a>
+                            </div>
+
+                            <?php if ($devSensors === []): ?>
+                                <p class="space-device__empty">
+                                    Sin sensores.
+                                    <?php if (($isAdmin ?? false)): ?>
+                                        <a href="<?= base_url('esp32/' . $d['id']) ?>">Agregar sensores</a>
+                                    <?php endif; ?>
+                                </p>
+                            <?php else: ?>
+                                <div class="section-switch" role="tablist" aria-label="Sensores de <?= esc($d['name']) ?>">
+                                    <?php foreach ($devSensors as $s): ?>
+                                        <label class="section-switch__radio" role="tab" aria-selected="<?= (int) $s['id'] === $firstSensorId ? 'true' : 'false' ?>">
+                                            <input type="radio" name="sensor-switch" value="sensor-<?= $s['id'] ?>"
+                                                data-section-target="sensor-<?= $s['id'] ?>" <?= (int) $s['id'] === $firstSensorId ? 'checked' : '' ?>>
+                                            <span class="section-switch__name"><?= esc($s['label'] ?: $s['name']) ?></span>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+
+                                <?php foreach ($devSensors as $s): ?>
+                                    <section class="section-pane<?= (int) $s['id'] === $firstSensorId ? ' is-active' : '' ?>" data-section-pane="sensor-<?= $s['id'] ?>">
+                                        <div class="iot-grid"
+                                            data-sensor-id="<?= $s['id'] ?>"
+                                            data-sensor-code="<?= esc($s['code']) ?>"
+                                            data-sensor-unit="<?= esc($s['unit'] ?? '') ?>"
+                                            data-readings-url="<?= base_url('api/espacio/' . $industry['id'] . '/lecturas') ?>">
+                                            <section class="panel card iot-chart-card">
+                                                <div class="panel__header">
+                                                    <h3><?= esc($s['name']) ?><?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?></h3>
+                                                    <span class="badge badge--info"><?= esc($s['device_name']) ?> · <?= esc($s['default_chart']) ?></span>
+                                                </div>
+                                                <div class="iot-chart">
+                                                    <svg class="iot-line-chart" viewBox="0 0 640 360" role="img" aria-label="Gráfico de <?= esc($s['name']) ?>">
+                                                        <g class="iot-line-chart__grid">
+                                                            <line x1="78" y1="48" x2="600" y2="48"></line>
+                                                            <line x1="78" y1="112" x2="600" y2="112"></line>
+                                                            <line x1="78" y1="176" x2="600" y2="176"></line>
+                                                            <line x1="78" y1="240" x2="600" y2="240"></line>
+                                                            <line x1="78" y1="304" x2="600" y2="304"></line>
+                                                        </g>
+                                                        <polyline class="iot-line-chart__stroke" data-sensor-line points=""></polyline>
+                                                        <g data-sensor-points></g>
+                                                    </svg>
+                                                    <p class="esp32-chart-empty" data-sensor-empty hidden>Sin lecturas todavía para este sensor.</p>
+                                                </div>
+                                            </section>
+
+                                            <div class="iot-side-stack">
+                                                <aside class="panel card">
+                                                    <div class="panel__header"><h3>Resumen</h3></div>
+                                                    <dl class="esp32-sensor-meta">
+                                                        <div><dt>Placa</dt><dd><?= esc($s['device_name']) ?></dd></div>
+                                                        <div><dt>MAC</dt><dd class="mono"><?= esc($s['mac_address']) ?></dd></div>
+                                                        <div><dt>Última lectura</dt>
+                                                            <dd class="mono" data-sensor-latest>
+                                                                <?= $s['latest_value'] !== null ? esc($s['latest_value']) . ' ' . esc($s['unit'] ?? '') : '—' ?>
+                                                            </dd>
+                                                        </div>
+                                                        <div><dt>Registrada</dt><dd class="mono"><?= esc($s['latest_at'] ?? '—') ?></dd></div>
+                                                    </dl>
+                                                </aside>
+
+                                                <aside class="panel card">
+                                                    <div class="panel__header"><h3>Observaciones</h3></div>
+                                                    <p class="esp32-observations" data-sensor-observation>Esperando datos del sensor…</p>
+                                                </aside>
+
+                                                <aside class="panel card">
+                                                    <div class="panel__header"><h3>Historial</h3></div>
+                                                    <div class="esp32-history" data-sensor-history>
+                                                        <p class="text-muted">Cargando…</p>
+                                                    </div>
+                                                </aside>
+                                            </div>
+                                        </div>
+                                    </section>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
                 </section>
             <?php endforeach; ?>
         <?php endif; ?>

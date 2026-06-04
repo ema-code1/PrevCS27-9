@@ -144,6 +144,36 @@ body[data-theme="dark"] .sidebar {
   gap: 0;
 }
 
+/* Crear espacio — CTA primario al tope del nav */
+.menu-cta {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+.menu-cta:hover { background: color-mix(in oklab, var(--accent) 86%, #000); transform: translateY(-1px); color: #fff; }
+.menu-cta__icon { display: inline-grid; place-items: center; width: 22px; height: 22px; }
+.menu-cta__icon svg { width: 19px; height: 19px; }
+.menu-cta__label {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  transition: opacity var(--transition-fast);
+}
+.sidebar.is-collapsed .menu-cta__label { opacity: 0; pointer-events: none; }
+.sidebar.is-collapsed .menu-cta {
+  grid-template-columns: 22px 0fr;
+  justify-content: center;
+  padding: 11px 0;
+  gap: 0;
+}
+
 /* footer slot */
 .sidebar__foot {
   margin-top: auto;
@@ -242,6 +272,8 @@ body[data-theme="dark"] .sidebar {
   .sidebar.is-collapsed .sidebar__title,
   .sidebar.is-collapsed .menu-link__label { opacity: 1; max-width: none; pointer-events: auto; }
   .sidebar.is-collapsed .menu-link { grid-template-columns: 22px 1fr; gap: 12px; padding: 10px 12px; justify-content: start; }
+  .sidebar.is-collapsed .menu-cta { grid-template-columns: 22px 1fr; gap: 12px; padding: 11px 12px; justify-content: start; }
+  .sidebar.is-collapsed .menu-cta__label { opacity: 1; pointer-events: auto; }
   .sidebar.is-collapsed .sidebar__head { justify-content: space-between; padding: 0 6px; gap: 8px; }
 
   .sidebar.is-drawer-open {

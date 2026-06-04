@@ -36,22 +36,22 @@ $chartLabels = [
 
             <div class="onboarding-head">
                 <p class="auth-pane__eyebrow">Onboarding · <?= esc($userName) ?></p>
-                <h1>Crear espacio de industria</h1>
-                <p>Configura tu industria en unos pasos. Generaremos un ID único para que tu equipo pueda unirse.</p>
+                <h1>Crear espacio</h1>
+                <p>Un espacio representa una empresa que gestionás. Adentro vas a poder vincular una o más ESP32, en distintos sectores. Generamos un ID único para que tu equipo se sume.</p>
             </div>
 
-            <ol class="wizard-steps" data-wizard-indicator>
-                <li class="wizard-steps__item is-active" data-step-dot="1"><span>1</span> Industria</li>
-                <li class="wizard-steps__item" data-step-dot="2"><span>2</span> Seguridad</li>
-                <li class="wizard-steps__item" data-step-dot="3"><span>3</span> ID</li>
-                <li class="wizard-steps__item" data-step-dot="4"><span>4</span> Métricas</li>
-                <li class="wizard-steps__item" data-step-dot="5"><span>5</span> Gráficos</li>
-            </ol>
+            <div class="wizard-progress" data-wizard-indicator>
+                <div class="wizard-progress__track"><span class="wizard-progress__fill" data-progress-fill style="width:33%"></span></div>
+                <div class="wizard-progress__meta">
+                    <span data-progress-label>Paso 1 de 3 · Industria</span>
+                    <span class="wizard-progress__pct" data-progress-pct>33%</span>
+                </div>
+            </div>
 
             <form action="<?= base_url('crear-espacio') ?>" method="post" class="auth-form" data-wizard-form>
                 <?= csrf_field() ?>
 
-                <!-- PASO 1: Industria -->
+                <!-- PASO 1: Industria + ID -->
                 <section class="wizard-pane is-active" data-step-pane="1">
                     <label class="auth-field">
                         <span class="auth-field__label">Nombre de la empresa / industria</span>
@@ -60,6 +60,12 @@ $chartLabels = [
                             <input type="text" name="company_name" placeholder="Ej: San Jose Metalúrgica" value="<?= esc(old('company_name')) ?>" required>
                         </span>
                     </label>
+
+                    <div class="wizard-uid wizard-uid--inline">
+                        <span class="auth-field__label">Tu ID de industria (se genera solo)</span>
+                        <div class="wizard-uid__code" data-uid-preview>XX-IND-XXXXXX</div>
+                        <p class="wizard-hint">Único e irrepetible, derivado de tu empresa. Tu equipo lo usará para unirse.</p>
+                    </div>
 
                     <label class="auth-field">
                         <span class="auth-field__label">Nombre del espacio</span>
@@ -109,22 +115,8 @@ $chartLabels = [
                     </div>
                 </section>
 
-                <!-- PASO 3: ID único -->
+                <!-- PASO 3: Métricas (con gráficos sugeridos expandibles) -->
                 <section class="wizard-pane" data-step-pane="3">
-                    <div class="wizard-uid">
-                        <p class="auth-field__label">Tu ID de industria</p>
-                        <div class="wizard-uid__code" data-uid-preview>XX-IND-XXXXXX</div>
-                        <p class="wizard-hint">Se generará automáticamente al crear el espacio, derivado del nombre de tu empresa. Será único e irrepetible y servirá para que otros se unan.</p>
-                    </div>
-
-                    <div class="wizard-nav">
-                        <button type="button" class="auth-link wizard-prev" data-wizard-prev>Volver</button>
-                        <button type="button" class="auth-submit wizard-next" data-wizard-next>Continuar</button>
-                    </div>
-                </section>
-
-                <!-- PASO 4: Métricas -->
-                <section class="wizard-pane" data-step-pane="4">
                     <p class="wizard-hint">Elegí las métricas que querés monitorear en esta industria.</p>
 
                     <div class="metric-grid">
@@ -144,23 +136,16 @@ $chartLabels = [
                         <?php endforeach; ?>
                     </div>
 
-                    <div class="wizard-nav">
-                        <button type="button" class="auth-link wizard-prev" data-wizard-prev>Volver</button>
-                        <button type="button" class="auth-submit wizard-next" data-wizard-next>Continuar</button>
-                    </div>
-                </section>
-
-                <!-- PASO 5: Gráficos sugeridos -->
-                <section class="wizard-pane" data-step-pane="5">
-                    <p class="wizard-hint">Según las métricas elegidas, sugerimos estos gráficos. Podrás ajustarlos luego en cada ESP32.</p>
-
-                    <div class="chart-suggestions" data-chart-suggestions>
-                        <p class="chart-suggestions__empty" data-chart-empty>Volvé al paso anterior y elegí al menos una métrica.</p>
-                    </div>
+                    <details class="wizard-charts">
+                        <summary>Ver gráficos sugeridos</summary>
+                        <div class="chart-suggestions" data-chart-suggestions>
+                            <p class="chart-suggestions__empty" data-chart-empty>Elegí al menos una métrica para ver las sugerencias.</p>
+                        </div>
+                    </details>
 
                     <div class="wizard-nav">
                         <button type="button" class="auth-link wizard-prev" data-wizard-prev>Volver</button>
-                        <button type="submit" class="auth-submit">Crear espacio</button>
+                        <button type="submit" class="auth-submit" data-wizard-submit>Crear espacio</button>
                     </div>
                 </section>
             </form>
@@ -184,15 +169,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const form  = document.querySelector('[data-wizard-form]');
     if (!form) return;
     const panes = Array.from(form.querySelectorAll('[data-step-pane]'));
-    const dots  = Array.from(document.querySelectorAll('[data-step-dot]'));
     const chartLabels = JSON.parse(document.querySelector('[data-chart-labels]').textContent || '{}');
+    const stepNames = ['Industria', 'Seguridad', 'Métricas'];
+    const fill   = document.querySelector('[data-progress-fill]');
+    const pctEl  = document.querySelector('[data-progress-pct]');
+    const labelEl = document.querySelector('[data-progress-label]');
     let current = 1;
 
     function show(step) {
         current = Math.max(1, Math.min(panes.length, step));
         panes.forEach((p) => p.classList.toggle('is-active', Number(p.dataset.stepPane) === current));
-        dots.forEach((d) => d.classList.toggle('is-active', Number(d.dataset.stepDot) <= current));
-        if (current === 5) renderSuggestions();
+        const pct = Math.round((current / panes.length) * 100);
+        if (fill)  fill.style.width = pct + '%';
+        if (pctEl) pctEl.textContent = pct + '%';
+        if (labelEl) labelEl.textContent = 'Paso ' + current + ' de ' + panes.length + ' · ' + (stepNames[current - 1] || '');
+        if (current === panes.length) renderSuggestions();
     }
 
     // Validacion HTML5 nativa de los campos visibles antes de avanzar
@@ -251,6 +242,16 @@ document.addEventListener('DOMContentLoaded', function () {
             box.appendChild(row);
         });
     }
+
+    // Las sugerencias se actualizan en vivo al tildar métricas
+    form.querySelectorAll('input[name="metrics[]"]').forEach((cb) =>
+        cb.addEventListener('change', renderSuggestions));
+
+    // Feedback de envío: deshabilita el botón para evitar dobles creaciones
+    form.addEventListener('submit', function () {
+        const btn = form.querySelector('[data-wizard-submit]');
+        if (btn) { btn.classList.add('is-loading'); btn.disabled = true; btn.textContent = 'Creando espacio…'; }
+    });
 
     show(1);
 });

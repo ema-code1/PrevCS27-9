@@ -17,6 +17,44 @@
   .iot-grid { grid-template-columns: 1fr; }
 }
 
+/* ─── Agrupación por sector → ESP32 → sensores ────────────── */
+.space-sector { display: flex; flex-direction: column; gap: 12px; }
+.space-sector + .space-sector { margin-top: 10px; }
+.space-sector__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--hair);
+}
+.space-sector__title { margin: 0; font-size: var(--font-size-lg); }
+.space-sector__count {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.space-device {
+  background: var(--bg-card-soft);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.space-device__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.space-device__id { display: inline-flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+.space-device__id strong { color: var(--text-primary); }
+.space-device__empty { margin: 0; color: var(--text-muted); font-size: var(--font-size-sm); }
+.space-device__empty a { color: var(--accent); }
+
 .iot-chart-card {
   min-height: 480px;
   position: relative;

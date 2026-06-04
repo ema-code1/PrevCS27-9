@@ -135,7 +135,8 @@ class OnboardingController extends BaseController
             'active_industry_role' => IndustryUserModel::ROLE_ADMIN,
         ]);
 
-        return redirect()->to(base_url('principal'))
-            ->with('success', "Espacio creado. Tu ID de industria es {$uid}");
+        // Onboarding continuo: del registro del espacio directo a vincular la ESP32.
+        return redirect()->to(base_url('esp32/agregar?from=onboarding'))
+            ->with('success', "Espacio creado. Tu ID de industria es {$uid}. Vinculá tu primera ESP32 para ver datos.");
     }
 }

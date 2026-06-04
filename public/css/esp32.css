@@ -39,10 +39,23 @@
 .esp32-card__meta dt { color: var(--text-muted); font-size: var(--font-size-xs); margin: 0; }
 .esp32-card__meta dd { margin: 0; font-size: var(--font-size-sm); color: var(--text-primary); text-align: right; }
 
+/* Empresa dueña del espacio (refuerza: 1 espacio = 1 empresa) */
+.esp32-card__company {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+.esp32-card__company-icon { display: inline-flex; color: var(--accent); }
+.esp32-card__actions { display: flex; flex-wrap: wrap; gap: var(--space-xs); margin-top: auto; }
+
 /* ── Estado vacío ─────────────────────────────────────────────────── */
 .esp32-empty { text-align: center; padding: var(--space-xl); display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); }
 .esp32-empty h3 { margin: 0; }
 .esp32-empty p { color: var(--text-secondary); margin: 0; max-width: 46ch; }
+.esp32-empty__actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); justify-content: center; margin-top: var(--space-xs); }
 
 /* ── Banner de token ──────────────────────────────────────────────── */
 .esp32-token-banner {
@@ -54,8 +67,13 @@
     padding: var(--space-md);
     border-left: 4px solid var(--warning);
 }
+.esp32-token-banner { flex-direction: column; align-items: stretch; }
+.esp32-token-banner__head strong { color: var(--text-primary); }
 .esp32-token-banner p { margin: 4px 0 0; color: var(--text-secondary); font-size: var(--font-size-sm); }
+.esp32-token-row { display: flex; gap: var(--space-sm); align-items: center; flex-wrap: wrap; }
+.esp32-token-row .btn { flex: 0 0 auto; }
 .esp32-token {
+    flex: 1 1 240px;
     font-family: var(--font-mono);
     font-size: var(--font-size-md);
     background: var(--bg-3);
@@ -65,6 +83,60 @@
     user-select: all;
     word-break: break-all;
 }
+.esp32-snippet > summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    padding: var(--space-2xs) 0;
+}
+.esp32-code {
+    margin: var(--space-xs) 0 0;
+    background: var(--bg-3);
+    color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm) var(--space-md);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+}
+
+/* ── Feedback inline de validación (MAC) + estado de envío ────────── */
+.auth-field__hint { display: block; margin-top: 4px; font-size: var(--font-size-xs); color: var(--text-muted); }
+.auth-field__hint.is-ok { color: var(--success); }
+.auth-field__hint.is-error { color: var(--error); }
+.auth-submit.is-loading { opacity: 0.7; cursor: progress; }
+
+/* ── Modal (dialog nativo) — agregar sensor ──────────────────────── */
+.modal {
+    border: none;
+    padding: 0;
+    background: transparent;
+    max-width: 460px;
+    width: 92vw;
+    border-radius: var(--radius-lg);
+    color: var(--text-primary);
+}
+.modal::backdrop { background: rgba(10, 12, 16, 0.5); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+.modal__card {
+    background: var(--bg-card);
+    border: 1px solid var(--hair);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    box-shadow: var(--shadow);
+}
+.modal__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-sm); }
+.modal__head h3 { margin: 0; }
+.modal__close { border: none; background: none; cursor: pointer; font-size: 22px; line-height: 1; color: var(--text-muted); padding: 0 4px; }
+.modal__close:hover { color: var(--text-primary); }
+.modal__form { display: flex; flex-direction: column; gap: var(--space-md); }
+.modal__field { display: flex; flex-direction: column; gap: 6px; }
+.modal__field > span { font-size: var(--font-size-sm); color: var(--text-secondary); }
+.modal__actions { display: flex; justify-content: flex-end; gap: var(--space-sm); }
 
 /* ── Formulario de alta ───────────────────────────────────────────── */
 .esp32-form-card { max-width: 540px; padding: var(--space-lg); }

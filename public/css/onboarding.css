@@ -53,44 +53,29 @@
 
 .onboarding-foot { margin-top: var(--space-sm); }
 
-/* ── Indicador de pasos ───────────────────────────────────────────── */
-.wizard-steps {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-xs);
-    justify-content: space-between;
-}
-
-.wizard-steps__item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: var(--font-size-xs);
-    color: var(--text-faint);
-    transition: color var(--transition-fast);
-}
-
-.wizard-steps__item span {
-    width: 22px;
-    height: 22px;
+/* ── Barra de progreso del wizard ─────────────────────────────────── */
+.wizard-progress { display: flex; flex-direction: column; gap: var(--space-2xs); }
+.wizard-progress__track {
+    height: 6px;
     border-radius: var(--radius-pill);
-    display: grid;
-    place-items: center;
     background: var(--bg-3);
-    color: var(--text-muted);
-    font-weight: var(--font-weight-semibold);
-    font-size: 0.7rem;
-    transition: all var(--transition-fast);
+    overflow: hidden;
 }
-
-.wizard-steps__item.is-active { color: var(--text-primary); }
-.wizard-steps__item.is-active span {
+.wizard-progress__fill {
+    display: block;
+    height: 100%;
+    border-radius: var(--radius-pill);
     background: var(--accent);
-    color: var(--text-on-active);
+    transition: width var(--transition-normal);
 }
+.wizard-progress__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+.wizard-progress__pct { font-family: var(--font-mono); color: var(--accent); font-weight: var(--font-weight-semibold); }
 
 /* ── Panes del wizard ─────────────────────────────────────────────── */
 .wizard-pane {
@@ -148,6 +133,27 @@
     color: var(--accent);
     margin: var(--space-xs) 0;
 }
+
+/* Variante inline (dentro del paso 1, debajo del nombre de empresa) */
+.wizard-uid--inline {
+    text-align: left;
+    padding: var(--space-sm) var(--space-md);
+}
+.wizard-uid--inline .wizard-uid__code { font-size: var(--font-size-xl); margin: 4px 0 6px; }
+.wizard-uid--inline .wizard-hint { margin: 0; }
+
+/* Gráficos sugeridos colapsables (paso Métricas) */
+.wizard-charts > summary {
+    cursor: pointer;
+    color: var(--accent);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    padding: var(--space-2xs) 0;
+}
+.wizard-charts[open] > summary { margin-bottom: var(--space-xs); }
+
+/* Estado de envío de los botones del wizard */
+.auth-submit.is-loading { opacity: 0.7; cursor: progress; }
 
 /* ── Grid de métricas ─────────────────────────────────────────────── */
 .metric-grid {
