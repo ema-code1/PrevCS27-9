@@ -78,4 +78,76 @@ class IndustryController extends BaseController
         return redirect()->to(base_url('principal'))
             ->with('success', 'Te uniste al espacio como supervisor.');
     }
+
+    public function update($industryId = null)
+    {
+        $userId = (int) session('user_id');
+        $industryId = (int) $industryId;
+
+        if (! $this->isAdmin($userId, $industryId)) {
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes permiso para editar ese espacio.');
+        }
+
+        $rules = [
+            'company_name'   => 'required|min_length[2]|max_length[200]',
+            'space_name'     => 'required|min_length[2]|max_length[200]',
+            'sector'         => 'permit_empty|max_length[120]',
+            'space_password' => 'permit_empty|min_length[6]|max_length[200]',
+        ];
+
+        if (! $this->validate($rules)) {
+            return redirect()->to(base_url('registros-iot'))
+                ->withInput()
+                ->with('errors', $this->validator->getErrors())
+                ->with('editing_industry_id', $industryId);
+        }
+
+        $payload = [
+            'company_name' => trim((string) $this->request->getPost('company_name')),
+            'space_name'   => trim((string) $this->request->getPost('space_name')),
+            'sector'       => trim((string) $this->request->getPost('sector')) ?: null,
+        ];
+
+        $newPassword = trim((string) $this->request->getPost('space_password'));
+        if ($newPassword !== '') {
+            $payload['space_password_hash'] = $newPassword;
+        }
+
+        (new IndustryModel())->update($industryId, $payload);
+
+        return redirect()->to(base_url('registros-iot'))->with('success', 'Espacio actualizado.');
+    }
+
+    public function removeMember($industryId = null, $membershipId = null)
+    {
+        $userId = (int) session('user_id');
+        $industryId = (int) $industryId;
+        $membershipId = (int) $membershipId;
+
+        if (! $this->isAdmin($userId, $industryId)) {
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes permiso para administrar ese espacio.');
+        }
+
+        $membershipModel = new IndustryUserModel();
+        $membership = $membershipModel->where('id', $membershipId)->where('industry_id', $industryId)->first();
+
+        if ($membership === null) {
+            return redirect()->to(base_url('registros-iot'))->with('error', 'Ese acceso ya no existe.');
+        }
+
+        if ((int) $membership['user_id'] === $userId || $membership['role'] === IndustryUserModel::ROLE_ADMIN) {
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No se puede quitar al administrador principal desde aca.');
+        }
+
+        $membershipModel->delete($membershipId);
+
+        return redirect()->to(base_url('registros-iot'))->with('success', 'Acceso eliminado.');
+    }
+
+    private function isAdmin(int $userId, int $industryId): bool
+    {
+        return $userId > 0
+            && $industryId > 0
+            && (new IndustryUserModel())->roleFor($userId, $industryId) === IndustryUserModel::ROLE_ADMIN;
+    }
 }

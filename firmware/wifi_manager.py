@@ -1,7 +1,7 @@
 # wifi_manager.py — conexion WiFi (modo normal) y portal de configuracion (modo AP).
 #
 # Modo normal: connect() une la ESP32 a la red WiFi del cliente.
-# Modo AP:     start_config_portal() crea la red "PrevCS_Config", muestra una
+# Modo AP:     start_config_portal() crea la red "PREVCS-CONFIG", muestra una
 #              pagina web donde el usuario carga sus datos (sin saber de codigo),
 #              guarda config.json y reinicia la placa.
 
@@ -11,7 +11,7 @@ import machine
 
 import config_manager
 
-AP_SSID = "PrevCS_Config"      # red que crea la placa para configurarse
+AP_SSID = "PREVCS-CONFIG"      # red que crea la placa para configurarse
 AP_PASSWORD = ""               # abierta (vacio) para que sea facil de conectar
 
 _sta = network.WLAN(network.STA_IF)
@@ -142,56 +142,66 @@ def _page(mac, prefill=None):
     device_name = _html_escape(prefill.get("device_name", "ESP32"))
     server_url = _html_escape(prefill.get("server_url", ""))
     device_token = _html_escape(prefill.get("device_token", ""))
+    wifi_ip = _html_escape(prefill.get("wifi_ip", ""))
     has_web_data = bool(server_url and device_token)
     web_fields = """
  <input type="hidden" name="device_name" value="{device_name}">
- <input type="hidden" name="server_url" value="{server_url}">
- <input type="hidden" name="device_token" value="{device_token}">
- <div class="ok">Datos de PrevCS cargados. Solo falta el WiFi.</div>
+ <label>URL API PrevCS</label>
+ <input name="server_url" value="{server_url}" readonly>
+ <label>Token de placa</label>
+ <input name="device_token" value="{device_token}" readonly>
 """.format(device_name=device_name, server_url=server_url, device_token=device_token) if has_web_data else """
  <label>Nombre de la placa</label>
  <input name="device_name" value="{device_name}" placeholder="Ej: ESP32 Motor 1" required>
- <label>URL del servidor</label>
+ <label>URL API PrevCS</label>
  <input name="server_url" value="{server_url}" placeholder="http://IP/PreventiveControlSystem/public/api/iot/lectura" required>
  <label>Token de la placa</label>
  <input name="device_token" value="{device_token}" placeholder="Pega aqui el token" required>
 """.format(device_name=device_name, server_url=server_url, device_token=device_token)
-    rpm_field = '<input name="pulses_per_rev" type="hidden" value="1">' if has_web_data else """
- <label>Pulsos por vuelta del sensor RPM</label>
- <input name="pulses_per_rev" type="number" value="1" min="1">
-"""
 
     return """<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Configurar ESP32 - PrevCS</title>
 <style>
- body{{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;padding:18px}}
- .card{{max-width:440px;margin:0 auto;background:#1e293b;border-radius:14px;padding:22px}}
- h1{{font-size:20px;margin:0 0 4px}} p{{color:#94a3b8;font-size:14px;margin:6px 0 16px}}
- .mac{{background:#0b1220;border:1px solid #334155;border-radius:8px;padding:10px;font-family:monospace;
-   font-size:16px;color:#38bdf8;text-align:center;letter-spacing:1px;margin-bottom:16px}}
- label{{display:block;font-size:13px;margin:12px 0 4px;color:#cbd5e1}}
- input{{width:100%;box-sizing:border-box;padding:11px;border-radius:8px;border:1px solid #334155;
-   background:#0b1220;color:#e2e8f0;font-size:15px}}
- button{{width:100%;margin-top:20px;padding:13px;border:0;border-radius:9px;background:#2563eb;
-   color:#fff;font-size:16px;font-weight:600}}
- .ok{{background:#064e3b;color:#d1fae5;border-radius:8px;padding:10px;margin:10px 0 14px;font-size:14px}}
- small{{color:#64748b}}
+ *{{box-sizing:border-box}} body{{font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#101820;color:#f4f7f5;margin:0;padding:18px}}
+ .card{{max-width:480px;margin:0 auto;background:#16232d;border:1px solid #29404d;border-radius:18px;padding:22px;box-shadow:0 18px 50px rgba(0,0,0,.28)}}
+ h1{{font-size:22px;margin:0 0 5px;letter-spacing:-.02em}} p{{color:#a9b8bd;font-size:14px;line-height:1.45;margin:6px 0 16px}}
+ .mac{{background:#0c151b;border:1px solid #315465;border-radius:12px;padding:12px;font-family:monospace;
+   font-size:16px;color:#65d6ad;text-align:center;letter-spacing:1px;margin-bottom:16px}}
+ label{{display:flex;align-items:center;gap:7px;font-size:13px;margin:12px 0 5px;color:#d7e1df;font-weight:650}}
+ input{{width:100%;padding:12px 13px;border-radius:10px;border:1px solid #315465;background:#0c151b;color:#f4f7f5;font-size:15px}}
+ input:focus{{outline:none;border-color:#65d6ad;box-shadow:0 0 0 3px rgba(101,214,173,.16)}}
+ button{{width:100%;margin-top:20px;padding:14px;border:0;border-radius:11px;background:#2f7d68;color:#fff;font-size:16px;font-weight:750}}
+ input[readonly]{{color:#65d6ad;font-family:monospace;font-size:12px}}
+ .row{{display:grid;grid-template-columns:1fr 110px;gap:10px}}
+ .help{{position:relative;display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#29404d;color:#f4f7f5;font-size:12px;cursor:help}}
+ .help:after{{content:attr(data-tip);position:absolute;left:50%;bottom:135%;transform:translateX(-50%);width:230px;padding:9px 10px;border-radius:10px;background:#f4f7f5;color:#101820;font-size:12px;line-height:1.35;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .15s}}
+ .help:hover:after{{opacity:1}}
+ small{{display:block;color:#7e9298;margin-top:12px;line-height:1.4}}
 </style></head><body><div class="card">
-<h1>Configurar tu ESP32</h1>
-<p>Si abriste desde PrevCS, solo carga el WiFi.</p>
+<h1>Configurar SP PrevCS</h1>
+<p>Esta pantalla vive dentro de la placa. Carga tu WiFi y deja que PrevCS complete la API cuando abras el link listo.</p>
 <div class="mac">MAC: {mac}</div>
 <form method="post" action="/save">
  {web_fields}
  <label>Red WiFi (SSID)</label>
  <input name="wifi_ssid" placeholder="Nombre de tu WiFi" required>
- <label>Contrasena WiFi</label>
+ <div class="row">
+  <div>
+   <label>IP WiFi</label>
+   <input name="wifi_ip" value="{wifi_ip}" placeholder="Ej: 192.168.1.50">
+  </div>
+  <div>
+   <label>Pulsos <span class="help" data-tip="Cantidad de pulsos que entrega el sensor RPM por cada vuelta completa del eje. Si hay una sola marca o ranura, usa 1.">?</span></label>
+   <input name="pulses_per_rev" type="number" value="1" min="1">
+  </div>
+ </div>
+ <label>Contrasena del WiFi</label>
  <input name="wifi_password" type="password" placeholder="Contrasena de tu WiFi">
- {rpm_field}
  <button type="submit">Guardar y reiniciar</button>
 </form>
-<p><small>La placa se reiniciara y se conectara sola a tu WiFi.</small></p>
-</div></body></html>""".format(mac=mac, web_fields=web_fields, rpm_field=rpm_field)
+<small>La placa se reiniciara y se conectara sola a tu WiFi. Si no conecta, volvera a liberar PREVCS-CONFIG.</small>
+</div></body></html>""".format(mac=mac, web_fields=web_fields, wifi_ip=wifi_ip)
 
 
 def _ok_page():
@@ -272,6 +282,7 @@ def start_config_portal():
                 cfg = {
                     "device_name":   form.get("device_name", "ESP32"),
                     "wifi_ssid":     form.get("wifi_ssid", ""),
+                    "wifi_ip":       form.get("wifi_ip", ""),
                     "wifi_password": form.get("wifi_password", ""),
                     "server_url":    form.get("server_url", ""),
                     "device_token":  form.get("device_token", ""),

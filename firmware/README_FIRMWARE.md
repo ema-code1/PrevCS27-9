@@ -19,7 +19,7 @@ No subas `config.example.json` como config real. Es solo ejemplo.
 
 1. Subi los `.py` con Thonny.
 2. Reinicia la ESP32.
-3. La ESP crea la red WiFi `PrevCS_Config`.
+3. La ESP crea la red WiFi `PREVCS-CONFIG`.
 4. Conectate a esa red.
 5. Abri `http://192.168.4.1`.
 6. Copia la MAC que muestra la placa.

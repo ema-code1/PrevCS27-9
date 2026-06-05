@@ -58,7 +58,7 @@
             <?php if (! empty($deviceToken)): ?>
                 <div class="esp32-setup-box">
                     <strong>Link listo para 192.168.4.1</strong>
-                    <p>Conectate a la red <code>PrevCS_Config</code> y abri este link. API, token y nombre ya van cargados.</p>
+                    <p>Conectate a la red <code>PREVCS-CONFIG</code> y abri este link. API, token y nombre ya van cargados.</p>
                     <?php if (! empty($setupUrl)): ?>
                         <a class="btn btn--primary" href="<?= esc($setupUrl) ?>">Abrir formulario de la ESP32</a>
                         <code class="esp32-token"><?= esc($setupUrl) ?></code>

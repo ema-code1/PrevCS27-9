@@ -53,6 +53,32 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
                 <a class="btn btn--primary" href="<?= base_url('crear-espacio') ?>">Crear espacio</a>
             </section>
         <?php else: ?>
+            <section class="esp32-setup-guide">
+                <div class="esp32-setup-guide__intro">
+                    <span class="esp32-setup-guide__step">Guia de linkeo</span>
+                    <h2>Conecta la placa al espacio sin escribir la API a mano</h2>
+                    <p>Todas las SP liberan la misma red de configuracion. Desde tu celular o computadora, conectate al WiFi <code>PREVCS-CONFIG</code> y despues abri el formulario interno de la placa.</p>
+                </div>
+                <a class="esp32-ap-link" href="http://192.168.4.1">
+                    <span>Formulario de la SP</span>
+                    <strong>192.168.4.1</strong>
+                </a>
+                <div class="esp32-setup-guide__steps">
+                    <div>
+                        <span>1</span>
+                        <p>Conectate al AP <strong>PREVCS-CONFIG</strong> que libera la placa.</p>
+                    </div>
+                    <div>
+                        <span>2</span>
+                        <p>Entra a <strong>192.168.4.1</strong>, copia la MAC que muestra y usala abajo.</p>
+                    </div>
+                    <div>
+                        <span>3</span>
+                        <p>Al vincularla, PrevCS genera el token y un link listo con API, token y nombre.</p>
+                    </div>
+                </div>
+            </section>
+
             <section class="panel card esp32-form-card">
                 <form action="<?= base_url('esp32/agregar') ?>" method="post" class="auth-form" data-esp32-form>
                     <?= csrf_field() ?>

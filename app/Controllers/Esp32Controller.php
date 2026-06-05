@@ -300,8 +300,17 @@ class Esp32Controller extends BaseController
 
         return 'http://192.168.4.1/?' . http_build_query([
             'device_name'  => $device['name'] ?? 'ESP32',
-            'server_url'   => base_url('api/iot/lectura'),
+            'server_url'   => $this->publicApiUrl(),
             'device_token' => $token,
         ], '', '&', PHP_QUERY_RFC3986);
+    }
+
+    private function publicApiUrl(): string
+    {
+        $uri = $this->request->getUri();
+        $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
+        $basePath = $basePath === '/' || $basePath === '\\' ? '' : str_replace('\\', '/', $basePath);
+
+        return $uri->getScheme() . '://' . $uri->getAuthority() . $basePath . '/api/iot/lectura';
     }
 }

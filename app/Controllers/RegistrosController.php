@@ -30,8 +30,12 @@ class RegistrosController extends BaseController
         $industries = (new IndustryUserModel())->industriesForUser($userId);
 
         $deviceModel = new Esp32DeviceModel();
+        $membershipModel = new IndustryUserModel();
         foreach ($industries as &$ind) {
             $ind['device_count'] = count($deviceModel->devicesForIndustry((int) $ind['id']));
+            $ind['members'] = $ind['role'] === IndustryUserModel::ROLE_ADMIN
+                ? $membershipModel->membersForIndustry((int) $ind['id'])
+                : [];
         }
         unset($ind);
 

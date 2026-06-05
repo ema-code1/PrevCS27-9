@@ -54,6 +54,19 @@ class IndustryUserModel extends Model
     }
 
     /**
+     * Usuarios que tienen acceso a una industria.
+     */
+    public function membersForIndustry(int $industryId): array
+    {
+        return $this->select('industry_users.*, users.nombre, users.apellido, users.email')
+            ->join('users', 'users.id = industry_users.user_id')
+            ->where('industry_users.industry_id', $industryId)
+            ->orderBy('industry_users.role', 'ASC')
+            ->orderBy('users.nombre', 'ASC')
+            ->findAll();
+    }
+
+    /**
      * Agrega (idempotente) un usuario a una industria con un rol.
      */
     public function addMembership(int $userId, int $industryId, string $role): bool

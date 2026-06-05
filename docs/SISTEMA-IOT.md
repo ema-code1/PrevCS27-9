@@ -371,7 +371,7 @@ bases para obtener un token por cada una.
 
 ### 6.4 Modo Access Point (configuración del usuario final)
 
-Si no hay `config.json`, la placa crea la red WiFi **`PrevCS_Config`**. El usuario se
+Si no hay `config.json`, la placa crea la red WiFi **`PREVCS-CONFIG`**. El usuario se
 conecta y abre `http://192.168.4.1`, donde una página muestra la **MAC** de la placa y un
 formulario para cargar WiFi, URL del servidor y token. Al guardar, la placa escribe
 `config.json` y se reinicia en modo normal.
@@ -393,7 +393,7 @@ formulario para cargar WiFi, URL del servidor y token. Al guardar, la placa escr
    *(Para subir/borrar archivos, la placa debe estar detenida en `>>>`.)*
 
 **C. Configurar la placa**
-6. Reiniciar → se crea la red `PrevCS_Config` → conectarse → abrir `http://192.168.4.1`.
+6. Reiniciar → se crea la red `PREVCS-CONFIG` → conectarse → abrir `http://192.168.4.1`.
 7. Verificar que la **MAC** mostrada sea la registrada, y cargar:
    - WiFi de **2.4 GHz** (SSID + contraseña). *(El ESP32 no funciona con 5 GHz.)*
    - **URL del servidor:** `http://<IP-de-la-PC>/PreventiveControlSystem/public/api/iot/lectura`.
