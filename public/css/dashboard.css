@@ -4,6 +4,60 @@
 
 .page--dashboard .content-area { gap: var(--content-gap); }
 
+.kpi-card {
+  color: inherit;
+  text-decoration: none;
+}
+
+.kpi-card__small {
+  font-size: var(--font-size-md);
+  overflow-wrap: anywhere;
+}
+
+.onboarding-status {
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+}
+
+.onboarding-status h2,
+.onboarding-status p {
+  margin: 0;
+}
+
+.onboarding-status p {
+  color: var(--text-secondary);
+}
+
+.onboarding-status__steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.onboarding-status__steps span {
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.onboarding-status__steps .is-done {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.onboarding-status__steps .is-current {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.list-row--link {
+  color: inherit;
+  text-decoration: none;
+}
+
 /* ─── Dashboard grid (Urgencias / Actividad / Gastos / Resumen) ── */
 .dashboard-grid {
   display: grid;

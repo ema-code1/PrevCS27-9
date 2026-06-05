@@ -11,7 +11,7 @@ class Esp32DeviceModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $protectFields    = true;
-    protected $allowedFields    = ['industry_id', 'name', 'mac_address', 'sector', 'token_hash', 'is_active', 'status', 'last_seen_at'];
+    protected $allowedFields    = ['industry_id', 'name', 'mac_address', 'sector', 'token_hash', 'token_secret', 'is_active', 'status', 'last_seen_at'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -45,6 +45,63 @@ class Esp32DeviceModel extends Model
     public static function hashToken(string $plainToken): string
     {
         return hash('sha256', $plainToken); // 64 chars hex
+    }
+
+    /**
+     * Guarda el token reversible para poder verlo luego con contrasena del espacio.
+     * La API sigue validando solo token_hash.
+     */
+    public static function protectToken(string $plainToken): string
+    {
+        $key    = self::tokenCipherKey();
+        $iv     = random_bytes(16);
+        $cipher = openssl_encrypt($plainToken, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+
+        if ($cipher === false) {
+            throw new \RuntimeException('No se pudo proteger el token.');
+        }
+
+        $mac = hash_hmac('sha256', $iv . $cipher, $key, true);
+
+        return base64_encode($iv . $mac . $cipher);
+    }
+
+    public static function revealToken(?string $protectedToken): ?string
+    {
+        if ($protectedToken === null || $protectedToken === '') {
+            return null;
+        }
+
+        $raw = base64_decode($protectedToken, true);
+        if ($raw === false || strlen($raw) <= 48) {
+            return null;
+        }
+
+        $iv     = substr($raw, 0, 16);
+        $mac    = substr($raw, 16, 32);
+        $cipher = substr($raw, 48);
+        $key    = self::tokenCipherKey();
+
+        $expected = hash_hmac('sha256', $iv . $cipher, $key, true);
+        if (! hash_equals($expected, $mac)) {
+            return null;
+        }
+
+        $plain = openssl_decrypt($cipher, 'AES-256-CBC', $key, OPENSSL_RAW_DATA, $iv);
+
+        return $plain === false ? null : $plain;
+    }
+
+    private static function tokenCipherKey(): string
+    {
+        $seed = (string) env('encryption.key');
+
+        if ($seed === '') {
+            $app  = config('App');
+            $seed = (string) ($app->baseURL ?? '') . '|' . FCPATH;
+        }
+
+        return hash('sha256', $seed, true);
     }
 
     /**

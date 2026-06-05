@@ -34,6 +34,7 @@ CREATE TABLE `esp32_devices` (
   `mac_address` varchar(17) NOT NULL,
   `sector` varchar(120) DEFAULT NULL,
   `token_hash` varchar(64) DEFAULT NULL,
+  `token_secret` text DEFAULT NULL,
   `is_active` tinyint(1) DEFAULT 1,
   `status` varchar(20) NOT NULL DEFAULT 'offline',
   `last_seen_at` datetime DEFAULT NULL,
@@ -44,8 +45,8 @@ CREATE TABLE `esp32_devices` (
 -- Dumping data for table `esp32_devices`
 --
 
-INSERT INTO `esp32_devices` (`id`, `industry_id`, `name`, `mac_address`, `sector`, `token_hash`, `is_active`, `status`, `last_seen_at`, `created_at`) VALUES
-(6, 4, 'Motor 1', 'D4:E9:F4:8D:18:7C', 'Planta aceitera', '31e30111dcbeef1fe16694a563ebd47efcb2112539462e51e14a07009c46dd92', 1, 'online', '2026-06-03 02:57:25', '2026-06-03 00:30:28');
+INSERT INTO `esp32_devices` (`id`, `industry_id`, `name`, `mac_address`, `sector`, `token_hash`, `token_secret`, `is_active`, `status`, `last_seen_at`, `created_at`) VALUES
+(6, 4, 'Motor 1', 'D4:E9:F4:8D:18:7C', 'Planta aceitera', '31e30111dcbeef1fe16694a563ebd47efcb2112539462e51e14a07009c46dd92', NULL, 1, 'online', '2026-06-03 02:57:25', '2026-06-03 00:30:28');
 
 -- --------------------------------------------------------
 

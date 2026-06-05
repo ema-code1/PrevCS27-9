@@ -69,6 +69,87 @@
 /* ── Formulario de alta ───────────────────────────────────────────── */
 .esp32-form-card { max-width: 540px; padding: var(--space-lg); }
 
+.esp32-info-strip,
+.esp32-readonly-box,
+.esp32-sensor-preview,
+.esp32-setup-box {
+    display: grid;
+    gap: var(--space-xs);
+}
+
+.esp32-info-strip {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.esp32-readonly-box,
+.esp32-sensor-preview,
+.esp32-setup-box {
+    padding: var(--space-sm);
+    border: var(--border-thin) solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+}
+
+.esp32-readonly-box span,
+.field-help {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.field-help.is-ok { color: var(--success); }
+.field-help.is-error { color: var(--error); }
+
+.esp32-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.esp32-token-access,
+.esp32-space-data {
+    padding: var(--space-md);
+}
+
+.esp32-token-form {
+    display: grid;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}
+
+.esp32-setup-box {
+    margin-top: var(--space-sm);
+}
+
+.esp32-setup-box .esp32-token {
+    display: block;
+    margin-top: var(--space-xs);
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.esp32-mini-list {
+    display: grid;
+    gap: 6px;
+    margin-top: var(--space-sm);
+}
+
+.esp32-mini-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    color: inherit;
+    text-decoration: none;
+    background: var(--surface-2);
+}
+
+.esp32-mini-row code {
+    color: var(--accent);
+}
+
 .esp32-select,
 .esp32-input {
     width: 100%;

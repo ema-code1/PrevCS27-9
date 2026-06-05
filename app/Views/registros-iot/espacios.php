@@ -46,6 +46,9 @@
                         <p class="text-muted mono"><?= (int) $ind['device_count'] ?> ESP32 · <?= esc($ind['industry_uid']) ?></p>
                         <div class="esp32-card__actions">
                             <a href="<?= base_url('registros-iot/' . $ind['id']) ?>" class="btn btn--primary">Registros IoT</a>
+                            <?php if ($ind['role'] === 'admin_principal'): ?>
+                                <a href="<?= base_url('esp32/agregar?industry_id=' . $ind['id']) ?>" class="btn btn--secondary">Vincular ESP32</a>
+                            <?php endif; ?>
                         </div>
                     </article>
                 <?php endforeach; ?>

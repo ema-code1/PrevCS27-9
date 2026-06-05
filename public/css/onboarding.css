@@ -140,6 +140,16 @@
     border-radius: var(--radius-lg);
 }
 
+.wizard-uid--compact {
+    padding: var(--space-sm);
+    text-align: left;
+}
+
+.wizard-uid--compact .wizard-uid__code {
+    font-size: var(--font-size-lg);
+    margin: 2px 0;
+}
+
 .wizard-uid__code {
     font-family: var(--font-mono);
     font-size: var(--font-size-2xl);

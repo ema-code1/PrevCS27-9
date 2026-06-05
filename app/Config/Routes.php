@@ -50,6 +50,7 @@ $routes->post('unirse-espacio', 'IndustryController::join');
 $routes->get('esp32', 'Esp32Controller::index');
 $routes->get('esp32/agregar', 'Esp32Controller::createForm');
 $routes->post('esp32/agregar', 'Esp32Controller::store');
+$routes->post('esp32/(:num)/token', 'Esp32Controller::revealToken/$1');
 $routes->post('esp32/(:num)/sensores', 'SensorController::store/$1');
 $routes->get('esp32/(:num)', 'Esp32Controller::show/$1');
 

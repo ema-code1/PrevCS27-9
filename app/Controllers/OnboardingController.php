@@ -25,8 +25,7 @@ class OnboardingController extends BaseController
     }
 
     /**
-     * Vista del onboarding de creacion de espacio (wizard de 5 pasos,
-     * un solo formulario que se envia al final).
+     * Vista del onboarding de creacion de espacio.
      */
     public function create()
     {
@@ -135,7 +134,8 @@ class OnboardingController extends BaseController
             'active_industry_role' => IndustryUserModel::ROLE_ADMIN,
         ]);
 
-        return redirect()->to(base_url('principal'))
-            ->with('success', "Espacio creado. Tu ID de industria es {$uid}");
+        return redirect()->to(base_url('esp32/agregar?from=onboarding&industry_id=' . $industryId))
+            ->with('success', "Espacio creado. ID: {$uid}. Ahora vincula tu primera ESP32.")
+            ->with('created_industry_uid', $uid);
     }
 }

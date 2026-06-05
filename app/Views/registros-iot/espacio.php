@@ -29,6 +29,33 @@
             </div>
         </header>
 
+        <section class="panel card esp32-space-data">
+            <div class="panel__header">
+                <h3>Datos del espacio</h3>
+                <?php if (! empty($isAdmin)): ?>
+                    <a class="btn btn--primary" href="<?= base_url('esp32/agregar?industry_id=' . $industry['id']) ?>">Vincular ESP32</a>
+                <?php endif; ?>
+            </div>
+            <dl class="esp32-sensor-meta">
+                <div><dt>ID</dt><dd class="mono"><?= esc($industry['industry_uid']) ?></dd></div>
+                <div><dt>Industria</dt><dd><?= esc($industry['company_name']) ?></dd></div>
+                <div><dt>Espacio</dt><dd><?= esc($industry['space_name']) ?></dd></div>
+                <div><dt>ESP32</dt><dd><?= (int) $deviceCount ?></dd></div>
+            </dl>
+
+            <?php if (! empty($devices)): ?>
+                <div class="esp32-mini-list">
+                    <?php foreach ($devices as $device): ?>
+                        <a href="<?= base_url('esp32/' . $device['id']) ?>" class="esp32-mini-row">
+                            <strong><?= esc($device['name']) ?></strong>
+                            <code><?= esc($device['mac_address']) ?></code>
+                            <span><?= esc($device['status'] ?? 'offline') ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
+
         <?php if ($sensors === []): ?>
             <section class="panel card esp32-empty">
                 <h3>Sin sensores en este espacio</h3>

@@ -128,8 +128,39 @@ def _parse_form(body):
     return data
 
 
-def _page(mac):
+def _html_escape(value):
+    value = str(value or "")
+    return (value.replace("&", "&amp;")
+                 .replace("<", "&lt;")
+                 .replace(">", "&gt;")
+                 .replace('"', "&quot;"))
+
+
+def _page(mac, prefill=None):
     """HTML del formulario de configuracion (se ve en el celular del usuario)."""
+    prefill = prefill or {}
+    device_name = _html_escape(prefill.get("device_name", "ESP32"))
+    server_url = _html_escape(prefill.get("server_url", ""))
+    device_token = _html_escape(prefill.get("device_token", ""))
+    has_web_data = bool(server_url and device_token)
+    web_fields = """
+ <input type="hidden" name="device_name" value="{device_name}">
+ <input type="hidden" name="server_url" value="{server_url}">
+ <input type="hidden" name="device_token" value="{device_token}">
+ <div class="ok">Datos de PrevCS cargados. Solo falta el WiFi.</div>
+""".format(device_name=device_name, server_url=server_url, device_token=device_token) if has_web_data else """
+ <label>Nombre de la placa</label>
+ <input name="device_name" value="{device_name}" placeholder="Ej: ESP32 Motor 1" required>
+ <label>URL del servidor</label>
+ <input name="server_url" value="{server_url}" placeholder="http://IP/PreventiveControlSystem/public/api/iot/lectura" required>
+ <label>Token de la placa</label>
+ <input name="device_token" value="{device_token}" placeholder="Pega aqui el token" required>
+""".format(device_name=device_name, server_url=server_url, device_token=device_token)
+    rpm_field = '<input name="pulses_per_rev" type="hidden" value="1">' if has_web_data else """
+ <label>Pulsos por vuelta del sensor RPM</label>
+ <input name="pulses_per_rev" type="number" value="1" min="1">
+"""
+
     return """<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Configurar ESP32 - PrevCS</title>
@@ -144,28 +175,23 @@ def _page(mac):
    background:#0b1220;color:#e2e8f0;font-size:15px}}
  button{{width:100%;margin-top:20px;padding:13px;border:0;border-radius:9px;background:#2563eb;
    color:#fff;font-size:16px;font-weight:600}}
+ .ok{{background:#064e3b;color:#d1fae5;border-radius:8px;padding:10px;margin:10px 0 14px;font-size:14px}}
  small{{color:#64748b}}
 </style></head><body><div class="card">
 <h1>Configurar tu ESP32</h1>
-<p>Anota esta direccion MAC y registrala en la web (Anadir ESP). Luego carga aqui los datos.</p>
+<p>Si abriste desde PrevCS, solo carga el WiFi.</p>
 <div class="mac">MAC: {mac}</div>
 <form method="post" action="/save">
- <label>Nombre de la placa</label>
- <input name="device_name" placeholder="Ej: Extrusora-01" required>
+ {web_fields}
  <label>Red WiFi (SSID)</label>
  <input name="wifi_ssid" placeholder="Nombre de tu WiFi" required>
  <label>Contrasena WiFi</label>
  <input name="wifi_password" type="password" placeholder="Contrasena de tu WiFi">
- <label>URL del servidor (te la da el sistema)</label>
- <input name="server_url" placeholder="http://IP/PreventiveControlSystem/public/api/iot/lectura" required>
- <label>Token de la placa (te lo da la web al registrarla)</label>
- <input name="device_token" placeholder="Pega aqui el token" required>
- <label>Pulsos por vuelta del sensor RPM</label>
- <input name="pulses_per_rev" type="number" value="1" min="1">
+ {rpm_field}
  <button type="submit">Guardar y reiniciar</button>
 </form>
 <p><small>La placa se reiniciara y se conectara sola a tu WiFi.</small></p>
-</div></body></html>""".format(mac=mac)
+</div></body></html>""".format(mac=mac, web_fields=web_fields, rpm_field=rpm_field)
 
 
 def _ok_page():
@@ -175,6 +201,19 @@ def _ok_page():
             "<h2>Configuracion guardada</h2>"
             "<p>La ESP32 se esta reiniciando y se conectara a tu WiFi.</p>"
             "<p>Ya podes cerrar esta pagina.</p></body></html>")
+
+
+def _query_from_request(req):
+    try:
+        first = req.split("\r\n", 1)[0]
+        path = first.split(" ")[1]
+    except Exception:
+        return {}
+
+    if "?" not in path:
+        return {}
+
+    return _parse_form(path.split("?", 1)[1])
 
 
 def start_config_portal():
@@ -246,7 +285,7 @@ def start_config_portal():
                 time.sleep(2)
                 machine.reset()
             else:
-                _respond(conn, _page(mac))
+                _respond(conn, _page(mac, _query_from_request(req)))
         except Exception as e:
             print("[portal] error atendiendo request:", e)
         finally:

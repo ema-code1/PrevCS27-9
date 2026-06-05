@@ -47,9 +47,45 @@
             </div>
         <?php endif; ?>
 
+        <section class="panel card esp32-token-access">
+            <div class="panel__header"><h3>Datos de configuracion</h3></div>
+            <dl class="esp32-sensor-meta">
+                <div><dt>MAC</dt><dd class="mono"><?= esc($device['mac_address']) ?></dd></div>
+                <div><dt>Estado</dt><dd><?= esc($device['status'] ?? 'offline') ?></dd></div>
+                <div><dt>Ultima lectura</dt><dd class="mono"><?= esc($device['last_seen_at'] ?? '-') ?></dd></div>
+            </dl>
+
+            <?php if (! empty($deviceToken)): ?>
+                <div class="esp32-setup-box">
+                    <strong>Link listo para 192.168.4.1</strong>
+                    <p>Conectate a la red <code>PrevCS_Config</code> y abri este link. API, token y nombre ya van cargados.</p>
+                    <?php if (! empty($setupUrl)): ?>
+                        <a class="btn btn--primary" href="<?= esc($setupUrl) ?>">Abrir formulario de la ESP32</a>
+                        <code class="esp32-token"><?= esc($setupUrl) ?></code>
+                    <?php endif; ?>
+                </div>
+            <?php elseif ($isAdmin): ?>
+                <form action="<?= base_url('esp32/' . $device['id'] . '/token') ?>" method="post" class="esp32-token-form">
+                    <?= csrf_field() ?>
+                    <label class="auth-field">
+                        <span class="auth-field__label">Ver token</span>
+                        <span class="auth-field__control">
+                            <span class="auth-field__icon">*</span>
+                            <input type="password" name="space_password" placeholder="Clave del espacio" required>
+                        </span>
+                    </label>
+                    <button type="submit" class="btn btn--primary">Mostrar token</button>
+                </form>
+            <?php endif; ?>
+        </section>
+
+        <?php if (! empty($sensorCount)): ?>
+            <div class="auth-alert auth-alert--success"><?= (int) $sensorCount ?> sensores creados automaticamente.</div>
+        <?php endif; ?>
+
         <?php if ($isAdmin): ?>
             <section class="panel card esp32-add-sensor">
-                <div class="panel__header"><h3>Agregar sensor</h3></div>
+                <div class="panel__header"><h3>Agregar sensor extra</h3></div>
                 <?php if ($availableTypes === []): ?>
                     <p class="text-muted">Todos los tipos de sensor ya están asociados a esta placa.</p>
                 <?php else: ?>
