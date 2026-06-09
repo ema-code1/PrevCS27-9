@@ -21,7 +21,7 @@
                         <td style="background-color:#3D5C26;padding:0;line-height:0;">
                             <?php /* base_url('images/email_password_recover/prevcs-lockup-ivory-1200x300.png') */ ?>
                             <img src="https://i.imgur.com/L2kb5bQ.png"
-                                 alt="Prevention Control System"
+                                 alt="Preventive Control System"
                                  width="600"
                                  style="display:block;width:100%;max-width:600px;height:auto;border:0;">
                         </td>
@@ -68,7 +68,7 @@
                     <tr>
                         <td style="background-color:#F4F2EC;padding:20px 48px;border-top:1px solid #E8E6DF;">
                             <p style="margin:0;font-size:12px;color:#9A9CA2;text-align:center;line-height:1.5;">
-                                Prevention Control System &mdash; Este es un mensaje automático, no respondas este correo.
+                                Preventive Control System &mdash; Este es un mensaje automático, no respondas este correo.
                             </p>
                         </td>
                     </tr>

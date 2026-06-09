@@ -9,9 +9,48 @@
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
+  /* ---------- Sliding navigation pill ---------- */
+  const sectionNav = document.querySelector('[data-section-nav]');
+  if (sectionNav) {
+    const pill = sectionNav.querySelector('.hd-nav-pill');
+    const links = [...sectionNav.querySelectorAll('[data-nav-section]')];
+    const sections = links
+      .map((link) => ({ link, section: document.getElementById(link.dataset.navSection) }))
+      .filter((item) => item.section);
+
+    const movePill = (link) => {
+      if (!pill || !link) return;
+      const navRect = sectionNav.getBoundingClientRect();
+      const linkRect = link.getBoundingClientRect();
+      pill.style.width = `${linkRect.width}px`;
+      pill.style.transform = `translate3d(${linkRect.left - navRect.left - 4}px, 0, 0)`;
+      pill.classList.add('is-visible');
+      links.forEach((item) => {
+        const active = item === link;
+        item.classList.toggle('is-active', active);
+        if (active) item.setAttribute('aria-current', 'location');
+        else item.removeAttribute('aria-current');
+      });
+    };
+
+    const updateActiveSection = () => {
+      const marker = Math.min(window.innerHeight * 0.38, 300);
+      let current = sections[0];
+      sections.forEach((item) => {
+        if (item.section.getBoundingClientRect().top <= marker) current = item;
+      });
+      if (current) movePill(current.link);
+    };
+
+    links.forEach((link) => link.addEventListener('click', () => movePill(link)));
+    window.addEventListener('scroll', updateActiveSection, { passive: true });
+    window.addEventListener('resize', updateActiveSection, { passive: true });
+    updateActiveSection();
+  }
+
   /* ---------- Reveal on scroll ---------- */
   const revealSelectors = [
-    '.section-head', '.problem-card', '.metric-card', '.sensor-card',
+    '.section-head', '.problem-card', '.sensor-card',
     '.template-card', '.case-card', '.sb', '.how-step',
     '.hero-content > *', '.hero-dashboard-preview',
     '.ce-left', '.ce-right', '.cta-inner > *', '.recommender > *'
@@ -93,14 +132,14 @@
   const recRoot = document.getElementById('recommender');
   if (recRoot) {
     const RECS = {
-      temperatura:  { s: ['DS18B20 — sonda temperatura', 'DHT22 — ambiente'],         t: ['Historico termico 24h', 'Mapa de calor por area'],      a: ['Umbral &gt; 75 °C', 'Tendencia ascendente sostenida'] },
-      vibracion:    { s: ['SW-420 — vibracion digital', 'ADXL345 — acelerometro'],    t: ['Espectro de vibracion', 'Predictivo de motores'],       a: ['Pico fuera de banda', 'Desbalance progresivo'] },
-      humedad:      { s: ['DHT22 — humedad relativa', 'HIH-6130 — alta precision'],   t: ['Humedad por sala', 'Confort y materia prima'],          a: ['Humedad &gt; 80%', 'Caida brusca'] },
-      energia:      { s: ['SCT-013 — corriente AC', 'PZEM-004T — energia total'],     t: ['Consumo por linea', 'Comparativa de turnos'],           a: ['Pico de consumo', 'Factor de potencia bajo'] },
-      produccion:   { s: ['HC-SR04 — conteo por nivel', 'E18-D80 — proximidad'],      t: ['OEE en vivo', 'Produccion por turno'],                  a: ['Caida de rendimiento', 'Parada prolongada'] },
-      stock:        { s: ['HC-SR04 — nivel ultrasonido', 'KY025 — magnetico'],         t: ['Niveles de silos', 'Stock por insumo'],                 a: ['Stock &lt; minimo', 'Reposicion sugerida'] },
-      mantenimiento:{ s: ['ESP32 — gateway central', 'SW-420 — vibracion'],           t: ['Timeline mantenimiento', 'Predictivo OEE'],             a: ['Horas de uso superadas', 'Patron de fallo previo'] },
-      presion:      { s: ['BMP280 — presion barometrica', 'MPX5700 — alta presion'],  t: ['Presion por circuito', 'Curva de operacion'],           a: ['Sobrepresion', 'Caida por fuga'] }
+      temperatura:  { s: ['DS18B20 — sonda de temperatura', 'DHT22 — ambiente'],          t: ['Histórico térmico 24 h', 'Mapa de calor por área'],     a: ['Umbral &gt; 75 °C', 'Tendencia ascendente sostenida'] },
+      vibracion:    { s: ['SW-420 — vibración digital', 'ADXL345 — acelerómetro'],        t: ['Espectro de vibración', 'Predictivo de motores'],       a: ['Pico fuera de banda', 'Desbalance progresivo'] },
+      humedad:      { s: ['DHT22 — humedad relativa', 'HIH-6130 — alta precisión'],       t: ['Humedad por sala', 'Confort y materia prima'],          a: ['Humedad &gt; 80%', 'Caída brusca'] },
+      energia:      { s: ['SCT-013 — corriente AC', 'PZEM-004T — energía total'],         t: ['Consumo por línea', 'Comparativa de turnos'],           a: ['Pico de consumo', 'Factor de potencia bajo'] },
+      produccion:   { s: ['HC-SR04 — conteo por nivel', 'E18-D80 — proximidad'],          t: ['OEE en vivo', 'Producción por turno'],                  a: ['Caída de rendimiento', 'Parada prolongada'] },
+      stock:        { s: ['HC-SR04 — nivel ultrasónico', 'KY025 — magnético'],             t: ['Niveles de silos', 'Stock por insumo'],                 a: ['Stock &lt; mínimo', 'Reposición sugerida'] },
+      mantenimiento:{ s: ['ESP32 — gateway central', 'SW-420 — vibración'],               t: ['Línea de mantenimiento', 'Predictivo OEE'],             a: ['Horas de uso superadas', 'Patrón de fallo previo'] },
+      presion:      { s: ['BMP280 — presión barométrica', 'MPX5700 — alta presión'],      t: ['Presión por circuito', 'Curva de operación'],           a: ['Sobrepresión', 'Caída por fuga'] }
     };
 
     const chips = recRoot.querySelectorAll('[data-rec]');
@@ -112,26 +151,27 @@
       const active = [...chips].filter(c => c.classList.contains('on')).map(c => c.dataset.rec);
       const setS = new Set(), setT = new Set(), setA = new Set();
       if (active.length === 0) {
-        const empty = '<li>Elegi al menos una metrica…</li>';
-        $s.innerHTML = empty; $t.innerHTML = empty; $a.innerHTML = empty;
+        const empty = 'Elegí al menos una métrica.';
+        $s.textContent = empty; $t.textContent = empty; $a.textContent = empty;
         return;
       }
       active.forEach(k => {
         const r = RECS[k]; if (!r) return;
-        r.s.forEach(x => setS.add(x));
-        r.t.forEach(x => setT.add(x));
-        r.a.forEach(x => setA.add(x));
+        r.s.slice(0, 1).forEach(x => setS.add(x));
+        r.t.slice(0, 1).forEach(x => setT.add(x));
+        r.a.slice(0, 1).forEach(x => setA.add(x));
       });
       if (active.length > 0) setS.add('Modulo ESP32 — gateway WiFi/MQTT');
 
       const render = (set, host) => {
-        host.innerHTML = '';
-        [...set].slice(0, 6).forEach((x, i) => {
-          const li = document.createElement('li');
-          li.innerHTML = x;
-          li.style.animationDelay = (i * 60) + 'ms';
-          host.appendChild(li);
+        const values = [...set].slice(0, 4).map((value) => {
+          const parser = document.createElement('span');
+          parser.innerHTML = value;
+          return parser.textContent;
         });
+        host.textContent = values.join(', ');
+        host.classList.remove('is-updating');
+        requestAnimationFrame(() => host.classList.add('is-updating'));
       };
       render(setS, $s); render(setT, $t); render(setA, $a);
     };
@@ -151,7 +191,6 @@
     const next  = tc.querySelector('.next');
     const cards = track ? track.children : [];
     let index = 0;
-    let timer = null;
 
     const perView = () => {
       const w = window.innerWidth;
@@ -163,50 +202,69 @@
     const update = () => {
       const max = getMax();
       index = Math.min(Math.max(0, index), max);
-      const cardWidth = cards[0] ? cards[0].getBoundingClientRect().width + 14 : 0;
-      track.style.transform = `translateX(${-index * cardWidth}px)`;
-    };
-    const stopAuto = () => { if (timer) { clearInterval(timer); timer = null; } };
-    const startAuto = () => {
-      stopAuto();
-      timer = setInterval(() => {
-        const max = getMax();
-        index = (index + 1) > max ? 0 : index + 1;
-        update();
-      }, 4200);
+      tc.dataset.carouselMax = String(max);
+      const gap = parseFloat(getComputedStyle(track).gap) || 0;
+      const cardWidth = cards[0] ? cards[0].getBoundingClientRect().width + gap : 0;
+      track.style.transform = `translate3d(${-index * cardWidth}px, 0, 0)`;
+      tc.dataset.carouselIndex = String(index);
+      prev.disabled = index === 0;
+      next.disabled = index === max;
+      prev.setAttribute('aria-disabled', String(index === 0));
+      next.setAttribute('aria-disabled', String(index === max));
+      prev.classList.toggle('is-disabled', index === 0);
+      next.classList.toggle('is-disabled', index === max);
+      tc.classList.toggle('is-at-start', index === 0);
+      tc.classList.toggle('is-at-end', index === max);
     };
     const goPrev = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
-      stopAuto();
-      const max = getMax();
-      index = index <= 0 ? max : index - 1;  // loop al final si pasa por 0
+      index = Math.max(0, index - 1);
       update();
-      setTimeout(startAuto, 6000);
     };
     const goNext = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
-      stopAuto();
       const max = getMax();
-      index = index >= max ? 0 : index + 1;  // loop al inicio si pasa el max
+      index = Math.min(max, index + 1);
       update();
-      setTimeout(startAuto, 6000);
     };
 
-    if (prev) prev.addEventListener('click', goPrev);
-    if (next) next.addEventListener('click', goNext);
+    tc.addEventListener('click', (event) => {
+      const button = event.target.closest('.tc-nav');
+      if (!button || button.disabled || button.classList.contains('is-disabled')) return;
+      if (button.classList.contains('prev') && tc.classList.contains('is-at-start')) return;
+      if (button.classList.contains('next') && tc.classList.contains('is-at-end')) return;
+      if (button.classList.contains('prev')) goPrev(event);
+      else goNext(event);
+    });
+    tc.dataset.carouselReady = 'true';
 
-    tc.addEventListener('mouseenter', stopAuto);
-    tc.addEventListener('mouseleave', startAuto);
-    window.addEventListener('resize', update);
+    let pointerStart = null;
+    tc.addEventListener('pointerdown', (event) => {
+      if (event.pointerType === 'mouse') return;
+      pointerStart = event.clientX;
+    });
+    tc.addEventListener('pointerup', (event) => {
+      if (pointerStart === null) return;
+      const delta = event.clientX - pointerStart;
+      pointerStart = null;
+      if (Math.abs(delta) < 35) return;
+      if (delta < 0) goNext(event);
+      else goPrev(event);
+    });
+    tc.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') goPrev(event);
+      if (event.key === 'ArrowRight') goNext(event);
+    });
+    window.addEventListener('resize', update, { passive: true });
 
     update();
-    startAuto();
   }
 
   /* ---------- Hero floating cards parallax ---------- */
   const floats = document.querySelectorAll('.hdp-float');
   const hero = document.querySelector('.hero-section');
-  if (floats.length && hero && window.matchMedia('(min-width: 980px)').matches) {
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (floats.length && hero && !reduceMotion && window.matchMedia('(min-width: 980px)').matches) {
     let mx = 0, my = 0, tx = 0, ty = 0;
     hero.addEventListener('mousemove', (e) => {
       const r = hero.getBoundingClientRect();
@@ -218,7 +276,8 @@
       ty += (my - ty) * 0.08;
       floats.forEach((f, i) => {
         const depth = (i + 1) * 6;
-        f.style.translate = `${tx * depth}px ${ty * depth}px`;
+        f.style.setProperty('--parallax-x', `${tx * depth}px`);
+        f.style.setProperty('--parallax-y', `${ty * depth}px`);
       });
       requestAnimationFrame(loop);
     };
@@ -227,7 +286,7 @@
 
   /* ---------- Hero main card subtle tilt with scroll ---------- */
   const main = document.querySelector('.hdp-main');
-  if (main) {
+  if (main && !reduceMotion) {
     window.addEventListener('scroll', () => {
       const r = main.getBoundingClientRect();
       const center = r.top + r.height / 2;
@@ -236,4 +295,40 @@
       main.style.transform = `rotateY(${-3 + t * 2}deg) rotateX(${2 - t * 2}deg) translateY(${t * -8}px)`;
     }, { passive: true });
   }
+
+  /* ---------- GSAP: restrained metrics reveal ---------- */
+  const initGsap = () => {
+    if (typeof window.gsap === 'undefined' || typeof window.ScrollTrigger === 'undefined') return;
+    window.gsap.registerPlugin(window.ScrollTrigger);
+    if (window.PCSLenis && typeof window.PCSLenis.on === 'function') {
+      window.PCSLenis.on('scroll', window.ScrollTrigger.update);
+    }
+    if (!reduceMotion) {
+      window.gsap.from('[data-gsap-section="metrics"] .metric-card', {
+        scrollTrigger: {
+          trigger: '[data-gsap-section="metrics"]',
+          start: 'top 76%',
+          once: true
+        },
+        y: 18,
+        opacity: 0,
+        duration: 0.52,
+        stagger: 0.045,
+        ease: 'power2.out',
+        clearProps: 'transform,opacity'
+      });
+    }
+    window.ScrollTrigger.refresh();
+
+    window.setTimeout(() => {
+      if (typeof window.ScrollTrigger !== 'undefined') return;
+      document.querySelectorAll('[data-gsap-section="metrics"] .metric-card').forEach((card) => {
+        card.style.removeProperty('opacity');
+        card.style.removeProperty('transform');
+        card.style.removeProperty('visibility');
+      });
+    }, 1200);
+  };
+  if (document.readyState === 'complete') initGsap();
+  else window.addEventListener('load', initGsap, { once: true });
 })();

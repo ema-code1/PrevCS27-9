@@ -14,7 +14,12 @@
     <section class="content-area iot-shell">
         <header class="dashboard-head card">
             <div>
-                <p class="dashboard-head__eyebrow"><a href="<?= base_url('esp32') ?>" class="esp32-back">← Mis ESP32</a></p>
+                <p class="dashboard-head__eyebrow">
+                    <a href="<?= base_url('esp32') ?>" class="esp32-back">
+                        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 5-5 5 5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Mis ESP32
+                    </a>
+                </p>
                 <h1><?= esc($device['name']) ?></h1>
                 <p class="dashboard-head__text">
                     <code class="esp32-card__mac"><?= esc($device['mac_address']) ?></code>
@@ -52,7 +57,7 @@
             <dl class="esp32-sensor-meta">
                 <div><dt>MAC</dt><dd class="mono"><?= esc($device['mac_address']) ?></dd></div>
                 <div><dt>Estado</dt><dd><?= esc($device['status'] ?? 'offline') ?></dd></div>
-                <div><dt>Ultima lectura</dt><dd class="mono"><?= esc($device['last_seen_at'] ?? '-') ?></dd></div>
+                <div><dt>Última lectura</dt><dd class="mono"><?= esc($device['last_seen_at'] ?? '-') ?></dd></div>
             </dl>
 
             <?php if (! empty($deviceToken)): ?>

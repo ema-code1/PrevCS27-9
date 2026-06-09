@@ -18,9 +18,9 @@ $errorMessage = session('error');
 
             <section class="auth-pane is-active">
                 <div class="auth-pane__header">
-                    <p class="auth-pane__eyebrow">Nueva contrasena</p>
-                    <h1>Cambiar contrasena</h1>
-                    <p>Define una nueva contrasena para volver a ingresar de forma segura.</p>
+                    <p class="auth-pane__eyebrow">Nueva contraseña</p>
+                    <h1>Cambiar contraseña</h1>
+                    <p>Define una nueva contraseña para volver a ingresar de forma segura.</p>
                 </div>
 
                 <form action="<?= base_url('reset-password') ?>" method="post" class="auth-form">
@@ -28,7 +28,7 @@ $errorMessage = session('error');
                     <input type="hidden" name="token" value="<?= esc($token ?? '') ?>">
 
                     <label class="auth-field">
-                        <span class="auth-field__label">Nueva contrasena</span>
+                        <span class="auth-field__label">Nueva contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
                             <input type="password" name="password" placeholder="Minimo 6 caracteres" required>
@@ -39,17 +39,17 @@ $errorMessage = session('error');
                     </label>
 
                     <label class="auth-field">
-                        <span class="auth-field__label">Repetir contrasena</span>
+                        <span class="auth-field__label">Repetir contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="password_confirm" placeholder="Repeti tu contrasena" required>
+                            <input type="password" name="password_confirm" placeholder="Repeti tu contraseña" required>
                         </span>
                         <?php if (isset($errors['password_confirm'])): ?>
                             <span class="auth-field__error"><?= esc($errors['password_confirm']) ?></span>
                         <?php endif; ?>
                     </label>
 
-                    <button type="submit" class="auth-submit">Actualizar contrasena</button>
+                    <button type="submit" class="auth-submit">Actualizar contraseña</button>
                 </form>
             </section>
         </div>

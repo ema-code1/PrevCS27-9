@@ -15,7 +15,10 @@
         <header class="dashboard-head card">
             <div>
                 <p class="dashboard-head__eyebrow">
-                    <a href="<?= base_url('registros-iot') ?>" class="esp32-back">← Registros IoT</a>
+                    <a href="<?= base_url('registros-iot') ?>" class="esp32-back">
+                        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 5-5 5 5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Registros IoT
+                    </a>
                 </p>
                 <h1><?= esc($industry['space_name']) ?></h1>
                 <p class="dashboard-head__text">
@@ -107,7 +110,7 @@
                             <aside class="panel card">
                                 <div class="panel__header"><h3>Resumen</h3></div>
                                 <dl class="esp32-sensor-meta">
-                                    <div><dt>Placa</dt><dd><?= esc($s['device_name']) ?></dd></div>
+                                    <div><dt>Placá</dt><dd><?= esc($s['device_name']) ?></dd></div>
                                     <div><dt>MAC</dt><dd class="mono"><?= esc($s['mac_address']) ?></dd></div>
                                     <div><dt>Última lectura</dt>
                                         <dd class="mono" data-sensor-latest>

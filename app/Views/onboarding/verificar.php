@@ -25,7 +25,7 @@
             <div class="auth-pane__header">
                 <p class="auth-pane__eyebrow">Cuenta confirmada</p>
                 <h1>Hola, <?= esc($userName) ?></h1>
-                <p>Tu cuenta quedo lista. El ultimo paso es crear tu espacio de industria para empezar a vincular tus ESP32 y sensores.</p>
+                <p>Tu cuenta quedó lista. El último paso es crear tu espacio de industria para empezar a vincular tus ESP32 y sensores.</p>
             </div>
 
             <a class="auth-submit onboarding-cta" href="<?= base_url('crear-espacio') ?>">Crear mi espacio</a>

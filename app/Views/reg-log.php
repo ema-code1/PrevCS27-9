@@ -1,7 +1,7 @@
 <?= $this->extend('templates/layout') ?>
 
 <?= $this->section('pageStyles') ?>
-<link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
+<link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>?v=20260609-3">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -19,14 +19,14 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
         <div class="auth-nebula__blob"></div>
     </div>
     <section class="auth-panel">
-        <div class="auth-switch" role="tablist" aria-label="Seleccionar formulario">
+        <div class="auth-switch<?= $activeForm === 'register' ? ' is-register' : '' ?>" role="tablist" aria-label="Seleccionar formulario">
             <button
                 class="auth-switch__option<?= $activeForm === 'login' ? ' is-active' : '' ?>"
                 type="button"
                 data-auth-target="login"
                 aria-selected="<?= $activeForm === 'login' ? 'true' : 'false' ?>"
             >
-                Iniciar sesion
+                Iniciar sesión
             </button>
             <button
                 class="auth-switch__option<?= $activeForm === 'register' ? ' is-active' : '' ?>"
@@ -46,12 +46,13 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                 <div class="auth-alert auth-alert--success"><?= esc($successMessage) ?></div>
             <?php endif; ?>
 
+            <div class="auth-panes" data-auth-panes>
             <!-- LOGIN -->
-            <section class="auth-pane<?= $activeForm === 'login' ? ' is-active' : '' ?>" data-auth-pane="login">
+            <section class="auth-pane<?= $activeForm === 'login' ? ' is-active' : '' ?>" data-auth-pane="login" aria-hidden="<?= $activeForm === 'login' ? 'false' : 'true' ?>">
                 <div class="auth-pane__header">
-                    <p class="auth-pane__eyebrow">Acceso rapido</p>
+                    <p class="auth-pane__eyebrow">Acceso rápido</p>
                     <h1>Entra a tu cuenta</h1>
-                    <p>Usa tu email y contrasena para seguir trabajando en el sistema.</p>
+                    <p>Usa tu email y contraseña para seguir trabajando en el sistema.</p>
                 </div>
 
                 <form action="<?= base_url('login') ?>" method="post" class="auth-form">
@@ -70,10 +71,10 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                     </label>
 
                     <label class="auth-field">
-                        <span class="auth-field__label">Contrasena</span>
+                        <span class="auth-field__label">Contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="password" placeholder="Ingresa tu contrasena" required>
+                            <input type="password" name="password" placeholder="Ingresa tu contraseña" required>
                         </span>
                         <?php if (isset($errors['password']) && $activeForm === 'login'): ?>
                             <span class="auth-field__error"><?= esc($errors['password']) ?></span>
@@ -81,19 +82,19 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                     </label>
 
                     <div class="auth-actions">
-                        <a class="auth-link" href="<?= base_url('forgot-password') ?>">¿Olvidaste tu contrasena?</a>
+                        <a class="auth-link" href="<?= base_url('forgot-password') ?>">¿Olvidaste tu contraseña?</a>
                     </div>
 
-                    <button type="submit" class="auth-submit">Iniciar sesion</button>
+                    <button type="submit" class="auth-submit">Iniciar sesión</button>
                 </form>
             </section>
 
             <!-- REGISTER -->
-            <section class="auth-pane<?= $activeForm === 'register' ? ' is-active' : '' ?>" data-auth-pane="register">
+            <section class="auth-pane<?= $activeForm === 'register' ? ' is-active' : '' ?>" data-auth-pane="register" aria-hidden="<?= $activeForm === 'register' ? 'false' : 'true' ?>">
                 <div class="auth-pane__header">
                     <p class="auth-pane__eyebrow">Primer ingreso</p>
                     <h1>Crea tu cuenta</h1>
-                    <p>Registrate en pocos pasos y empeza a usar Prevention Control System.</p>
+                    <p>Registrate en pocos pasos y empezá a usar Preventive Control System.</p>
                 </div>
 
                 <form action="<?= base_url('register') ?>" method="post" class="auth-form">
@@ -123,10 +124,10 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                     </label>
 
                     <label class="auth-field">
-                        <span class="auth-field__label">Contrasena</span>
+                        <span class="auth-field__label">Contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="password" placeholder="Minimo 6 caracteres" required>
+                            <input type="password" name="password" placeholder="Mínimo 6 caracteres" required>
                         </span>
                         <?php if (isset($errors['password']) && $activeForm === 'register'): ?>
                             <span class="auth-field__error"><?= esc($errors['password']) ?></span>
@@ -134,10 +135,10 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                     </label>
 
                     <label class="auth-field">
-                        <span class="auth-field__label">Repetir contrasena</span>
+                        <span class="auth-field__label">Repetir contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="password_confirm" placeholder="Repeti tu contrasena" required>
+                            <input type="password" name="password_confirm" placeholder="Repetí tu contraseña" required>
                         </span>
                         <?php if (isset($errors['password_confirm']) && $activeForm === 'register'): ?>
                             <span class="auth-field__error"><?= esc($errors['password_confirm']) ?></span>
@@ -147,10 +148,11 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                     <button type="submit" class="auth-submit">Crear cuenta</button>
                 </form>
             </section>
+            </div>
         </div>
 
         <p class="auth-foot">
-            ¿Necesitas mas info? <a href="<?= base_url('/') ?>">Volver a la pagina principal</a>
+            ¿Necesitás más info? <a href="<?= base_url('/') ?>">Volver a la página principal</a>
         </p>
     </section>
 </main>
@@ -161,22 +163,78 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
 document.addEventListener('DOMContentLoaded', function () {
     const switchers = document.querySelectorAll('[data-auth-target]');
     const panes = document.querySelectorAll('[data-auth-pane]');
+    const panesHost = document.querySelector('[data-auth-panes]');
+    const switchRoot = document.querySelector('.auth-switch');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let activeTarget = document.querySelector('[data-auth-pane].is-active')?.dataset.authPane || 'login';
+    let transitionTimer = 0;
 
-    function activatePane(target) {
-        panes.forEach((p) => p.classList.toggle('is-active', p.dataset.authPane === target));
+    function movePill(target) {
+        if (!switchRoot) return;
+        switchRoot.classList.toggle('is-register', target === 'register');
+    }
+
+    function activatePane(target, immediate) {
+        if (target !== 'login' && target !== 'register') return;
+        const current = document.querySelector('[data-auth-pane].is-active');
+        const next = document.querySelector('[data-auth-pane="' + target + '"]');
+        const direction = target === 'register' ? 1 : -1;
+
         switchers.forEach((b) => {
             const isActive = b.dataset.authTarget === target;
             b.classList.toggle('is-active', isActive);
             b.setAttribute('aria-selected', isActive ? 'true' : 'false');
         });
+        movePill(target);
+
+        if (!next || current === next) {
+            activeTarget = target;
+            return;
+        }
+
+        window.clearTimeout(transitionTimer);
+        panes.forEach((pane) => pane.classList.remove('is-entering', 'is-leaving', 'from-left', 'from-right', 'to-left', 'to-right'));
+
+        const startHeight = panesHost ? panesHost.getBoundingClientRect().height : 0;
+        next.classList.add('is-active');
+        next.setAttribute('aria-hidden', 'false');
+        current?.setAttribute('aria-hidden', 'true');
+
+        if (immediate || reduceMotion || !current || !panesHost) {
+            current?.classList.remove('is-active');
+            activeTarget = target;
+            requestAnimationFrame(() => movePill(target));
+            return;
+        }
+
+        next.classList.add('is-entering', direction > 0 ? 'from-right' : 'from-left');
+        current.classList.add('is-leaving', direction > 0 ? 'to-left' : 'to-right');
+
+        panesHost.style.height = startHeight + 'px';
+        const nextHeight = next.scrollHeight;
+        requestAnimationFrame(() => {
+            panesHost.style.height = nextHeight + 'px';
+            next.classList.add('is-animating');
+            current.classList.add('is-animating');
+        });
+
+        transitionTimer = window.setTimeout(() => {
+            current.classList.remove('is-active', 'is-leaving', 'is-animating', 'to-left', 'to-right');
+            next.classList.remove('is-entering', 'is-animating', 'from-left', 'from-right');
+            panesHost.style.height = '';
+        }, 280);
+        activeTarget = target;
     }
 
-    switchers.forEach((b) => b.addEventListener('click', () => activatePane(b.dataset.authTarget)));
+    switchers.forEach((b) => b.addEventListener('click', () => {
+        if (b.dataset.authTarget !== activeTarget) activatePane(b.dataset.authTarget, false);
+    }));
 
     // Read ?form=register on load so the landing CTA opens the right tab
     const params = new URLSearchParams(window.location.search);
     const requested = params.get('form');
-    if (requested === 'register' || requested === 'login') activatePane(requested);
+    if (requested === 'register' || requested === 'login') activeTarget = requested;
+    activatePane(activeTarget, true);
 });
 </script>
 <?= $this->endSection() ?>

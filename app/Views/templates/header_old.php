@@ -26,7 +26,7 @@ $menuDisplayName = session('user_name') ?? 'Usuario';
                             <path d="M4 20c1.6-4 5-6 8-6s6.4 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
                         </svg>
                     </span>
-                    <span class="session-dot" data-tooltip="Sesion activa" tabindex="0" aria-label="Sesion activa"></span>
+                    <span class="session-dot" data-tooltip="Sesión activa" tabindex="0" aria-label="Sesión activa"></span>
                     <span class="user-chip__label"><?= esc($menuDisplayName) ?></span>
                 </summary>
                 <div class="user-menu__panel">
@@ -73,12 +73,12 @@ $menuDisplayName = session('user_name') ?? 'Usuario';
                     </a>
                     <a class="user-menu__item user-menu__item--danger" href="<?= base_url('logout') ?>">
                         <span class="user-menu__item-icon" aria-hidden="true">⎋</span>
-                        <span>Cerrar sesion</span>
+                        <span>Cerrar sesión</span>
                     </a>
                 </div>
             </details>
         <?php else: ?>
-            <a class="btn btn--secondary topbar-login" href="<?= esc($headerHref) ?>">Iniciar sesion</a>
+            <a class="btn btn--secondary topbar-login" href="<?= esc($headerHref) ?>">Iniciar sesión</a>
             <details class="user-menu">
                 <summary class="topbar-gear" aria-label="Abrir menu de configuracion">
                     <span class="material-icons-round">⚙</span>

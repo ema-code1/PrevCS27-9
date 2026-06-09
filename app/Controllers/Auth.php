@@ -9,8 +9,8 @@ class Auth extends BaseController
 {
     private const RESET_TOKEN_EXPIRATION_SECONDS = 900;
     private const RESET_LINK_SENT_MESSAGE = 'Si el correo existe, se enviara un enlace.';
-    private const RESET_LINK_ERROR_MESSAGE = 'No pudimos procesar la solicitud en este momento. Intentalo nuevamente mas tarde.';
-    private const RESET_LINK_INVALID_MESSAGE = 'El enlace de recuperacion no es valido o ya expiro.';
+    private const RESET_LINK_ERROR_MESSAGE = 'No pudimos procesar la solicitud en este momento. Intentá nuevamente más tarde.';
+    private const RESET_LINK_INVALID_MESSAGE = 'El enlace de recuperación no es valido o ya expiro.';
 
     public function index()
     {
@@ -23,7 +23,7 @@ class Auth extends BaseController
         $defaultForm = str_ends_with($path, 'register') ? 'register' : 'login';
 
         return view('reg-log', [
-            'title'           => 'Acceso | Prevention Control System',
+            'title'           => 'Acceso | Preventive Control System',
             'activeForm'      => session()->getFlashdata('activeForm') ?? $defaultForm,
             'hideAuthButtons' => true,
         ]);
@@ -50,7 +50,7 @@ class Auth extends BaseController
             return redirect()->to(base_url('login'))
                 ->withInput()
                 ->with('activeForm', 'login')
-                ->with('error', 'Email o contrasena incorrectos.');
+                ->with('error', 'Email o contraseña incorrectos.');
         }
 
         session()->regenerate(true);
@@ -68,7 +68,7 @@ class Auth extends BaseController
     }
 
     /**
-     * Setea en sesion la industria activa del usuario (primera membresia),
+     * Setea en sesión la industria activa del usuario (primera membresia),
      * para scopear las vistas de ESP32/IoT. Si no tiene ninguna, no hace nada.
      */
     private function setActiveIndustry(int $userId): void
@@ -99,7 +99,7 @@ class Auth extends BaseController
                 'is_unique' => 'Ese email ya esta registrado.',
             ],
             'password_confirm' => [
-                'matches' => 'Las contrasenas no coinciden.',
+                'matches' => 'Las contraseñas no coinciden.',
             ],
         ];
 
@@ -142,7 +142,7 @@ class Auth extends BaseController
         if ($user === null) {
             return redirect()->to(base_url('login'))
                 ->with('activeForm', 'login')
-                ->with('success', 'Cuenta creada correctamente. Inicia sesion para continuar.');
+                ->with('success', 'Cuenta creada correctamente. Inicia sesión para continuar.');
         }
 
         session()->regenerate(true);
@@ -153,7 +153,7 @@ class Auth extends BaseController
             'isLoggedIn' => true,
         ]);
 
-        // Tras registrarse el usuario NO va al dashboard: pasa por verificacion
+        // Tras registrarse el usuario NO va al dashboard: pasa por verificación
         // y luego al onboarding de creacion de espacio.
         return redirect()->to(base_url('verificar-cuenta'));
     }
@@ -168,7 +168,7 @@ class Auth extends BaseController
     public function forgotPassword()
     {
         return view('auth/forgot_password', [
-            'title' => 'Recuperar contrasena | Prevention Control System',
+            'title' => 'Recuperar contraseña | Preventive Control System',
         ]);
     }
 
@@ -235,7 +235,7 @@ class Auth extends BaseController
         $emailService = \Config\Services::email();
         $emailService->setFrom($fromEmail, $fromName);
         $emailService->setTo($email);
-        $emailService->setSubject('Recuperacion de contrasena');
+        $emailService->setSubject('Recuperación de contraseña');
         $emailService->setMailType('html');
         $emailService->setMessage(view('emails/reset_password', ['resetLink' => $resetLink]));
 
@@ -275,7 +275,7 @@ class Auth extends BaseController
         }
 
         return view('auth/reset_password', [
-            'title' => 'Nueva contrasena | Prevention Control System',
+            'title' => 'Nueva contraseña | Preventive Control System',
             'token' => $token,
         ]);
     }
@@ -290,7 +290,7 @@ class Auth extends BaseController
 
         $messages = [
             'password_confirm' => [
-                'matches' => 'Las contrasenas no coinciden.',
+                'matches' => 'Las contraseñas no coinciden.',
             ],
         ];
 
@@ -339,13 +339,13 @@ class Auth extends BaseController
             ]);
 
             return redirect()->to(base_url("reset-password/{$token}"))
-                ->with('error', 'No pudimos actualizar la contrasena. Intentalo nuevamente.');
+                ->with('error', 'No pudimos actualizar la contraseña. Intentá nuevamente.');
         }
 
         $this->deletePasswordReset($passwordResetBuilder, $matchedReset);
 
         return redirect()->to(base_url('login'))
-            ->with('success', 'Contrasena actualizada correctamente. Ya puedes iniciar sesion.');
+            ->with('success', 'Contraseña actualizáda correctamente. Ya puedes iniciar sesión.');
     }
 
     private function findPasswordResetByToken($passwordResetBuilder, string $token): ?array

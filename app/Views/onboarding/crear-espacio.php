@@ -113,7 +113,7 @@ $chartLabels = [
                 </section>
 
                 <section class="wizard-pane" data-step-pane="3">
-                    <p class="wizard-hint">Elegi una vez. Cada ESP32 nueva tendra estos sensores creados solos.</p>
+                    <p class="wizard-hint">Elegí una vez. Cada ESP32 nueva tendra estos sensores creados solos.</p>
 
                     <div class="metric-grid">
                         <?php foreach ($sensorTypes as $type): ?>
@@ -133,7 +133,7 @@ $chartLabels = [
                     </div>
 
                     <div class="chart-suggestions" data-chart-suggestions>
-                        <p class="chart-suggestions__empty" data-chart-empty>Elegi al menos un sensor.</p>
+                        <p class="chart-suggestions__empty" data-chart-empty>Elegí al menos un sensor.</p>
                     </div>
 
                     <div class="wizard-nav">
@@ -172,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function () {
         box.innerHTML = '';
 
         if (checked.length === 0) {
-            box.innerHTML = '<p class="chart-suggestions__empty">Elegi al menos un sensor.</p>';
+            box.innerHTML = '<p class="chart-suggestions__empty">Elegí al menos un sensor.</p>';
             return;
         }
 

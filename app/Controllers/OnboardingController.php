@@ -13,12 +13,12 @@ class OnboardingController extends BaseController
     /**
      * Paso intermedio entre el registro y el onboarding.
      * Por ahora es una pantalla simple de "cuenta verificada"; aqui se
-     * engancharia la verificacion por email real mas adelante.
+     * engancharia la verificación por email real mas adelante.
      */
     public function verify()
     {
         return view('onboarding/verificar', [
-            'title'           => 'Verificacion | Prevention Control System',
+            'title'           => 'Verificación | Preventive Control System',
             'hideAuthButtons' => true,
             'userName'        => session('user_name') ?? 'Usuario',
         ]);
@@ -30,7 +30,7 @@ class OnboardingController extends BaseController
     public function create()
     {
         return view('onboarding/crear-espacio', [
-            'title'           => 'Crear espacio | Prevention Control System',
+            'title'           => 'Crear espacio | Preventive Control System',
             'hideAuthButtons' => true,
             'userName'        => session('user_name') ?? 'Usuario',
             'sensorTypes'     => (new SensorTypeModel())->orderBy('name', 'ASC')->findAll(),
@@ -39,7 +39,7 @@ class OnboardingController extends BaseController
     }
 
     /**
-     * Procesa el alta de la industria + membresia admin + metricas elegidas.
+     * Procesa el alta de la industria + membresía admin + métricas elegidas.
      */
     public function store()
     {
@@ -58,7 +58,7 @@ class OnboardingController extends BaseController
 
         $messages = [
             'space_password_confirm' => [
-                'matches' => 'Las contrasenas del espacio no coinciden.',
+                'matches' => 'Las contraseñas del espacio no coinciden.',
             ],
         ];
 
@@ -68,7 +68,7 @@ class OnboardingController extends BaseController
                 ->with('errors', $this->validator->getErrors());
         }
 
-        // Metricas elegidas (codes de sensor_types). Al menos una.
+        // Métricas elegidas (codes de sensor_types). Al menos una.
         $selectedCodes = (array) ($this->request->getPost('metrics') ?? []);
         $sensorTypeModel = new SensorTypeModel();
         $validTypes = [];
@@ -82,7 +82,7 @@ class OnboardingController extends BaseController
         if ($validTypes === []) {
             return redirect()->to(base_url('crear-espacio'))
                 ->withInput()
-                ->with('errors', ['metrics' => 'Elegi al menos una metrica para monitorear.']);
+                ->with('errors', ['metrics' => 'Elegí al menos una metrica para monitorear.']);
         }
 
         $industryModel = new IndustryModel();
@@ -109,7 +109,7 @@ class OnboardingController extends BaseController
             'role'        => IndustryUserModel::ROLE_ADMIN,
         ]);
 
-        // Metricas + gráfico sugerido
+        // Métricas + gráfico sugerido
         $metricModel = new IndustryMetricModel();
         foreach ($validTypes as $type) {
             $metricModel->insert([
@@ -126,7 +126,7 @@ class OnboardingController extends BaseController
 
             return redirect()->to(base_url('crear-espacio'))
                 ->withInput()
-                ->with('error', 'No se pudo crear el espacio. Intentalo nuevamente.');
+                ->with('error', 'No se pudo crear el espacio. Intentá nuevamente.');
         }
 
         session()->set([

@@ -15,7 +15,7 @@
             <div>
                 <p class="dashboard-head__eyebrow">Dispositivos vinculados</p>
                 <h1>Mis ESP32</h1>
-                <p class="dashboard-head__text">Placas ESP32 de las industrias a las que pertenecés.</p>
+                <p class="dashboard-head__text">Placás ESP32 de las industrias a las que pertenecés.</p>
             </div>
             <div class="dashboard-head__meta">
                 <a class="btn btn--primary" href="<?= base_url('esp32/agregar') ?>">Añadir ESP</a>

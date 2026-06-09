@@ -16,7 +16,7 @@ class IndustryMetricModel extends Model
     protected bool $allowEmptyInserts = false;
 
     /**
-     * Metricas elegidas por una industria, con datos del tipo de sensor.
+     * Métricas elegidas por una industria, con datos del tipo de sensor.
      */
     public function metricsForIndustry(int $industryId): array
     {

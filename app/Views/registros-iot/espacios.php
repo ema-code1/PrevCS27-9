@@ -16,7 +16,7 @@
             <div>
                 <p class="dashboard-head__eyebrow">Monitoreo de dispositivos</p>
                 <h1>Registros IoT</h1>
-                <p class="dashboard-head__text">Elegi un espacio para ver los graficos de sus sensores en tiempo real.</p>
+                <p class="dashboard-head__text">Elegí un espacio para ver los gráficos de sus sensores en tiempo real.</p>
             </div>
             <div class="dashboard-head__meta">
                 <span class="badge badge--info"><?= count($industries) ?> espacio<?= count($industries) === 1 ? '' : 's' ?></span>
@@ -37,8 +37,8 @@
 
         <?php if ($industries === []): ?>
             <section class="panel card esp32-empty">
-                <h3>Todavia no tenes espacios</h3>
-                <p>Crea un espacio para tu planta o maquina y asocia una ESP32 para empezar a ver registros.</p>
+                <h3>Todavía no tenes espacios</h3>
+                <p>Creá un espacio para tu planta o máquina y asociá una ESP32 para empezar a ver registros.</p>
                 <a href="<?= base_url('crear-espacio') ?>" class="btn btn--primary">Crear espacio</a>
             </section>
         <?php else: ?>

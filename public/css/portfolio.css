@@ -1490,15 +1490,15 @@ body[data-theme="dark"] .pf-form-frame {
   stroke-linejoin: round;
 }
 .pf-ejes-path-base {
-  stroke: color-mix(in oklab, var(--success) 22%, transparent);
-  stroke-width: 2;
-  stroke-dasharray: 8 14;
+  stroke: color-mix(in oklab, var(--success) 28%, transparent);
+  stroke-width: 3;
+  stroke-dasharray: none;
 }
 .pf-ejes-path-line {
   stroke: var(--success);
   stroke-width: 3;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
   filter: drop-shadow(0 0 10px color-mix(in oklab, var(--success) 26%, transparent));
 }
 .pf-eje {

@@ -37,7 +37,7 @@ $routes->get('registros-iot', 'RegistrosController::index');
 $routes->get('registros-iot/(:num)', 'RegistrosController::space/$1');
 $routes->get('api/espacio/(:num)/lecturas', 'RegistrosController::readings/$1');
 
-// Onboarding post-registro: registro -> verificacion -> crear-espacio
+// Onboarding post-registro: registro -> verificación -> crear-espacio
 $routes->get('verificar-cuenta', 'OnboardingController::verify');
 $routes->get('crear-espacio', 'OnboardingController::create');
 $routes->post('crear-espacio', 'OnboardingController::store');

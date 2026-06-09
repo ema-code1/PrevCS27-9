@@ -39,7 +39,7 @@ $lastReading = $dashboard['last_reading_at'] ?? null;
 
                 <?php if ($state === 'no_space'): ?>
                     <h2>Primero crea tu espacio</h2>
-                    <p>Despues vas a vincular la ESP32 y ver lecturas aca.</p>
+                    <p>Después vas a vincular la ESP32 y ver lecturas acá.</p>
                     <a class="btn btn--primary" href="<?= base_url('crear-espacio') ?>">Crear espacio</a>
                 <?php elseif ($state === 'no_device'): ?>
                     <h2>Espacio listo</h2>
@@ -72,10 +72,10 @@ $lastReading = $dashboard['last_reading_at'] ?? null;
             <a class="kpi-card card" href="<?= base_url('registros-iot') ?>">
                 <p>Lecturas 24h</p>
                 <strong><?= (int) $dashboard['readings_24h'] ?></strong>
-                <small class="text-muted mono">ultimas 24h</small>
+                <small class="text-muted mono">últimas 24h</small>
             </a>
             <article class="kpi-card card">
-                <p>Ultima lectura</p>
+                <p>Última lectura</p>
                 <strong class="kpi-card__small"><?= esc($lastReading ?? '-') ?></strong>
                 <small class="text-muted mono">hora servidor</small>
             </article>
@@ -88,7 +88,7 @@ $lastReading = $dashboard['last_reading_at'] ?? null;
             </div>
 
             <?php if (($dashboard['sensors'] ?? []) === []): ?>
-                <p class="text-muted">Todavia no hay sensores para mostrar.</p>
+                <p class="text-muted">Todavía no hay sensores para mostrar.</p>
             <?php else: ?>
                 <div class="list-table">
                     <?php foreach (array_slice($dashboard['sensors'], 0, 10) as $sensor): ?>

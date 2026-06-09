@@ -22,7 +22,7 @@ class CreateIndustryMetricsTable extends Migration
                 'type'       => 'INT',
                 'constraint' => 11,
             ],
-            // gráfico sugerido elegido en el onboarding (line/area/gauge/bars/timeline)
+            // gráfico sugerido elegído en el onboarding (line/area/gauge/bars/timeline)
             'suggested_chart' => [
                 'type'       => 'VARCHAR',
                 'constraint' => 20,

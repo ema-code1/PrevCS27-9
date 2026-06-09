@@ -95,12 +95,12 @@ $initials = strtoupper(mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1));
     <section class="content-area">
         <header class="acct-head card">
             <div>
-                <p class="acct-head__eyebrow">Panel personal · sesion activa</p>
+                <p class="acct-head__eyebrow">Panel personal · sesión activa</p>
                 <h1>Administrar cuenta</h1>
-                <p class="acct-head__text">Actualiza tus datos personales y tu contrasena. Tu email de inicio de sesion no puede modificarse desde aca.</p>
+                <p class="acct-head__text">Actualizá tus datos personales y tu contraseña. Tu email de inicio de sesión no puede modificarse desde acá.</p>
             </div>
             <div class="acct-head__meta">
-                <span class="badge badge--success"><span class="dot dot--live"></span> sesion activa</span>
+                <span class="badge badge--success"><span class="dot dot--live"></span> sesión activa</span>
                 <span>user&nbsp;id&nbsp;·&nbsp;<b>#<?= esc($user['id']) ?></b></span>
                 <?php if (! empty($user['created_at'])): ?>
                     <span>desde&nbsp;<b><?= esc(date('Y-m-d', strtotime((string) $user['created_at']))) ?></b></span>
@@ -134,7 +134,7 @@ $initials = strtoupper(mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1));
                     <section class="card sec">
                         <div class="sec__head">
                             <h2><span class="num">01</span> Datos personales</h2>
-                            <p>Aparecen en tu sesion y registros que crees.</p>
+                            <p>Aparecen en tu sesión y registros que crees.</p>
                         </div>
                         <div class="form-grid">
                             <label class="field">
@@ -160,19 +160,19 @@ $initials = strtoupper(mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1));
 
                     <section class="card sec">
                         <div class="sec__head">
-                            <h2><span class="num">02</span> Cambiar contrasena</h2>
+                            <h2><span class="num">02</span> Cambiar contraseña</h2>
                             <p>Deja los campos vacios si no queres cambiarla.</p>
                         </div>
                         <div class="form-grid">
                             <label class="field field--full">
-                                <span class="field__label">Contrasena actual <span class="field__hint">obligatoria si vas a cambiarla</span></span>
+                                <span class="field__label">Contraseña actual <span class="field__hint">obligatoria si vas a cambiarla</span></span>
                                 <input type="password" name="current_password" autocomplete="current-password">
                                 <?php if (isset($errors['current_password'])): ?>
                                     <span class="field__error">↳ <?= esc($errors['current_password']) ?></span>
                                 <?php endif; ?>
                             </label>
                             <label class="field">
-                                <span class="field__label">Nueva contrasena <span class="field__hint">min 8 chars</span></span>
+                                <span class="field__label">Nueva contraseña <span class="field__hint">min 8 chars</span></span>
                                 <input type="password" name="new_password" autocomplete="new-password">
                                 <?php if (isset($errors['new_password'])): ?>
                                     <span class="field__error">↳ <?= esc($errors['new_password']) ?></span>
@@ -192,7 +192,7 @@ $initials = strtoupper(mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1));
                 <div class="acct-grid__right">
                     <section class="card sec">
                         <div class="sec__head">
-                            <h2><span class="num">03</span> Sesion &amp; cuenta</h2>
+                            <h2><span class="num">03</span> Sesión &amp; cuenta</h2>
                             <p>Informacion de tu registro.</p>
                         </div>
                         <div class="meta">

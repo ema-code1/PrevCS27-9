@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? 'PrevCS · Prevention Control System') ?></title>
+    <title><?= esc($title ?? 'PrevCS · Preventive Control System') ?></title>
 
     <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('images/prevcs-favicon-32-32x32.png') ?>">
     <link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('images/prevcs-favicon-32-32x32.png') ?>">
@@ -16,11 +16,14 @@
     <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>">
     <link rel="stylesheet" href="<?= base_url('css/header.css') ?>">
     <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('css/password-toggle.css') ?>?v=20260609-2">
     <?= $this->renderSection('pageStyles') ?>
 
     <!-- Lenis — smooth scroll global para todas las vistas -->
     <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js" defer></script>
     <script src="<?= base_url('js/smooth-scroll.js') ?>?v=20260529-1" defer></script>
+    <!-- Toggle de visibilidad para inputs de contraseña (icono de ojo) -->
+    <script src="<?= base_url('js/password-toggle.js') ?>?v=20260608-1" defer></script>
 </head>
 <body class="<?= esc($bodyClass ?? 'theme-light') ?>" data-theme="light">
     <div class="app-shell">

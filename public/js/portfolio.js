@@ -46,11 +46,26 @@
   const setActive = (id) => {
     megaItems.forEach((a, key) => a.classList.toggle('hpm-item--current', key === id));
   };
-  if ('IntersectionObserver' in window && sections.length) {
-    const so = new IntersectionObserver((entries) => {
-      entries.forEach(en => { if (en.isIntersecting) setActive(en.target.id); });
-    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
-    sections.forEach(s => so.observe(s));
+  setActive(window.location.hash.slice(1) || 'pagina-principal');
+  if (sections.length) {
+    let spyFrame = 0;
+    const updateSectionSpy = () => {
+      const marker = window.innerHeight * 0.46;
+      let active = sections[0];
+      sections.forEach((section) => {
+        if (section.getBoundingClientRect().top <= marker) active = section;
+      });
+      setActive(active.id);
+      spyFrame = 0;
+    };
+    const requestSectionSpy = () => {
+      if (spyFrame) return;
+      spyFrame = requestAnimationFrame(updateSectionSpy);
+    };
+    window.addEventListener('scroll', requestSectionSpy, { passive: true });
+    window.addEventListener('resize', requestSectionSpy, { passive: true });
+    window.addEventListener('load', requestSectionSpy, { once: true });
+    window.setTimeout(requestSectionSpy, 180);
   }
 
   /* ── Comparison table edge fade ── */
@@ -363,22 +378,7 @@
 
     /* Sustainability path */
     const ejes = document.querySelector('[data-ejes]');
-    const ejesLine = document.querySelector('.pf-ejes-path-line');
-    if (ejes && ejesLine) {
-      gsap.fromTo(ejesLine,
-        { strokeDashoffset: 1 },
-        {
-          strokeDashoffset: 0,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: ejes,
-            start: 'top 78%',
-            end: 'bottom 62%',
-            scrub: 1.1
-          }
-        }
-      );
-
+    if (ejes) {
       gsap.utils.toArray('.pf-eje').forEach((el, i) => {
         gsap.from(el, {
           scrollTrigger: { trigger: el, start: 'top 82%', once: true },
@@ -473,40 +473,6 @@
     window.setTimeout(initRevealSafetyNet, 300);
   }, { once: true });
   window.setTimeout(initRevealSafetyNet, 800);
-
-  let pathFallbackReady = false;
-  function initPathFallback() {
-    if (pathFallbackReady) return;
-    pathFallbackReady = true;
-
-    const ejes = document.querySelector('[data-ejes]');
-    const line = document.querySelector('.pf-ejes-path-line');
-    if (!ejes || !line) return;
-
-    let ticking = false;
-    const update = () => {
-      const rect = ejes.getBoundingClientRect();
-      const start = window.innerHeight * 0.82;
-      const distance = rect.height + start - window.innerHeight * 0.18;
-      const progress = Math.max(0, Math.min(1, (start - rect.top) / distance));
-      line.style.strokeDashoffset = String(1 - progress);
-      ticking = false;
-    };
-    const requestUpdate = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(update);
-    };
-
-    window.addEventListener('scroll', requestUpdate, { passive: true });
-    window.addEventListener('resize', requestUpdate, { passive: true });
-    if (window.PCSLenis && typeof window.PCSLenis.on === 'function') {
-      window.PCSLenis.on('scroll', requestUpdate);
-    }
-    update();
-  }
-
-  window.setTimeout(initPathFallback, 900);
 
   /* ══════════════════════════════════════════════
      CHARTS — Chart.js consumiendo /api/form-metrics

@@ -7,7 +7,7 @@ use App\Models\IndustryUserModel;
 
 class IndustryController extends BaseController
 {
-    private const JOIN_ERROR = 'El ID o la contrasena del espacio no son correctos.';
+    private const JOIN_ERROR = 'El ID o la contraseña del espacio no son correctos.';
 
     /**
      * Formulario para unirse a una industria existente.
@@ -15,14 +15,14 @@ class IndustryController extends BaseController
     public function joinForm()
     {
         return view('onboarding/unirse-espacio', [
-            'title'           => 'Unirse a un espacio | Prevention Control System',
+            'title'           => 'Unirse a un espacio | Preventive Control System',
             'hideAuthButtons' => true,
             'errors'          => session('errors') ?? [],
         ]);
     }
 
     /**
-     * Valida ID + contrasena del espacio y agrega al usuario como supervisor.
+     * Valida ID + contraseña del espacio y agrega al usuario como supervisor.
      */
     public function join()
     {
@@ -48,7 +48,7 @@ class IndustryController extends BaseController
         $industryModel = new IndustryModel();
         $industry      = $industryModel->findByUid($uid);
 
-        // Mensaje generico: no revelamos si el UID existe o si fallo el password.
+        // Mensaje genérico: no revelamos si el UID existe o si falló el password.
         if ($industry === null || ! password_verify($password, (string) $industry['space_password_hash'])) {
             return redirect()->to(base_url('unirse-espacio'))
                 ->withInput()
@@ -115,7 +115,7 @@ class IndustryController extends BaseController
 
         (new IndustryModel())->update($industryId, $payload);
 
-        return redirect()->to(base_url('registros-iot'))->with('success', 'Espacio actualizado.');
+        return redirect()->to(base_url('registros-iot'))->with('success', 'Espacio actualizádo.');
     }
 
     public function removeMember($industryId = null, $membershipId = null)
@@ -136,7 +136,7 @@ class IndustryController extends BaseController
         }
 
         if ((int) $membership['user_id'] === $userId || $membership['role'] === IndustryUserModel::ROLE_ADMIN) {
-            return redirect()->to(base_url('registros-iot'))->with('error', 'No se puede quitar al administrador principal desde aca.');
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No se puede quitar al administrador principal desde acá.');
         }
 
         $membershipModel->delete($membershipId);

@@ -49,7 +49,7 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
         <?php if ($industries === []): ?>
             <section class="panel card esp32-empty">
                 <h3>No administras ningun espacio</h3>
-                <p>Primero crea un espacio. Despues vinculas la ESP32.</p>
+                <p>Primero crea un espacio. Después vinculas la ESP32.</p>
                 <a class="btn btn--primary" href="<?= base_url('crear-espacio') ?>">Crear espacio</a>
             </section>
         <?php else: ?>
@@ -96,7 +96,7 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
                             <span class="auth-field__control">
                                 <span class="auth-field__icon">#</span>
                                 <select name="industry_id" class="esp32-select" required data-space-select>
-                                    <option value="" disabled <?= $selectedId === 0 ? 'selected' : '' ?>>Elegir espacio</option>
+                                    <option value="" disabled <?= $selectedId === 0 ? 'selected' : '' ?>>Elegír espacio</option>
                                     <?php foreach ($industries as $space): ?>
                                         <option value="<?= esc($space['id']) ?>" data-space-name="<?= esc($space['space_name']) ?>" <?= $selectedId === (int) $space['id'] ? 'selected' : '' ?>>
                                             <?= esc($space['space_name']) ?> - <?= esc($space['company_name']) ?>

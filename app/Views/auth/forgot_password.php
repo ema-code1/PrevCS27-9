@@ -22,9 +22,9 @@ $successMessage = session('success');
 
             <section class="auth-pane is-active">
                 <div class="auth-pane__header">
-                    <p class="auth-pane__eyebrow">Recuperacion</p>
-                    <h1>Restablecer contrasena</h1>
-                    <p>Ingresa tu email y te enviaremos un enlace para crear una nueva contrasena.</p>
+                    <p class="auth-pane__eyebrow">Recuperación</p>
+                    <h1>Restablecer contraseña</h1>
+                    <p>Ingresa tu email y te enviaremos un enlace para crear una nueva contraseña.</p>
                 </div>
 
                 <form action="<?= base_url('forgot-password') ?>" method="post" class="auth-form">
@@ -45,7 +45,7 @@ $successMessage = session('success');
                 </form>
 
                 <div class="auth-actions auth-actions--top-gap">
-                    <a class="auth-link" href="<?= base_url('login') ?>">Volver a iniciar sesion</a>
+                    <a class="auth-link" href="<?= base_url('login') ?>">Volver a iniciar sesión</a>
                 </div>
             </section>
         </div>

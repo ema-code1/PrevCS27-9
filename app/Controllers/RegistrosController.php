@@ -40,7 +40,7 @@ class RegistrosController extends BaseController
         unset($ind);
 
         return view('registros-iot/espacios', [
-            'title'      => 'Registros IoT | Prevention Control System',
+            'title'      => 'Registros IoT | Preventive Control System',
             'activeMenu' => 'registros-iot',
             'industries' => $industries,
         ]);

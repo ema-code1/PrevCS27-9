@@ -286,7 +286,9 @@
 }
 
 /* ── Detalle ──────────────────────────────────────────────────────── */
-.esp32-back { color: var(--accent); text-decoration: none; }
+.esp32-back { color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.esp32-back svg { width: 15px; height: 15px; transition: transform var(--transition-fast); }
+.esp32-back:hover svg { transform: translateX(-2px); }
 .esp32-back:hover { text-decoration: underline; }
 
 .esp32-add-sensor { padding: var(--space-md); }

@@ -15,7 +15,7 @@ $menuDisplay  = session('user_name') ?? 'Usuario';
         </span>
         <span class="brand__text">
             <span>PrevCS</span>
-            <span>Prevention Control System</span>
+            <span>Preventive Control System</span>
         </span>
     </a>
 
@@ -29,7 +29,7 @@ $menuDisplay  = session('user_name') ?? 'Usuario';
                             <path d="M4 20c1.6-4 5-6 8-6s6.4 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                     </span>
-                    <span class="session-dot" data-tooltip="Sesion activa" tabindex="0" aria-label="Sesion activa"></span>
+                    <span class="session-dot" data-tooltip="Sesión activa" tabindex="0" aria-label="Sesión activa"></span>
                     <span class="user-chip__label"><?= esc($menuDisplay) ?></span>
                 </summary>
                 <div class="user-menu__panel">
@@ -83,13 +83,13 @@ $menuDisplay  = session('user_name') ?? 'Usuario';
                         <span class="user-menu__item-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none"><path d="M15 12H3m12 0-3-3m3 3-3 3M9 5h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </span>
-                        <span>Cerrar sesion</span>
+                        <span>Cerrar sesión</span>
                     </a>
                 </div>
             </details>
         <?php else: ?>
             <?php if (!($hideAuthButtons ?? false)): ?>
-            <a class="btn btn--secondary topbar-login" href="<?= esc($headerHref) ?>">Iniciar sesion</a>
+            <a class="btn btn--secondary topbar-login" href="<?= esc($headerHref) ?>">Iniciar sesión</a>
             <a class="btn btn--primary topbar-login" href="<?= base_url('register') ?>">Crear cuenta</a>
             <?php endif; ?>
             <details class="user-menu">

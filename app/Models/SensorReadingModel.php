@@ -16,7 +16,7 @@ class SensorReadingModel extends Model
     protected bool $allowEmptyInserts = false;
 
     /**
-     * Ultima lectura registrada para un sensor.
+     * Última lectura registrada para un sensor.
      */
     public function latestForSensor(int $sensorId): ?array
     {

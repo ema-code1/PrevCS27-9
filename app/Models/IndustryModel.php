@@ -13,7 +13,7 @@ class IndustryModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = ['industry_uid', 'company_name', 'space_name', 'sector', 'space_password_hash', 'created_by'];
 
-    // Mismo patron anti doble-hash que UserModel para la contrasena del espacio
+    // Mismo patrón anti doble-hash que UserModel para la contraseña del espacio
     protected $beforeInsert = ['hashSpacePassword'];
     protected $beforeUpdate = ['hashSpacePassword'];
 

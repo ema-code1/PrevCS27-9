@@ -17,7 +17,7 @@ class AdminAccount extends BaseController
         }
 
         return view('admin_account', [
-            'title'      => 'Administrar cuenta | Prevention Control System',
+            'title'      => 'Administrar cuenta | Preventive Control System',
             'activeMenu' => 'admin-account',
             'user'       => $user,
         ]);
@@ -65,7 +65,7 @@ class AdminAccount extends BaseController
             if (! password_verify($currentPassword, $user['password_hash'])) {
                 return redirect()->to(base_url('admin-account'))
                     ->withInput()
-                    ->with('error', 'La contrasena actual no es correcta.');
+                    ->with('error', 'La contraseña actual no es correcta.');
             }
             $update['password_hash'] = password_hash($newPassword, PASSWORD_DEFAULT);
         }
@@ -77,6 +77,6 @@ class AdminAccount extends BaseController
         ]);
 
         return redirect()->to(base_url('admin-account'))
-            ->with('success', 'Cuenta actualizada correctamente.');
+            ->with('success', 'Cuenta actualizáda correctamente.');
     }
 }

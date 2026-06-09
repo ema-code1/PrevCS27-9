@@ -41,8 +41,8 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 ?>
 
 <?= $this->section('pageStyles') ?>
-<link rel="stylesheet" href="<?= base_url('css/landing.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/portfolio.css') ?>?v=20260602-4">
+<link rel="stylesheet" href="<?= base_url('css/landing.css') ?>?v=20260609-3">
+<link rel="stylesheet" href="<?= base_url('css/portfolio.css') ?>?v=20260609-2">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -69,7 +69,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
       <a href="<?= base_url() ?>#casos">Casos de uso</a>
 
       <div class="hd-portfolio hd-portfolio--current" data-portfolio-menu>
-        <a class="hd-portfolio-trigger" href="<?= base_url('portfolio') ?>" aria-haspopup="true" aria-expanded="false">
+        <a class="hd-portfolio-trigger is-active" href="<?= base_url('portfolio') ?>" aria-haspopup="true" aria-expanded="false" aria-current="page">
           Portfolio
           <svg class="hd-portfolio-caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
             <path d="M2 3.6 5 6.6 8 3.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -80,7 +80,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           <div class="hpm-grid">
             <div class="hpm-col">
               <span class="hpm-col-label mono">Identidad</span>
-              <a class="hpm-item" href="<?= base_url('portfolio') ?>#pagina-principal" role="menuitem" data-section-link="pagina-principal">
+              <a class="hpm-item hpm-item--current" href="<?= base_url('portfolio') ?>#pagina-principal" role="menuitem" data-section-link="pagina-principal">
                 <span class="hpm-ico" aria-hidden="true">
                   <svg viewBox="0 0 24 24" fill="none"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
                 </span>
@@ -1166,5 +1166,5 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 <!-- GSAP + ScrollTrigger — must load before portfolio.js (Lenis is loaded by the layout) -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
-<script src="<?= base_url('js/portfolio.js') ?>?v=20260602-4" defer></script>
+<script src="<?= base_url('js/portfolio.js') ?>?v=20260609-1" defer></script>
 <?= $this->endSection() ?>

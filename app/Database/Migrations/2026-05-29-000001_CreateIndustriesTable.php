@@ -33,7 +33,7 @@ class CreateIndustriesTable extends Migration
                 'constraint' => 120,
                 'null'       => true,
             ],
-            // Contrasena del espacio (hasheada con password_hash)
+            // Contraseña del espacio (hasheada con password_hash)
             'space_password_hash' => [
                 'type'       => 'VARCHAR',
                 'constraint' => 255,

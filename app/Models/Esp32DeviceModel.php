@@ -48,7 +48,7 @@ class Esp32DeviceModel extends Model
     }
 
     /**
-     * Guarda el token reversible para poder verlo luego con contrasena del espacio.
+     * Guarda el token reversible para poder verlo luego con contraseña del espacio.
      * La API sigue validando solo token_hash.
      */
     public static function protectToken(string $plainToken): string

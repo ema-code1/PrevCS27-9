@@ -50,7 +50,7 @@ class Home extends BaseController
         $activeDevices = count(array_filter($devices, static fn ($device) => ! empty($device['last_seen_at']) && strtotime((string) $device['last_seen_at']) >= strtotime('-24 hours')));
 
         return view('principal', [
-            'title'      => 'Principal | Prevention Control System',
+            'title'      => 'Principal | Preventive Control System',
             'activeMenu' => 'panel',
             'dashboard'  => [
                 'industries'     => $industries,

@@ -28,7 +28,7 @@ class Account extends BaseController
         }
 
         return view('admin_account', [
-            'title'         => 'Mi cuenta | Prevention Control System',
+            'title'         => 'Mi cuenta | Preventive Control System',
             'activeMenu'    => 'cuenta',
             'user'          => $user,
             'errors'        => session()->getFlashdata('errors') ?? [],
@@ -50,12 +50,12 @@ class Account extends BaseController
         }
 
         // Manual CSRF check: el filtro CSRF global esta deshabilitado en Config\Filters,
-        // asi que validamos un token por sesion contra el campo oculto del formulario.
+        // así que validamos un token por sesión contra el campo oculto del formulario.
         $sessionToken = session('account_csrf_token');
         $postedToken  = (string) $this->request->getPost('account_token');
         if (! is_string($sessionToken) || $sessionToken === '' || ! hash_equals($sessionToken, $postedToken)) {
             return redirect()->to(base_url('admin-account'))
-                ->with('error', 'Sesion vencida. Recarga la pagina e intentalo nuevamente.');
+                ->with('error', 'Sesión vencida. Recarga la pagina e intentalo nuevamente.');
         }
 
         $userModel = new UserModel();
@@ -77,7 +77,7 @@ class Account extends BaseController
                 'is_unique' => 'Ese email ya esta en uso.',
             ],
             'new_password_confirm' => [
-                'matches' => 'Las contrasenas no coinciden.',
+                'matches' => 'Las contraseñas no coinciden.',
             ],
         ];
 
@@ -100,8 +100,8 @@ class Account extends BaseController
             if (! password_verify($current, (string) $user['password_hash'])) {
                 return redirect()->to(base_url('admin-account'))
                     ->withInput()
-                    ->with('errors', ['current_password' => 'La contrasena actual es incorrecta.'])
-                    ->with('error', 'La contrasena actual es incorrecta.');
+                    ->with('errors', ['current_password' => 'La contraseña actual es incorrecta.'])
+                    ->with('error', 'La contraseña actual es incorrecta.');
             }
         }
 
@@ -126,7 +126,7 @@ class Account extends BaseController
 
             return redirect()->to(base_url('admin-account'))
                 ->withInput()
-                ->with('error', 'No pudimos guardar los cambios. Intentalo nuevamente.');
+                ->with('error', 'No pudimos guardar los cambios. Intentá nuevamente.');
         }
 
         session()->set([
@@ -134,7 +134,7 @@ class Account extends BaseController
             'user_email' => $update['email'],
         ]);
 
-        // Rotar token tras una operacion exitosa.
+        // Rotar token tras una operación exitosa.
         session()->set('account_csrf_token', bin2hex(random_bytes(16)));
 
         return redirect()->to(base_url('admin-account'))

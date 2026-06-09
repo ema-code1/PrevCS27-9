@@ -18,7 +18,7 @@ class Esp32Controller extends BaseController
         $userId = (int) session('user_id');
 
         return view('esp32/listado', [
-            'title'      => 'Mis ESP32 | Prevention Control System',
+            'title'      => 'Mis ESP32 | Preventive Control System',
             'activeMenu' => 'esp32',
             'devices'    => (new Esp32DeviceModel())->devicesForUser($userId),
             'newToken'   => session('new_device_token'),
@@ -55,7 +55,7 @@ class Esp32Controller extends BaseController
         }
 
         return view('esp32/agregar', [
-            'title'              => 'Anadir ESP | Prevention Control System',
+            'title'              => 'Añadir ESP | Preventive Control System',
             'activeMenu'         => 'esp32',
             'industries'         => $adminSpaces,
             'selectedIndustry'   => $selectedIndustry,
@@ -86,7 +86,7 @@ class Esp32Controller extends BaseController
         if ((new IndustryUserModel())->roleFor($userId, $industryId) !== IndustryUserModel::ROLE_ADMIN) {
             return redirect()->to(base_url('esp32/agregar'))
                 ->withInput()
-                ->with('error', 'No tenes permiso para anadir ESP32 en ese espacio.');
+                ->with('error', 'No tenes permiso para añadir ESP32 en ese espacio.');
         }
 
         $mac = Esp32DeviceModel::normalizeMac((string) $this->request->getPost('mac_address'));
@@ -130,7 +130,7 @@ class Esp32Controller extends BaseController
         if ($deviceId === false || $db->transStatus() === false) {
             return redirect()->to(base_url('esp32/agregar'))
                 ->withInput()
-                ->with('error', 'No se pudo registrar la ESP32. Intentalo nuevamente.');
+                ->with('error', 'No se pudo registrar la ESP32. Intentá nuevamente.');
         }
 
         session()->setFlashdata('new_device_token', $token);
