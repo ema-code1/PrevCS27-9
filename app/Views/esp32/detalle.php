@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>">
+<link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -134,7 +135,10 @@
                         <section class="panel card iot-chart-card">
                             <div class="panel__header">
                                 <h3><?= esc($s['name']) ?><?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?></h3>
-                                <span class="badge badge--info" data-chart-type><?= esc($s['default_chart']) ?></span>
+                                <div class="iot-chart-toolbar">
+                                    <div class="drp" data-date-range></div>
+                                    <span class="badge badge--info" data-chart-type><?= esc($s['default_chart']) ?></span>
+                                </div>
                             </div>
                             <div class="iot-chart">
                                 <svg class="iot-line-chart" viewBox="0 0 640 360" role="img" aria-label="Gráfico de <?= esc($s['name']) ?>">
@@ -145,6 +149,11 @@
                                         <line x1="78" y1="240" x2="600" y2="240"></line>
                                         <line x1="78" y1="304" x2="600" y2="304"></line>
                                     </g>
+                                    <g class="iot-line-chart__grid iot-line-chart__grid--v" data-grid-v></g>
+                                    <g class="iot-line-chart__axis iot-line-chart__axis--y" data-axis-y></g>
+                                    <g class="iot-line-chart__axis iot-line-chart__axis--x" data-axis-x></g>
+                                    <text class="iot-line-chart__axis-title" x="18" y="176" transform="rotate(-90 18 176)" text-anchor="middle">Valores<?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?></text>
+                                    <text class="iot-line-chart__axis-title" x="339" y="350" text-anchor="middle">Tiempo</text>
                                     <polyline class="iot-line-chart__stroke" data-sensor-line points=""></polyline>
                                     <g data-sensor-points></g>
                                 </svg>
@@ -187,107 +196,6 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    /* ── Section switch (mismo patrón que principal/registros-iot) ── */
-    const switchers = document.querySelectorAll('[data-section-target]');
-    const panes = document.querySelectorAll('[data-section-pane]');
-
-    function activatePane(target) {
-        panes.forEach((p) => p.classList.toggle('is-active', p.dataset.sectionPane === target));
-        switchers.forEach((input) => {
-            const isActive = input.dataset.sectionTarget === target;
-            input.checked = isActive;
-            input.closest('.section-switch__radio')?.setAttribute('aria-selected', isActive ? 'true' : 'false');
-        });
-        loadSensor(target);
-    }
-    switchers.forEach((input) => input.addEventListener('change', () => activatePane(input.dataset.sectionTarget)));
-
-    /* ── Carga + dibujo de la serie de un sensor ── */
-    const loaded = new Set();
-
-    function drawLine(grid, points) {
-        const line = grid.querySelector('[data-sensor-line]');
-        const dots = grid.querySelector('[data-sensor-points]');
-        const empty = grid.querySelector('[data-sensor-empty]');
-        dots.innerHTML = '';
-        if (!points.length) {
-            line.setAttribute('points', '');
-            if (empty) empty.hidden = false;
-            return;
-        }
-        if (empty) empty.hidden = true;
-
-        const X0 = 78, X1 = 600, Y0 = 48, Y1 = 304;
-        const values = points.map((p) => p.value);
-        let min = Math.min(...values), max = Math.max(...values);
-        if (min === max) { min -= 1; max += 1; }
-        const n = points.length;
-        const coords = points.map((p, i) => {
-            const x = n === 1 ? (X0 + X1) / 2 : X0 + (X1 - X0) * (i / (n - 1));
-            const y = Y1 - (Y1 - Y0) * ((p.value - min) / (max - min));
-            return [x, y];
-        });
-        line.setAttribute('points', coords.map((c) => c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' '));
-        coords.forEach((c) => {
-            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-            circle.setAttribute('cx', c[0].toFixed(1));
-            circle.setAttribute('cy', c[1].toFixed(1));
-            circle.setAttribute('r', '3');
-            circle.setAttribute('class', 'iot-line-chart__point');
-            dots.appendChild(circle);
-        });
-    }
-
-    function loadSensor(target) {
-        if (loaded.has(target)) return;
-        const grid = document.querySelector('[data-section-pane="' + target + '"] .iot-grid');
-        if (!grid) return;
-        loaded.add(target);
-
-        const sensorId = grid.dataset.sensorId;
-        const unit = grid.dataset.sensorUnit || '';
-        const url = grid.dataset.readingsUrl + '?sensor=' + encodeURIComponent(sensorId);
-
-        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-            .then((r) => r.ok ? r.json() : Promise.reject(r.status))
-            .then((data) => {
-                const points = data.points || [];
-                drawLine(grid, points);
-
-                const latestEl = grid.querySelector('[data-sensor-latest]');
-                const obsEl = grid.querySelector('[data-sensor-observation]');
-                const histEl = grid.querySelector('[data-sensor-history]');
-
-                if (data.latest !== null && data.latest !== undefined) {
-                    if (latestEl) latestEl.textContent = data.latest + ' ' + unit;
-                    if (obsEl) obsEl.textContent = 'Última medición: ' + data.latest + ' ' + unit + '. ' + points.length + ' lecturas registradas.';
-                } else if (obsEl) {
-                    obsEl.textContent = 'Sin lecturas todavía para este sensor.';
-                }
-
-                if (histEl) {
-                    if (!points.length) {
-                        histEl.innerHTML = '<p class="text-muted">Sin historial.</p>';
-                    } else {
-                        const rows = points.slice(-12).reverse().map((p) =>
-                            '<div class="esp32-history__row"><span class="mono">' + p.label + '</span><strong>' + p.value + ' ' + unit + '</strong></div>'
-                        ).join('');
-                        histEl.innerHTML = rows;
-                    }
-                }
-            })
-            .catch(() => {
-                loaded.delete(target);
-                const histEl = grid.querySelector('[data-sensor-history]');
-                if (histEl) histEl.innerHTML = '<p class="text-muted">No se pudieron cargar las lecturas.</p>';
-            });
-    }
-
-    // Carga el primer sensor activo
-    const first = document.querySelector('.section-pane.is-active');
-    if (first) loadSensor(first.dataset.sectionPane);
-});
-</script>
+<script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
+<script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260609-1" defer></script>
 <?= $this->endSection() ?>

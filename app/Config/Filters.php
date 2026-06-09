@@ -84,6 +84,10 @@ class Filters extends BaseFilters
                 'forgot-password',
                 'reset-password',
                 'reset-password/*',
+                'verificar-cuenta',
+                'verificar-cuenta/reenviar',
+                'verificar-login',
+                'verificar-login/reenviar',
                 'api/iot/lectura', // ingesta IoT: auth por MAC + device_token
             ]],
             // 'honeypot',

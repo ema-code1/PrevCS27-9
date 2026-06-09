@@ -57,8 +57,9 @@ class AdminAccount extends BaseController
         }
 
         $update = [
-            'nombre'   => trim((string) $this->request->getPost('nombre')),
-            'apellido' => trim((string) $this->request->getPost('apellido')),
+            'nombre'             => trim((string) $this->request->getPost('nombre')),
+            'apellido'           => trim((string) $this->request->getPost('apellido')),
+            'two_factor_enabled' => $this->request->getPost('two_factor_enabled') === '1',
         ];
 
         if ($changingPassword) {

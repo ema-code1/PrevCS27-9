@@ -1,0 +1,185 @@
+.verification-panel {
+  max-width: 520px;
+}
+
+.verification-card {
+  padding: 40px 32px;
+  text-align: center;
+}
+
+.verification-icon,
+.account-created__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.verification-icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+.verification-head h1,
+.account-created h1 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  letter-spacing: -.03em;
+}
+
+.verification-head p,
+.account-created p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.verification-form {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--hair);
+}
+
+.verification-inputs {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 12px;
+}
+
+.verification-inputs input {
+  width: 100%;
+  min-width: 0;
+  height: 58px;
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius-md);
+  background: var(--bg-card-soft);
+  color: var(--text-primary);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.verification-inputs input:focus {
+  background: var(--bg-card);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.verification-submit {
+  width: 100%;
+  border-radius: var(--radius-md);
+  margin-top: 24px;
+}
+
+.verification-submit:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.verification-resend {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hair);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.verification-resend form {
+  display: inline;
+}
+
+.verification-resend__button {
+  color: var(--accent);
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.verification-resend__button:disabled {
+  color: var(--text-faint);
+  cursor: not-allowed;
+}
+
+.verification-resend__timer {
+  width: 100%;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.account-created-page {
+  background: #090a0b;
+  color: #f2f1ec;
+}
+
+.account-created-page::before,
+.account-created-page::after {
+  display: none;
+}
+
+.account-created {
+  width: min(100%, 560px);
+  text-align: center;
+}
+
+.account-created__icon {
+  color: #15995a;
+  background: #d9f8e6;
+}
+
+.account-created__icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+.account-created p {
+  color: #a7a9ae;
+  font-size: 16px;
+}
+
+.account-created__button {
+  margin: 44px 0 64px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  background: #f2f1ec;
+  color: #161719;
+  text-decoration: none;
+}
+
+.account-created__button:hover {
+  background: #ffffff;
+}
+
+.account-created > span {
+  color: #8a8c92;
+  font-size: 13px;
+}
+
+@media (max-width: 540px) {
+  .verification-card {
+    padding: 30px 20px;
+  }
+
+  .verification-inputs {
+    gap: 7px;
+  }
+
+  .verification-inputs input {
+    height: 50px;
+    font-size: 20px;
+  }
+}

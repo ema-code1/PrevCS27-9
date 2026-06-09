@@ -76,6 +76,23 @@
     margin-bottom: 14px; }
   .acct-alert--success { background: var(--success-soft); color: var(--success); }
   .acct-alert--error { background: var(--error-soft); color: var(--error); }
+
+  .security-control { display: flex; align-items: center; justify-content: space-between;
+    gap: 18px; padding: 14px 0; }
+  .security-control__copy { display: flex; flex-direction: column; gap: 4px; }
+  .security-control__copy strong { font-size: 14px; font-weight: 500; }
+  .security-control__copy span { color: var(--text-muted); font-size: 12.5px; line-height: 1.45; }
+  .security-switch { position: relative; width: 46px; height: 26px; flex: 0 0 auto; }
+  .security-switch input { position: absolute; opacity: 0; pointer-events: none; }
+  .security-switch__track { position: absolute; inset: 0; border-radius: var(--radius-pill);
+    background: var(--bg-3); border: 1px solid var(--hair-2); cursor: pointer;
+    transition: background var(--transition-fast), border-color var(--transition-fast); }
+  .security-switch__track::after { content: ""; position: absolute; width: 18px; height: 18px;
+    left: 3px; top: 3px; border-radius: 50%; background: var(--text-muted);
+    transition: transform var(--transition-fast), background var(--transition-fast); }
+  .security-switch input:checked + .security-switch__track { background: var(--accent-soft); border-color: var(--accent); }
+  .security-switch input:checked + .security-switch__track::after { transform: translateX(20px); background: var(--accent); }
+  .security-switch input:focus-visible + .security-switch__track { box-shadow: 0 0 0 3px var(--accent-ring); }
 </style>
 <?= $this->endSection() ?>
 
@@ -127,6 +144,9 @@ $initials = strtoupper(mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1));
                             <div class="id-card__email"><?= esc($email) ?></div>
                             <div class="id-card__roles">
                                 <span class="badge badge--info">cuenta activa</span>
+                                <?php if (! empty($user['email_verified_at'])): ?>
+                                    <span class="badge badge--success">correo verificado</span>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </section>
@@ -192,7 +212,30 @@ $initials = strtoupper(mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1));
                 <div class="acct-grid__right">
                     <section class="card sec">
                         <div class="sec__head">
-                            <h2><span class="num">03</span> Sesión &amp; cuenta</h2>
+                            <h2><span class="num">03</span> Verificacion en dos pasos</h2>
+                            <p>Pide un codigo por correo en cada nuevo inicio de sesion.</p>
+                        </div>
+                        <div class="security-control">
+                            <div class="security-control__copy">
+                                <strong>Proteccion 2FA</strong>
+                                <span>No se recuerda el dispositivo. El codigo vence en 5 minutos.</span>
+                            </div>
+                            <label class="security-switch">
+                                <input
+                                    type="checkbox"
+                                    name="two_factor_enabled"
+                                    value="1"
+                                    <?= ! empty($user['two_factor_enabled']) ? 'checked' : '' ?>
+                                    aria-label="Activar verificacion en dos pasos"
+                                >
+                                <span class="security-switch__track" aria-hidden="true"></span>
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="card sec">
+                        <div class="sec__head">
+                            <h2><span class="num">04</span> Sesión &amp; cuenta</h2>
                             <p>Informacion de tu registro.</p>
                         </div>
                         <div class="meta">
@@ -201,6 +244,8 @@ $initials = strtoupper(mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1));
                                 <div class="meta__row"><span>Cuenta creada</span><b><?= esc($user['created_at']) ?></b></div>
                             <?php endif; ?>
                             <div class="meta__row"><span>Email</span><b><?= esc($email) ?></b></div>
+                            <div class="meta__row"><span>Correo verificado</span><b><?= ! empty($user['email_verified_at']) ? 'si' : 'no' ?></b></div>
+                            <div class="meta__row"><span>2FA</span><b><?= ! empty($user['two_factor_enabled']) ? 'activo' : 'apagado' ?></b></div>
                         </div>
                     </section>
                 </div>

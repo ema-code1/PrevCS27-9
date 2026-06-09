@@ -324,10 +324,50 @@
   stroke-width: 1;
   stroke-dasharray: 2 4;
 }
+/* grilla vertical (columnas finas) — animación sutil de entrada */
+.iot-line-chart__grid--v line {
+  stroke: var(--hair);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+  opacity: 0;
+  animation: iotGridFade 360ms ease forwards;
+}
+@keyframes iotGridFade { to { opacity: 1; } }
+/* marcas de los ejes (ticks) */
+.iot-line-chart__tick { stroke: var(--hair-2); stroke-width: 1.2; }
 .iot-line-chart__axis text {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9.5px;
   fill: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  animation: iotGridFade 420ms ease forwards;
+}
+.iot-line-chart__axis--x text { fill: var(--text-faint); }
+/* títulos de eje (estáticos) */
+.iot-line-chart__axis-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--text-faint);
+}
+
+/* toolbar de la card del gráfico (aloja el date range selector),
+   ubicado en el header del panel junto al título */
+.iot-chart-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* estado de carga: la serie se atenúa mientras llega la nueva data */
+.iot-chart-card.is-loading .iot-chart { opacity: .55; transition: opacity var(--transition-fast); }
+.iot-chart-card.is-loading .iot-line-chart__stroke { transition: none; }
+.iot-line-chart__stroke {
+  transition: stroke var(--transition-normal);
 }
 .iot-line-chart__stroke {
   fill: none;
@@ -337,11 +377,14 @@
   stroke-linecap: round;
   filter: drop-shadow(0 6px 12px var(--accent-soft));
 }
-.iot-line-chart__points circle {
+.iot-line-chart__points circle,
+.iot-line-chart__point {
   fill: var(--accent);
   stroke: var(--bg-card);
   stroke-width: 2;
+  transition: r var(--transition-fast);
 }
+.iot-line-chart__point:hover { r: 5; }
 .iot-line-chart__points circle.is-warn { fill: var(--warning); }
 .iot-line-chart__points circle.is-error { fill: var(--error); }
 .iot-line-chart__labels text {

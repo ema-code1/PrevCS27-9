@@ -37,8 +37,16 @@ $routes->get('registros-iot', 'RegistrosController::index');
 $routes->get('registros-iot/(:num)', 'RegistrosController::space/$1');
 $routes->get('api/espacio/(:num)/lecturas', 'RegistrosController::readings/$1');
 
-// Onboarding post-registro: registro -> verificación -> crear-espacio
-$routes->get('verificar-cuenta', 'OnboardingController::verify');
+// Verificacion de correo y 2FA
+$routes->get('verificar-cuenta', 'Auth::verificationForm');
+$routes->post('verificar-cuenta', 'Auth::verifyAccountCode');
+$routes->post('verificar-cuenta/reenviar', 'Auth::resendAccountCode');
+$routes->get('verificar-login', 'Auth::twoFactorForm');
+$routes->post('verificar-login', 'Auth::verifyTwoFactorCode');
+$routes->post('verificar-login/reenviar', 'Auth::resendTwoFactorCode');
+$routes->get('cuenta-creada', 'Auth::accountCreated');
+
+// Onboarding post-registro: verificacion -> crear-espacio
 $routes->get('crear-espacio', 'OnboardingController::create');
 $routes->post('crear-espacio', 'OnboardingController::store');
 

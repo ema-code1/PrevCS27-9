@@ -11,7 +11,15 @@ class UserModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $protectFields    = true;
-    protected $allowedFields    = ['nombre', 'apellido', 'email', 'password_hash', 'foto_perfil'];
+    protected $allowedFields    = [
+        'nombre',
+        'apellido',
+        'email',
+        'password_hash',
+        'foto_perfil',
+        'email_verified_at',
+        'two_factor_enabled',
+    ];
     protected $beforeInsert     = ['hashPassword'];
     protected $beforeUpdate     = ['hashPassword'];
 

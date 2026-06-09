@@ -234,7 +234,8 @@ class Esp32Controller extends BaseController
             return $this->response->setStatusCode(404)->setJSON(['error' => 'sensor_not_found']);
         }
 
-        $series = (new SensorReadingModel())->seriesForSensor($sensorId, 200);
+        [$from, $to] = $this->rangeBounds();
+        $series = (new SensorReadingModel())->seriesForSensor($sensorId, 500, $from, $to);
 
         $points = array_map(static function ($row) {
             return [
@@ -246,9 +247,35 @@ class Esp32Controller extends BaseController
 
         return $this->response->setJSON([
             'sensor' => $sensorId,
+            'from'   => $from,
+            'to'     => $to,
             'latest' => $points !== [] ? end($points)['value'] : null,
             'points' => $points,
         ]);
+    }
+
+    /**
+     * Lee from/to de la query y los normaliza a 'Y-m-d H:i:s' (o null).
+     * El date range selector envía, p.ej. from=2026-03-09 00:00:00.
+     *
+     * @return array{0: ?string, 1: ?string}
+     */
+    private function rangeBounds(): array
+    {
+        $parse = function (?string $value): ?string {
+            $value = $value !== null ? trim($value) : '';
+            if ($value === '') {
+                return null;
+            }
+            $ts = strtotime($value);
+
+            return $ts !== false ? date('Y-m-d H:i:s', $ts) : null;
+        };
+
+        return [
+            $parse($this->request->getGet('from')),
+            $parse($this->request->getGet('to')),
+        ];
     }
 
     private function findAccessibleDevice(int $deviceId): ?array

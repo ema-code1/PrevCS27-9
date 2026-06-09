@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\VerificationCodeService;
+use App\Libraries\VerificationMailer;
 use App\Models\IndustryUserModel;
 use App\Models\UserModel;
 
@@ -53,16 +55,27 @@ class Auth extends BaseController
                 ->with('error', 'Email o contraseña incorrectos.');
         }
 
-        session()->regenerate(true);
-        session()->set([
-            'user_id'    => $user['id'],
-            'user_name'  => trim($user['nombre'] . ' ' . $user['apellido']),
-            'user_email' => $user['email'],
-            'isLoggedIn' => true,
-        ]);
+        if (empty($user['email_verified_at'])) {
+            $this->startPendingFlow($user, VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);
+            $sent = $this->issueAndSend($user, VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);
 
-        // Carga la industria activa (primera membresia) si el usuario ya tiene una.
-        $this->setActiveIndustry((int) $user['id']);
+            $redirect = redirect()->to(base_url('verificar-cuenta'));
+            return $sent
+                ? $redirect
+                : $redirect->with('error', 'No pudimos enviar el correo. Podes intentar de nuevo.');
+        }
+
+        if ((bool) ($user['two_factor_enabled'] ?? false)) {
+            $this->startPendingFlow($user, VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN);
+            $sent = $this->issueAndSend($user, VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN);
+
+            $redirect = redirect()->to(base_url('verificar-login'));
+            return $sent
+                ? $redirect
+                : $redirect->with('error', 'No pudimos enviar el codigo. Podes intentar de nuevo.');
+        }
+
+        $this->completeLogin($user);
 
         return redirect()->to(base_url('principal'));
     }
@@ -83,6 +96,24 @@ class Auth extends BaseController
             'active_industry_id'   => (int) $industries[0]['id'],
             'active_industry_role' => $industries[0]['role'],
         ]);
+    }
+
+    private function completeLogin(array $user): void
+    {
+        session()->regenerate(true);
+        session()->remove([
+            'verification_user_id',
+            'two_factor_user_id',
+        ]);
+        session()->set([
+            'user_id'        => $user['id'],
+            'user_name'      => trim($user['nombre'] . ' ' . $user['apellido']),
+            'user_email'     => $user['email'],
+            'email_verified' => true,
+            'isLoggedIn'     => true,
+        ]);
+
+        $this->setActiveIndustry((int) $user['id']);
     }
 
     public function register()
@@ -142,20 +173,259 @@ class Auth extends BaseController
         if ($user === null) {
             return redirect()->to(base_url('login'))
                 ->with('activeForm', 'login')
-                ->with('success', 'Cuenta creada correctamente. Inicia sesión para continuar.');
+                ->with('error', 'La cuenta fue creada, pero no pudimos iniciar la verificacion.');
         }
 
         session()->regenerate(true);
-        session()->set([
-            'user_id'    => $user['id'],
-            'user_name'  => trim($user['nombre'] . ' ' . $user['apellido']),
-            'user_email' => $user['email'],
-            'isLoggedIn' => true,
+        $this->startPendingFlow($user, VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);
+        $sent = $this->issueAndSend($user, VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);
+
+        $redirect = redirect()->to(base_url('verificar-cuenta'));
+        return $sent
+            ? $redirect->with('success', 'Cuenta creada. Revisa tu correo.')
+            : $redirect->with('error', 'Cuenta creada, pero no pudimos enviar el correo. Reintenta.');
+    }
+
+    public function verificationForm()
+    {
+        $user = $this->pendingUser(VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);
+        if ($user === null) {
+            return redirect()->to(base_url('login'))
+                ->with('error', 'Inicia sesion para verificar tu cuenta.');
+        }
+
+        if (! empty($user['email_verified_at'])) {
+            $this->completeLogin($user);
+            return redirect()->to(base_url('cuenta-creada'));
+        }
+
+        return $this->verificationView(
+            $user,
+            VerificationCodeService::PURPOSE_EMAIL_VERIFICATION,
+            'Verificacion de correo',
+            'Ingresa el codigo',
+            'Verifica tu cuenta',
+            base_url('verificar-cuenta'),
+            base_url('verificar-cuenta/reenviar'),
+        );
+    }
+
+    public function verifyAccountCode()
+    {
+        $user = $this->pendingUser(VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);
+        if ($user === null) {
+            return redirect()->to(base_url('login'))
+                ->with('error', 'La verificacion vencio. Inicia sesion de nuevo.');
+        }
+
+        $result = (new VerificationCodeService())->verify(
+            (int) $user['id'],
+            VerificationCodeService::PURPOSE_EMAIL_VERIFICATION,
+            (string) $this->request->getPost('code'),
+        );
+
+        if ($result['status'] !== VerificationCodeService::STATUS_VALID) {
+            return redirect()->to(base_url('verificar-cuenta'))
+                ->with('error', $this->verificationError($result));
+        }
+
+        $verifiedAt = date('Y-m-d H:i:s');
+        (new UserModel())->update((int) $user['id'], [
+            'email_verified_at' => $verifiedAt,
+        ]);
+        $user['email_verified_at'] = $verifiedAt;
+        $this->completeLogin($user);
+
+        return redirect()->to(base_url('cuenta-creada'));
+    }
+
+    public function resendAccountCode()
+    {
+        return $this->resendPendingCode(
+            VerificationCodeService::PURPOSE_EMAIL_VERIFICATION,
+            'verificar-cuenta',
+        );
+    }
+
+    public function twoFactorForm()
+    {
+        if (session('isLoggedIn') === true) {
+            return redirect()->to(base_url('principal'));
+        }
+
+        $user = $this->pendingUser(VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN);
+        if ($user === null || ! (bool) ($user['two_factor_enabled'] ?? false)) {
+            return redirect()->to(base_url('login'))
+                ->with('error', 'Inicia sesion de nuevo.');
+        }
+
+        return $this->verificationView(
+            $user,
+            VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN,
+            'Seguridad',
+            'Ingresa tu codigo 2FA',
+            'Confirma el inicio de sesion',
+            base_url('verificar-login'),
+            base_url('verificar-login/reenviar'),
+        );
+    }
+
+    public function verifyTwoFactorCode()
+    {
+        $user = $this->pendingUser(VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN);
+        if ($user === null || ! (bool) ($user['two_factor_enabled'] ?? false)) {
+            return redirect()->to(base_url('login'))
+                ->with('error', 'La verificacion vencio. Inicia sesion de nuevo.');
+        }
+
+        $result = (new VerificationCodeService())->verify(
+            (int) $user['id'],
+            VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN,
+            (string) $this->request->getPost('code'),
+        );
+
+        if ($result['status'] !== VerificationCodeService::STATUS_VALID) {
+            return redirect()->to(base_url('verificar-login'))
+                ->with('error', $this->verificationError($result));
+        }
+
+        $this->completeLogin($user);
+
+        return redirect()->to(base_url('principal'));
+    }
+
+    public function resendTwoFactorCode()
+    {
+        return $this->resendPendingCode(
+            VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN,
+            'verificar-login',
+        );
+    }
+
+    public function accountCreated()
+    {
+        return view('onboarding/cuenta-creada', [
+            'title'           => 'Cuenta creada | Preventive Control System',
+            'hideAuthButtons' => true,
+        ]);
+    }
+
+    private function startPendingFlow(array $user, string $purpose): void
+    {
+        session()->remove([
+            'user_id',
+            'user_name',
+            'user_email',
+            'email_verified',
+            'isLoggedIn',
+            'verification_user_id',
+            'two_factor_user_id',
+            'active_industry_id',
+            'active_industry_role',
         ]);
 
-        // Tras registrarse el usuario NO va al dashboard: pasa por verificación
-        // y luego al onboarding de creacion de espacio.
-        return redirect()->to(base_url('verificar-cuenta'));
+        $key = $purpose === VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN
+            ? 'two_factor_user_id'
+            : 'verification_user_id';
+        session()->set($key, (int) $user['id']);
+    }
+
+    private function issueAndSend(array $user, string $purpose): bool
+    {
+        $codes = new VerificationCodeService();
+        $issued = $codes->issue((int) $user['id'], $purpose);
+
+        if ($issued['cooldown'] === true) {
+            return true;
+        }
+
+        if ((new VerificationMailer())->send($user, $purpose, (string) $issued['code'])) {
+            return true;
+        }
+
+        $codes->discard((int) $user['id'], $purpose);
+        return false;
+    }
+
+    private function pendingUser(string $purpose): ?array
+    {
+        $key = $purpose === VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN
+            ? 'two_factor_user_id'
+            : 'verification_user_id';
+        $userId = (int) session($key);
+
+        if ($userId <= 0) {
+            return null;
+        }
+
+        return (new UserModel())->find($userId);
+    }
+
+    private function verificationView(
+        array $user,
+        string $purpose,
+        string $title,
+        string $eyebrow,
+        string $heading,
+        string $verifyUrl,
+        string $resendUrl,
+    ) {
+        return view('auth/verification_code', [
+            'title'           => $title . ' | Preventive Control System',
+            'hideAuthButtons' => true,
+            'eyebrow'         => $eyebrow,
+            'heading'         => $heading,
+            'maskedEmail'     => $this->maskEmail((string) $user['email']),
+            'verifyUrl'       => $verifyUrl,
+            'resendUrl'       => $resendUrl,
+            'retryAfter'      => (new VerificationCodeService())->retryAfter((int) $user['id'], $purpose),
+        ]);
+    }
+
+    private function resendPendingCode(string $purpose, string $redirectPath)
+    {
+        $user = $this->pendingUser($purpose);
+        if ($user === null) {
+            return redirect()->to(base_url('login'))
+                ->with('error', 'La verificacion vencio. Inicia sesion de nuevo.');
+        }
+
+        $codes = new VerificationCodeService();
+        $issued = $codes->issue((int) $user['id'], $purpose);
+
+        if ($issued['cooldown'] === true) {
+            return redirect()->to(base_url($redirectPath))
+                ->with('error', 'Espera ' . $issued['retry_after'] . ' segundos para reenviar.');
+        }
+
+        if (! (new VerificationMailer())->send($user, $purpose, (string) $issued['code'])) {
+            $codes->discard((int) $user['id'], $purpose);
+            return redirect()->to(base_url($redirectPath))
+                ->with('error', 'No pudimos enviar el correo. Intenta de nuevo.');
+        }
+
+        return redirect()->to(base_url($redirectPath))
+            ->with('success', 'Codigo enviado.');
+    }
+
+    private function verificationError(array $result): string
+    {
+        return match ($result['status']) {
+            VerificationCodeService::STATUS_INVALID => 'Codigo incorrecto. Te quedan ' . $result['attempts_left'] . ' intentos.',
+            VerificationCodeService::STATUS_EXPIRED => 'El codigo vencio. Envia uno nuevo.',
+            VerificationCodeService::STATUS_USED => 'Ese codigo ya fue usado. Envia uno nuevo.',
+            VerificationCodeService::STATUS_LOCKED => 'Llegaste al maximo de 5 intentos. Envia un codigo nuevo.',
+            default => 'No hay un codigo activo. Envia uno nuevo.',
+        };
+    }
+
+    private function maskEmail(string $email): string
+    {
+        [$local, $domain] = array_pad(explode('@', $email, 2), 2, '');
+        $visible = mb_substr($local, 0, min(2, mb_strlen($local)));
+        $hidden = str_repeat('*', max(2, mb_strlen($local) - mb_strlen($visible)));
+
+        return $visible . $hidden . ($domain !== '' ? '@' . $domain : '');
     }
 
     public function logout()
