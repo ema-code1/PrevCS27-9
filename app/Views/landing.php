@@ -14,6 +14,7 @@ $trendIcon = static function (string $direction): string {
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/landing.css') ?>?v=20260608-8">
+<link rel="stylesheet" href="<?= base_url('css/pricing.css') ?>?v=20260610-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -39,6 +40,7 @@ $trendIcon = static function (string $direction): string {
       <a href="<?= base_url() ?>#sensores" data-nav-section="sensores">Sensores</a>
       <a href="<?= base_url() ?>#plantillas" data-nav-section="plantillas">Plantillas</a>
       <a href="<?= base_url() ?>#casos" data-nav-section="casos">Casos de uso</a>
+      <a href="<?= base_url() ?>#precio" data-nav-section="precio">Precio</a>
 
       <div class="hd-portfolio" data-portfolio-menu>
         <a class="hd-portfolio-trigger" href="<?= base_url('portfolio') ?>" aria-haspopup="true" aria-expanded="false">
@@ -874,8 +876,83 @@ $trendIcon = static function (string $direction): string {
 </section>
 
 
+<!-- ───────────────────────────── PRICING ─────────── -->
+<section id="precio" class="pricing-section" data-screen-label="11 Precio">
+  <div class="section-head" style="text-align:center;align-items:center;">
+    <span class="section-eyebrow mono">10 · Precio</span>
+    <h2 class="section-title" style="text-align:center;">
+      Un solo plan.
+      <span class="muted">Todo incluido.</span>
+    </h2>
+  </div>
+
+  <div class="pricing-wrap">
+    <article class="price-card" data-anim>
+      <span class="price-badge">
+        <span class="dot" aria-hidden="true"></span>
+        Plan único
+      </span>
+
+      <div class="price-head">
+        <span class="price-plan-name">PrevCS Pro</span>
+        <span class="price-plan-desc">
+          Todo lo que tu planta necesita para monitorear en tiempo real, sin límites ni sorpresas.
+        </span>
+      </div>
+
+      <div class="price-amount">
+        <span class="price-currency">USD&nbsp;$</span>
+        <span class="price-value" data-to="49">49</span>
+        <span class="price-period">/ mes</span>
+      </div>
+
+      <div class="price-divider" aria-hidden="true"></div>
+
+      <ul class="price-features">
+        <li data-anim>
+          <span class="price-check" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Workspaces y sedes <b>ilimitados</b>
+        </li>
+        <li data-anim>
+          <span class="price-check" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Sensores ESP32 <b>sin tope</b> por espacio
+        </li>
+        <li data-anim>
+          <span class="price-check" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Alertas en tiempo real por umbral y tendencia
+        </li>
+        <li data-anim>
+          <span class="price-check" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Dashboards y plantillas personalizables
+        </li>
+        <li data-anim>
+          <span class="price-check" aria-hidden="true">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+          Histórico ilimitado y soporte prioritario
+        </li>
+      </ul>
+
+      <a class="l-btn l-btn--solid l-btn--lg price-cta" href="<?= base_url('pago') ?>">
+        Comprar ahora
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <span class="price-note">Sin permanencia · cancelás cuando quieras</span>
+    </article>
+  </div>
+</section>
+
+
 <!-- ───────────────────────────── CTA ─────────── -->
-<section class="cta-section" data-screen-label="11 CTA final">
+<section class="cta-section" data-screen-label="12 CTA final">
   <div class="cta-inner">
     <span class="section-eyebrow mono">10 · Empezar</span>
     <h2 class="cta-title">
@@ -912,7 +989,7 @@ $trendIcon = static function (string $direction): string {
 </main>
 
 <!-- ───────────────────────────── FOOTER ───────────── -->
-<footer id="contacto" class="footer" data-screen-label="12 Footer">
+<footer id="contacto" class="footer" data-screen-label="13 Footer">
   <div class="ft-top">
     <div class="ft-brand">
       <a class="hd-logo" href="#top" aria-label="PrevCS, inicio">
@@ -970,4 +1047,5 @@ $trendIcon = static function (string $direction): string {
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="<?= base_url('js/landing.js') ?>?v=20260608-9" defer></script>
+<script src="<?= base_url('js/pricing.js') ?>?v=20260610-1" defer></script>
 <?= $this->endSection() ?>

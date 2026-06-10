@@ -2,7 +2,7 @@
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/onboarding.css') ?>">
+<link rel="stylesheet" href="<?= base_url('css/onboarding.css') ?>?v=20260610-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -36,20 +36,25 @@ $chartLabels = [
             <?php endif; ?>
 
             <div class="onboarding-head">
-                <p class="auth-pane__eyebrow">Onboarding - <?= esc($userName) ?></p>
                 <h1>Crear espacio de industria</h1>
-                <p>Crea tu primer espacio. Al terminar te guiamos para vincular la ESP32.</p>
+                <p>Al terminar te guiamos para vincular la ESP32.</p>
             </div>
 
-            <ol class="wizard-steps" data-wizard-indicator>
-                <li class="wizard-steps__item is-active" data-step-dot="1"><span>1</span> Espacio</li>
-                <li class="wizard-steps__item" data-step-dot="2"><span>2</span> Seguridad</li>
-                <li class="wizard-steps__item" data-step-dot="3"><span>3</span> Sensores</li>
-            </ol>
+            <div class="wizard-stepper">
+                <span class="wizard-stepper__line" data-step-line aria-hidden="true">
+                    <span class="wizard-stepper__fill" data-step-line-fill></span>
+                </span>
+                <ol class="wizard-steps" data-wizard-indicator>
+                    <li class="wizard-steps__item is-active" data-step-dot="1"><span>1</span> Espacio</li>
+                    <li class="wizard-steps__item" data-step-dot="2"><span>2</span> Seguridad</li>
+                    <li class="wizard-steps__item" data-step-dot="3"><span>3</span> Sensores</li>
+                </ol>
+            </div>
 
             <form action="<?= base_url('crear-espacio') ?>" method="post" class="auth-form" data-wizard-form>
                 <?= csrf_field() ?>
 
+                <div class="wizard-track" data-wizard-track>
                 <section class="wizard-pane is-active" data-step-pane="1">
                     <label class="auth-field">
                         <span class="auth-field__label">Nombre de la empresa / industria</span>
@@ -74,12 +79,6 @@ $chartLabels = [
                             <input type="text" name="sector" placeholder="Ej: Metalurgia, alimenticia, textil" value="<?= esc(old('sector')) ?>">
                         </span>
                     </label>
-
-                    <div class="wizard-uid wizard-uid--compact">
-                        <p class="auth-field__label">Vista previa del ID</p>
-                        <div class="wizard-uid__code" data-uid-preview>XX-IND-XXXXXX</div>
-                        <p class="wizard-hint">El ID real aparece al crear el espacio.</p>
-                    </div>
 
                     <div class="wizard-nav">
                         <span></span>
@@ -141,6 +140,7 @@ $chartLabels = [
                         <button type="submit" class="auth-submit">Crear espacio</button>
                     </div>
                 </section>
+                </div>
             </form>
         </div>
 
@@ -156,41 +156,173 @@ $chartLabels = [
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('[data-wizard-form]');
     if (!form) return;
 
+    const gsapReady = typeof window.gsap !== 'undefined';
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const animate = gsapReady && !reduceMotion;
+
+    const track = form.querySelector('[data-wizard-track]');
     const panes = Array.from(form.querySelectorAll('[data-step-pane]'));
     const dots = Array.from(document.querySelectorAll('[data-step-dot]'));
+    const stepper = document.querySelector('.wizard-stepper');
+    const stepLine = document.querySelector('[data-step-line]');
+    const stepFill = document.querySelector('[data-step-line-fill]');
     const chartLabels = JSON.parse(document.querySelector('[data-chart-labels]').textContent || '{}');
     let current = 1;
+    let busy = false;
 
-    function renderSuggestions() {
-        const box = form.querySelector('[data-chart-suggestions]');
-        const checked = Array.from(form.querySelectorAll('input[name="metrics[]"]:checked'));
-        box.innerHTML = '';
+    const paneByStep = (step) => panes.find((pane) => Number(pane.dataset.stepPane) === step);
 
-        if (checked.length === 0) {
-            box.innerHTML = '<p class="chart-suggestions__empty">Elegí al menos un sensor.</p>';
+    if (animate && track) track.classList.add('wizard-track--gsap');
+
+    /* ── Línea de progreso del stepper (calculada sobre la posición real de los puntos) ── */
+    function layoutStepLine() {
+        if (!stepper || !stepLine || dots.length < 2) return;
+        const spans = dots.map((dot) => dot.querySelector('span'));
+        const base = stepper.getBoundingClientRect();
+        const first = spans[0].getBoundingClientRect();
+        const last = spans[spans.length - 1].getBoundingClientRect();
+        const startX = first.left + first.width / 2 - base.left;
+        const endX = last.left + last.width / 2 - base.left;
+        const centerY = first.top + first.height / 2 - base.top;
+        stepLine.style.left = startX + 'px';
+        stepLine.style.top = centerY + 'px';
+        stepLine.style.width = Math.max(0, endX - startX) + 'px';
+        updateStepFill(false);
+    }
+
+    function updateStepFill(withMotion) {
+        if (!stepFill || dots.length < 2) return;
+        const spans = dots.map((dot) => dot.querySelector('span'));
+        const base = stepper.getBoundingClientRect();
+        const startX = spans[0].getBoundingClientRect().left + spans[0].getBoundingClientRect().width / 2 - base.left;
+        const curRect = spans[current - 1].getBoundingClientRect();
+        const curX = curRect.left + curRect.width / 2 - base.left;
+        const targetWidth = Math.max(0, curX - startX);
+        if (withMotion && animate) {
+            gsap.to(stepFill, { width: targetWidth, duration: 0.5, ease: 'power3.inOut' });
+        } else {
+            stepFill.style.width = targetWidth + 'px';
+        }
+    }
+
+    function updateDots() {
+        dots.forEach((dot) => dot.classList.toggle('is-active', Number(dot.dataset.stepDot) <= current));
+    }
+
+    /* ── Transición entre pasos (slide horizontal con GSAP) ── */
+    function goTo(step, dir) {
+        const target = Math.max(1, Math.min(panes.length, step));
+        if (target === current || busy) return;
+        const direction = dir || (target > current ? 1 : -1);
+        const outgoing = paneByStep(current);
+        const incoming = paneByStep(target);
+
+        current = target;
+        updateDots();
+        updateStepFill(true);
+        if (target === 3) renderSuggestions(false);
+
+        if (!animate) {
+            outgoing.classList.remove('is-active');
+            incoming.classList.add('is-active');
             return;
         }
 
+        busy = true;
+        track.classList.add('is-sliding');
+        incoming.classList.add('is-active', 'is-animating');
+        outgoing.classList.add('is-animating');
+        const h0 = outgoing.offsetHeight;
+        const h1 = incoming.offsetHeight;
+        track.style.height = h0 + 'px';
+
+        gsap.timeline({
+            defaults: { duration: 0.5, ease: 'power3.inOut' },
+            onComplete: () => {
+                outgoing.classList.remove('is-active', 'is-animating');
+                incoming.classList.remove('is-animating');
+                gsap.set([outgoing, incoming], { clearProps: 'all' });
+                track.style.height = '';
+                track.classList.remove('is-sliding');
+                busy = false;
+            },
+        })
+            .to(track, { height: h1 }, 0)
+            .fromTo(outgoing, { xPercent: 0, autoAlpha: 1 }, { xPercent: -direction * 100, autoAlpha: 0 }, 0)
+            .fromTo(incoming, { xPercent: direction * 100, autoAlpha: 0 }, { xPercent: 0, autoAlpha: 1 }, 0);
+    }
+
+    /* ── Sugerencias de gráficos (aparecen / desaparecen suavemente) ── */
+    function buildRow(input) {
+        const chart = input.dataset.metricChart || 'line';
+        const row = document.createElement('div');
+        row.className = 'chart-suggestion';
+        row.dataset.suggestion = input.value;
+        row.innerHTML = '<strong>' + input.dataset.metricName + '</strong>' +
+            '<span class="chart-suggestion__chart">' + (chartLabels[chart] || chart) + '</span>';
+        return row;
+    }
+
+    function renderSuggestions(withMotion) {
+        const box = form.querySelector('[data-chart-suggestions]');
+        const checked = Array.from(form.querySelectorAll('input[name="metrics[]"]:checked'));
+        const wanted = checked.map((input) => input.value);
+        const doAnim = withMotion !== false && animate;
+
+        let empty = box.querySelector('[data-chart-empty]');
+        if (checked.length === 0 && !empty) {
+            empty = document.createElement('p');
+            empty.className = 'chart-suggestions__empty';
+            empty.dataset.chartEmpty = '';
+            empty.textContent = 'Elegí al menos un sensor.';
+            box.appendChild(empty);
+            if (doAnim) gsap.from(empty, { autoAlpha: 0, duration: 0.3 });
+        } else if (checked.length > 0 && empty) {
+            empty.remove();
+        }
+
+        const existing = new Map(
+            Array.from(box.querySelectorAll('[data-suggestion]')).map((row) => [row.dataset.suggestion, row])
+        );
+
+        existing.forEach((row, code) => {
+            if (wanted.includes(code)) return;
+            if (doAnim) {
+                gsap.to(row, {
+                    height: 0, autoAlpha: 0, marginTop: 0, paddingTop: 0, paddingBottom: 0,
+                    duration: 0.3, ease: 'power2.in', overflow: 'hidden',
+                    onComplete: () => row.remove(),
+                });
+            } else {
+                row.remove();
+            }
+        });
+
         checked.forEach((input) => {
-            const chart = input.dataset.metricChart || 'line';
-            const row = document.createElement('div');
-            row.className = 'chart-suggestion';
-            row.innerHTML = '<strong>' + input.dataset.metricName + '</strong>' +
-                '<span class="chart-suggestion__chart">' + (chartLabels[chart] || chart) + '</span>';
+            if (existing.has(input.value)) return;
+            const row = buildRow(input);
             box.appendChild(row);
+            if (doAnim) {
+                gsap.set(row, { overflow: 'hidden' });
+                gsap.from(row, {
+                    height: 0, autoAlpha: 0, marginTop: 0, duration: 0.35, ease: 'power2.out',
+                    clearProps: 'height,overflow,autoAlpha,marginTop',
+                });
+            }
         });
     }
 
     function show(step) {
         current = Math.max(1, Math.min(panes.length, step));
         panes.forEach((pane) => pane.classList.toggle('is-active', Number(pane.dataset.stepPane) === current));
-        dots.forEach((dot) => dot.classList.toggle('is-active', Number(dot.dataset.stepDot) <= current));
-        renderSuggestions();
+        updateDots();
+        renderSuggestions(false);
     }
 
     function validateCurrent() {
@@ -221,15 +353,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     form.querySelectorAll('[data-wizard-next]').forEach((button) => {
-        button.addEventListener('click', () => { if (validateCurrent()) show(current + 1); });
+        button.addEventListener('click', () => { if (validateCurrent()) goTo(current + 1, 1); });
     });
 
     form.querySelectorAll('[data-wizard-prev]').forEach((button) => {
-        button.addEventListener('click', () => show(current - 1));
+        button.addEventListener('click', () => goTo(current - 1, -1));
     });
 
     form.querySelectorAll('input[name="metrics[]"]').forEach((input) => {
-        input.addEventListener('change', renderSuggestions);
+        input.addEventListener('change', () => renderSuggestions(true));
     });
 
     const companyInput = form.querySelector('[name="company_name"]');
@@ -248,6 +380,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     show(1);
+    layoutStepLine();
+
+    let resizeRaf = null;
+    window.addEventListener('resize', () => {
+        if (resizeRaf) cancelAnimationFrame(resizeRaf);
+        resizeRaf = requestAnimationFrame(layoutStepLine);
+    });
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(layoutStepLine);
+    }
 });
 </script>
 <?= $this->endSection() ?>

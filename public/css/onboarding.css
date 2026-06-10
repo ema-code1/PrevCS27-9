@@ -54,35 +54,61 @@
 .onboarding-foot { margin-top: var(--space-sm); }
 
 /* ── Indicador de pasos ───────────────────────────────────────────── */
+.wizard-stepper {
+    position: relative;
+}
+
+/* Línea que une los pasos; se posiciona por JS sobre el centro de los puntos */
+.wizard-stepper__line {
+    position: absolute;
+    height: 3px;
+    transform: translateY(-50%);
+    background: var(--bg-3);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.wizard-stepper__fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: var(--accent);
+    border-radius: inherit;
+}
+
 .wizard-steps {
+    position: relative;
+    z-index: 1;
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-xs);
+    gap: 50px;
     justify-content: space-between;
 }
 
 .wizard-steps__item {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: var(--font-size-xs);
+    gap: 8px;
+    font-size: var(--font-size-sm);
     color: var(--text-faint);
     transition: color var(--transition-fast);
 }
 
 .wizard-steps__item span {
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     border-radius: var(--radius-pill);
     display: grid;
     place-items: center;
     background: var(--bg-3);
     color: var(--text-muted);
     font-weight: var(--font-weight-semibold);
-    font-size: 0.7rem;
+    font-size: 0.82rem;
     transition: all var(--transition-fast);
 }
 
@@ -93,13 +119,33 @@
 }
 
 /* ── Panes del wizard ─────────────────────────────────────────────── */
+.wizard-track {
+    position: relative;
+}
+.wizard-track.is-sliding {
+    overflow: hidden;
+}
+
 .wizard-pane {
     display: none;
     flex-direction: column;
     gap: var(--space-sm);
-    animation: wizard-in var(--transition-normal);
 }
 .wizard-pane.is-active { display: flex; }
+.wizard-pane.is-animating {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    will-change: transform, opacity;
+}
+
+/* Fallback sin GSAP: entrada simple por CSS (cuando GSAP maneja el slide, no se aplica) */
+@media (prefers-reduced-motion: no-preference) {
+    .wizard-track:not(.wizard-track--gsap) .wizard-pane.is-active {
+        animation: wizard-in var(--transition-normal);
+    }
+}
 
 @keyframes wizard-in {
     from { opacity: 0; transform: translateY(8px); }
@@ -108,7 +154,7 @@
 
 .wizard-hint {
     color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-md);
     margin: 0;
 }
 
@@ -180,8 +226,13 @@
     transition: all var(--transition-fast);
 }
 
-.metric-option__name { font-weight: var(--font-weight-medium); color: var(--text-primary); }
-.metric-option__unit { font-size: var(--font-size-xs); color: var(--text-muted); font-family: var(--font-mono); }
+.metric-option__name { font-size: var(--font-size-md); font-weight: var(--font-weight-medium); color: var(--text-primary); }
+.metric-option__unit {
+    font-size: 0.86rem;
+    letter-spacing: var(--letter-spacing-wide);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+}
 
 .metric-option input:checked + .metric-option__box {
     border-color: var(--accent);
@@ -202,10 +253,10 @@
     border-radius: var(--radius-md);
     background: var(--surface-2);
 }
-.chart-suggestion strong { color: var(--text-primary); }
+.chart-suggestion strong { font-size: var(--font-size-md); color: var(--text-primary); }
 .chart-suggestion__chart {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-md);
     color: var(--accent);
     font-weight: var(--font-weight-medium);
 }
-.chart-suggestions__empty { color: var(--text-muted); font-size: var(--font-size-sm); margin: 0; }
+.chart-suggestions__empty { color: var(--text-muted); font-size: var(--font-size-md); margin: 0; }

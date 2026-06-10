@@ -77,6 +77,7 @@ class Filters extends BaseFilters
             'authGuard' => ['except' => [
                 '/',
                 'portfolio',
+                'pago', // vista de pago: ocurre antes del registro -> publica
                 'api/form-metrics',
                 'reg-log',
                 'login',

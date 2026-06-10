@@ -1,0 +1,327 @@
+/* =====================================================================
+   PrevCS · Vista de Pago (pago.php)
+   Layout de dos columnas: formulario + resumen. Usa tokens globales.
+   Minimalista, legible y totalmente responsive.
+   ===================================================================== */
+
+.pay-main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 48px) var(--pad-x) 80px;
+}
+
+/* ─── Topbar mínima ───────────────────────────────────── */
+.pay-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px var(--pad-x);
+  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  backdrop-filter: saturate(1.2) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(12px);
+  border-bottom: 1px solid var(--hair);
+}
+.pay-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-secondary, var(--text-muted));
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.pay-back svg { width: 15px; height: 15px; }
+.pay-back:hover { background: var(--accent-soft); color: var(--accent); }
+
+/* ─── Stepper del flujo ───────────────────────────────── */
+.pay-steps {
+  list-style: none;
+  margin: 0 0 clamp(28px, 4vw, 44px);
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.pay-steps li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.pay-step-dot {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--hair-2);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.pay-steps li.is-active { color: var(--text-primary); }
+.pay-steps li.is-active .pay-step-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ─── Grid principal ──────────────────────────────────── */
+.pay-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.95fr;
+  gap: clamp(24px, 4vw, 48px);
+  align-items: start;
+}
+
+/* ─── Columna del formulario ──────────────────────────── */
+.pay-block-head { margin-bottom: 26px; }
+.pay-title {
+  font-size: clamp(28px, 4vw, 38px);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 10px 0 8px;
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+.pay-lede {
+  color: var(--text-muted);
+  font-size: 15px;
+  max-width: 46ch;
+  line-height: 1.55;
+}
+
+.pay-form { display: flex; flex-direction: column; gap: 20px; }
+.pay-field { display: flex; flex-direction: column; gap: 7px; }
+.pay-field label {
+  font-size: 13.5px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+.pay-field input {
+  width: 100%;
+  padding: 13px 15px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.pay-field input::placeholder { color: var(--text-muted); }
+.pay-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.pay-field input:invalid:not(:placeholder-shown) {
+  border-color: color-mix(in oklab, var(--danger, #d4453b) 70%, var(--hair-2));
+}
+
+/* ─── Métodos de pago ─────────────────────────────────── */
+.pay-methods {
+  border: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pay-methods legend { margin-bottom: 4px; padding: 0; }
+
+.pay-method-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.pay-method { cursor: pointer; }
+.pay-method input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.pay-method-inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  height: 100%;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--hair-2);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+              transform var(--transition-fast), background var(--transition-fast);
+}
+.pay-method:hover .pay-method-inner { border-color: var(--text-muted); transform: translateY(-1px); }
+.pay-method input:checked + .pay-method-inner {
+  border-color: var(--accent);
+  background: color-mix(in oklab, var(--accent-soft) 60%, var(--bg-card));
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.pay-method input:focus-visible + .pay-method-inner {
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* Chip blanco para que los logos (SVG monocromos) se vean en ambos temas */
+.pay-logo-chip {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, .06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+}
+.pay-logo-chip img { display: block; }
+
+.pay-method-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pay-method-text strong { font-size: 14.5px; color: var(--text-primary); }
+.pay-method-text small { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
+
+.pay-method-check {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  opacity: 0;
+  transform: scale(.6);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+.pay-method-check svg { width: 12px; height: 12px; }
+.pay-method input:checked + .pay-method-inner .pay-method-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ─── Botón confirmar ─────────────────────────────────── */
+.pay-submit {
+  width: 100%;
+  justify-content: center;
+  margin-top: 4px;
+  position: relative;
+}
+.pay-spinner {
+  display: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, .35);
+  border-top-color: #fff;
+  border-radius: 999px;
+  animation: pay-spin .7s linear infinite;
+}
+@keyframes pay-spin { to { transform: rotate(360deg); } }
+.pay-submit.is-loading .pay-submit-arrow { display: none; }
+.pay-submit.is-loading .pay-spinner { display: inline-block; }
+.pay-submit.is-done { background: var(--success, #1f9d57); }
+
+.pay-secure {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.pay-secure svg { width: 15px; height: 15px; flex: 0 0 auto; }
+
+/* ─── Columna del resumen ─────────────────────────────── */
+.pay-summary-col { position: sticky; top: 96px; }
+.pay-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: clamp(22px, 3vw, 28px);
+  background: var(--bg-card);
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 18px 40px -28px rgba(0, 0, 0, .3);
+}
+.pay-summary-tag {
+  font-size: 11.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.pay-summary-plan { display: flex; align-items: center; gap: 13px; }
+.pay-summary-icon { flex: 0 0 auto; }
+.pay-summary-plan strong { display: block; font-size: 16px; color: var(--text-primary); }
+.pay-summary-plan small { font-size: 12.5px; color: var(--text-muted); }
+
+.pay-summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 16px 0;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.pay-summary-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+.pay-summary-list svg { width: 15px; height: 15px; color: var(--accent); flex: 0 0 auto; }
+
+.pay-summary-rows { display: flex; flex-direction: column; gap: 10px; }
+.pay-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.pay-row--total {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--hair);
+  font-size: 16px;
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+.pay-row--total em { font-style: normal; color: var(--text-muted); font-weight: 400; font-size: 13px; }
+.pay-total { font-size: 20px; letter-spacing: -0.02em; }
+
+.pay-guarantee {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.pay-guarantee svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--accent); }
+
+/* ─── Estado inicial animación GSAP ───────────────────── */
+[data-anim] { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  [data-anim] { opacity: 1 !important; }
+  .pay-spinner { animation: none; }
+}
+
+/* ─── Responsive ──────────────────────────────────────── */
+@media (max-width: 860px) {
+  .pay-grid { grid-template-columns: 1fr; }
+  .pay-summary-col { position: static; order: -1; }
+}
+@media (max-width: 480px) {
+  .pay-method-grid { grid-template-columns: 1fr; }
+  .pay-method-text small { display: none; }
+}

@@ -6,6 +6,7 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Landing::index');
+$routes->get('pago', 'Pago::index');
 $routes->get('portfolio', 'Portfolio::index');
 $routes->get('portfolio.php', 'Portfolio::index');
 
