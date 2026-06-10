@@ -14,6 +14,8 @@ from machine import Pin, ADC
 import onewire
 import ds18x20
 
+SENSORS_BUILD = "2026-06-09-rpm-both-edges-v3"
+
 # --- Pines ---
 PIN_VIBRACION = 34   # SW-420 DO
 PIN_RPM       = 26   # LM393 DO
@@ -22,7 +24,8 @@ PIN_TEMP      = 27   # DS18B20 DATA
 
 # --- Contadores que actualizan las interrupciones (ISR) ---
 _vib_count = 0
-_rpm_count = 0
+_rpm_rising_count = 0
+_rpm_falling_count = 0
 
 # Handlers de interrupcion: tienen que ser MUY cortos (solo sumar).
 def _vib_isr(pin):
@@ -30,8 +33,11 @@ def _vib_isr(pin):
     _vib_count += 1
 
 def _rpm_isr(pin):
-    global _rpm_count
-    _rpm_count += 1
+    global _rpm_rising_count, _rpm_falling_count
+    if pin.value():
+        _rpm_rising_count += 1
+    else:
+        _rpm_falling_count += 1
 
 
 class Sensors:
@@ -66,13 +72,18 @@ class Sensors:
             print("[sensors] AVISO: error iniciando DS18B20:", e)
 
     def _enable_irqs(self):
-        global _vib_count, _rpm_count
+        global _vib_count, _rpm_rising_count, _rpm_falling_count
         _vib_count = 0
-        _rpm_count = 0
+        _rpm_rising_count = 0
+        _rpm_falling_count = 0
         # SW-420: contamos cada flanco de subida como un "evento" de vibracion.
         self.pin_vib.irq(trigger=Pin.IRQ_RISING, handler=_vib_isr)
-        # LM393: cada pulso del disco encoder.
-        self.pin_rpm.irq(trigger=Pin.IRQ_RISING, handler=_rpm_isr)
+        # Contamos ambos flancos para no depender de la polaridad del modulo.
+        # Una vuelta completa produce un flanco de subida y uno de bajada.
+        self.pin_rpm.irq(
+            trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING,
+            handler=_rpm_isr,
+        )
 
     def _disable_irqs(self):
         self.pin_vib.irq(handler=None)
@@ -103,19 +114,41 @@ class Sensors:
         # Durante la ventana muestreamos el AO del LM393 y promediamos.
         adc_sum = 0
         adc_n = 0
+        adc_min = 4095
+        adc_max = 0
+        adc_error = None
+        rpm_do_start = self.pin_rpm.value()
+        rpm_do_min = rpm_do_start
+        rpm_do_max = rpm_do_start
         t0 = time.ticks_ms()
         while time.ticks_diff(time.ticks_ms(), t0) < window_ms:
             try:
-                adc_sum += self.adc.read_u16() >> 4   # 16-bit -> 12-bit (0..4095)
+                # MicroPython cambia la API de ADC segun version/port.
+                try:
+                    adc_value = self.adc.read_u16() >> 4
+                except AttributeError:
+                    adc_value = self.adc.read()
+                adc_sum += adc_value
                 adc_n += 1
-            except Exception:
-                pass
+                adc_min = min(adc_min, adc_value)
+                adc_max = max(adc_max, adc_value)
+            except Exception as e:
+                if adc_error is None:
+                    adc_error = repr(e)
+
+            rpm_do = self.pin_rpm.value()
+            rpm_do_min = min(rpm_do_min, rpm_do)
+            rpm_do_max = max(rpm_do_max, rpm_do)
             time.sleep_ms(50)
 
         self._disable_irqs()
 
         vib_events = _vib_count
-        rpm_pulses = _rpm_count
+        rpm_rising = _rpm_rising_count
+        rpm_falling = _rpm_falling_count
+        # Cada pulso completo tiene ambos flancos. max() conserva tambien un
+        # pulso que haya quedado cortado por el inicio o final de la ventana.
+        rpm_pulses = max(rpm_rising, rpm_falling)
 
         # RPM = (pulsos / pulsos_por_vuelta) escalado a 1 minuto.
         rpm = 0.0
@@ -139,7 +172,16 @@ class Sensors:
         return {
             "vibration": vib_events,
             "rpm": round(rpm, 1),
+            "rpm_pulses": rpm_pulses,
+            "rpm_rising": rpm_rising,
+            "rpm_falling": rpm_falling,
+            "rpm_do_start": rpm_do_start,
+            "rpm_do_end": self.pin_rpm.value(),
+            "rpm_do_changed": rpm_do_min != rpm_do_max,
             "rpm_analog": adc_avg,
+            "rpm_analog_min": adc_min if adc_n else None,
+            "rpm_analog_max": adc_max if adc_n else None,
+            "rpm_analog_error": adc_error,
             "temperature": temperature,
         }
 

@@ -21,16 +21,6 @@ $activeMenu = $activeMenu ?? 'panel';
             <span class="menu-link__label">Panel</span>
         </a>
 
-        <a href="<?= base_url('registros-iot') ?>" class="menu-link<?= $activeMenu === 'registros-iot' ? ' is-active' : '' ?>">
-            <span class="menu-link__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                    <rect x="4.5" y="5" width="15" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M8 9h8M8 12h8M8 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                </svg>
-            </span>
-            <span class="menu-link__label">Espacios</span>
-        </a>
-
         <a href="<?= base_url('esp32') ?>" class="menu-link<?= $activeMenu === 'esp32' ? ' is-active' : '' ?>">
             <span class="menu-link__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none">
@@ -40,6 +30,16 @@ $activeMenu = $activeMenu ?? 'panel';
                 </svg>
             </span>
             <span class="menu-link__label">Mis ESP32</span>
+        </a>
+
+        <a href="<?= base_url('registros-iot') ?>" class="menu-link<?= $activeMenu === 'registros-iot' ? ' is-active' : '' ?>">
+            <span class="menu-link__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <rect x="4.5" y="5" width="15" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/>
+                    <path d="M8 9h8M8 12h8M8 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="menu-link__label">Espacios</span>
         </a>
     </nav>
 

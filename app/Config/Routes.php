@@ -55,6 +55,8 @@ $routes->get('unirse-espacio', 'IndustryController::joinForm');
 $routes->post('unirse-espacio', 'IndustryController::join');
 $routes->post('espacios/(:num)/editar', 'IndustryController::update/$1');
 $routes->post('espacios/(:num)/miembros/(:num)/eliminar', 'IndustryController::removeMember/$1/$2');
+$routes->post('espacios/(:num)/tokens', 'IndustryController::revealTokens/$1');
+$routes->post('espacios/(:num)/sensores/(:num)/eliminar', 'SensorController::deleteFromSpace/$1/$2');
 
 // ESP32 (rutas especificas antes de la parametrica)
 $routes->get('esp32', 'Esp32Controller::index');

@@ -56,7 +56,7 @@
                                 <?= esc($d['status'] ?? 'offline') ?>
                             </span>
                         </div>
-                        <code class="esp32-card__mac"><?= esc($d['mac_address']) ?></code>
+                        <code class="esp32-card__mac"><?= ! empty($d['mac_address']) ? esc($d['mac_address']) : 'Sin vincular' ?></code>
                         <dl class="esp32-card__meta">
                             <div><dt>Industria</dt><dd><?= esc($d['company_name']) ?></dd></div>
                             <div><dt>Sector</dt><dd><?= esc($d['sector'] ?? '—') ?></dd></div>

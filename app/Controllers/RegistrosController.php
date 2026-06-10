@@ -29,20 +29,43 @@ class RegistrosController extends BaseController
         $userId     = (int) session('user_id');
         $industries = (new IndustryUserModel())->industriesForUser($userId);
 
-        $deviceModel = new Esp32DeviceModel();
+        $deviceModel     = new Esp32DeviceModel();
+        $sensorModel     = new Esp32SensorModel();
         $membershipModel = new IndustryUserModel();
         foreach ($industries as &$ind) {
-            $ind['device_count'] = count($deviceModel->devicesForIndustry((int) $ind['id']));
-            $ind['members'] = $ind['role'] === IndustryUserModel::ROLE_ADMIN
-                ? $membershipModel->membersForIndustry((int) $ind['id'])
-                : [];
+            $devices = $deviceModel->devicesForIndustry((int) $ind['id']);
+            $ind['device_count'] = count($devices);
+
+            // El modal de configuración (miembros, tokens, sensores) es solo de admin.
+            if ($ind['role'] === IndustryUserModel::ROLE_ADMIN) {
+                $ind['members'] = $membershipModel->membersForIndustry((int) $ind['id']);
+                $ind['devices'] = $devices;
+                $ind['sensors'] = $sensorModel->sensorsForIndustry((int) $ind['id']);
+            } else {
+                $ind['members'] = [];
+                $ind['devices'] = [];
+                $ind['sensors'] = [];
+            }
         }
         unset($ind);
 
+        // Desbloqueo del modal (clave del espacio, válido 5 min): revela tokens y
+        // habilita el borrado de sensores. Vive en session('space_unlock').
+        $unlock          = session('space_unlock');
+        $unlockedSpaceId = 0;
+        $unlockedTokens  = [];
+        if (is_array($unlock) && (time() - (int) ($unlock['at'] ?? 0)) <= 300) {
+            $unlockedSpaceId = (int) ($unlock['id'] ?? 0);
+            $unlockedTokens  = is_array($unlock['tokens'] ?? null) ? $unlock['tokens'] : [];
+        }
+
         return view('registros-iot/espacios', [
-            'title'      => 'Registros IoT | Preventive Control System',
-            'activeMenu' => 'registros-iot',
-            'industries' => $industries,
+            'title'           => 'Registros IoT | Preventive Control System',
+            'activeMenu'      => 'registros-iot',
+            'industries'      => $industries,
+            'openConfigId'    => (int) ($this->request->getGet('config') ?? 0),
+            'unlockedSpaceId' => $unlockedSpaceId,
+            'unlockedTokens'  => $unlockedTokens,
         ]);
     }
 

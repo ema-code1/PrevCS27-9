@@ -15,6 +15,12 @@ except ImportError:
 
 CONFIG_FILE = "config.json"
 
+# URL fija del servidor (opcional). Si algun dia la API queda en una URL que no
+# cambia, ponela aca UNA sola vez: asi el usuario NUNCA la ve en el formulario y
+# alcanza con que cargue su WiFi. En desarrollo se deja vacia y la web la
+# precarga sola por el link/QR "Abrir formulario de la ESP32".
+DEFAULT_SERVER_URL = ""
+
 # Valores por defecto de los campos opcionales.
 DEFAULTS = {
     "device_name": "ESP32",
@@ -56,7 +62,7 @@ def _normalize_endpoints(cfg):
     token = cfg.get("device_token", "")
     urls = cfg.get("server_urls")
     if not urls:
-        single = cfg.get("server_url", "")
+        single = cfg.get("server_url", "") or DEFAULT_SERVER_URL
         urls = [u.strip() for u in single.replace(",", " ").split() if u.strip()]
     if isinstance(urls, str):
         urls = [urls]

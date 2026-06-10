@@ -11,7 +11,10 @@ import time
 import config_manager
 import wifi_manager
 import backend
+import sensors as sensors_module
 from sensors import Sensors
+
+FIRMWARE_BUILD = "2026-06-09-rpm-debug-v3"
 
 # Unidad que reporta cada metrica (informativo para el backend).
 # Son los 3 sensores que se guardan en sensor_readings.
@@ -49,6 +52,8 @@ def ensure_wifi(cfg, intentos=3):
 def run():
     print("\n" + "=" * 52)
     print("[main] PrevCS ESP32 - arranque")
+    print("[main] Firmware build:", FIRMWARE_BUILD)
+    print("[main] Sensors build :", getattr(sensors_module, "SENSORS_BUILD", "ANTIGUO/SIN VERSION"))
 
     cfg = config_manager.load()
 
@@ -93,9 +98,25 @@ def run():
         print("[main] Leido -> vibracion:{} eventos | rpm:{} ({}) | temp:{}".format(
             data["vibration"], data["rpm"], motor,
             data["temperature"] if data["temperature"] is not None else "N/D"))
-        # Diagnostico (no se envia): nivel AO del LM393, util para ver si el
-        # sensor RPM esta bien alineado con la ranura del disco.
-        print("[main] (diag) AO LM393:", data["rpm_analog"])
+        # Diagnostico local: permite distinguir falta de pulsos, DO trabado y
+        # errores de ADC. Ninguno de estos campos se envia al backend.
+        print("[main] (diag) LM393 -> pulsos:{} (sube:{} baja:{}) | DO:{}->{} cambio:{} | AO:{} ({}..{})".format(
+            data["rpm_pulses"],
+            data["rpm_rising"],
+            data["rpm_falling"],
+            data["rpm_do_start"],
+            data["rpm_do_end"],
+            "SI" if data["rpm_do_changed"] else "NO",
+            data["rpm_analog"],
+            data["rpm_analog_min"],
+            data["rpm_analog_max"],
+        ))
+        if data["rpm_analog_error"]:
+            print("[main] (diag) ERROR leyendo AO LM393:", data["rpm_analog_error"])
+        if data["vibration"] > 1000:
+            print("[main] AVISO: vibracion excesiva; GPIO34 esta flotante, con ruido o recibe el DO equivocado.")
+        if data["rpm_pulses"] == 0:
+            print("[main] AVISO: GPIO26 no recibio ningun flanco del DO del sensor RPM.")
 
         readings = build_readings(data)
 

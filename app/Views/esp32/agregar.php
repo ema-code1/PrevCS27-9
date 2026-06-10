@@ -55,26 +55,22 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
         <?php else: ?>
             <section class="esp32-setup-guide">
                 <div class="esp32-setup-guide__intro">
-                    <span class="esp32-setup-guide__step">Guia de linkeo</span>
-                    <h2>Conecta la placa al espacio sin escribir la API a mano</h2>
-                    <p>Todas las SP liberan la misma red de configuracion. Desde tu celular o computadora, conectate al WiFi <code>PREVCS-CONFIG</code> y despues abri el formulario interno de la placa.</p>
+                    <span class="esp32-setup-guide__step">Guía de vinculación</span>
+                    <h2>Vinculá la placa sin tocar la MAC ni escribir la API</h2>
+                    <p>Solo completás el espacio y el nombre. PrevCS genera el token y, en la pantalla siguiente, te da un <strong>QR</strong> y un <strong>botón</strong> para configurar la placa. La MAC se vincula sola en la primera lectura.</p>
                 </div>
-                <a class="esp32-ap-link" href="http://192.168.4.1">
-                    <span>Formulario de la SP</span>
-                    <strong>192.168.4.1</strong>
-                </a>
                 <div class="esp32-setup-guide__steps">
                     <div>
                         <span>1</span>
-                        <p>Conectate al AP <strong>PREVCS-CONFIG</strong> que libera la placa.</p>
+                        <p>Elegí el <strong>espacio</strong> y el <strong>nombre</strong> acá abajo y tocá <strong>Vincular ESP32</strong>.</p>
                     </div>
                     <div>
                         <span>2</span>
-                        <p>Entra a <strong>192.168.4.1</strong>, copia la MAC que muestra y usala abajo.</p>
+                        <p>Conectate al WiFi <strong>PREVCS-CONFIG</strong> que crea la placa y abrí su formulario con el <strong>QR</strong> o el <strong>botón</strong>.</p>
                     </div>
                     <div>
                         <span>3</span>
-                        <p>Al vincularla, PrevCS genera el token y un link listo con API, token y nombre.</p>
+                        <p>Elegí tu red WiFi en la placa y guardá. Se conecta y se <strong>vincula sola</strong>.</p>
                     </div>
                 </div>
             </section>
@@ -115,15 +111,6 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
                         </span>
                     </label>
 
-                    <label class="auth-field">
-                        <span class="auth-field__label">MAC de la ESP32</span>
-                        <span class="auth-field__control">
-                            <span class="auth-field__icon">::</span>
-                            <input type="text" name="mac_address" placeholder="A4:CF:12:AB:88:01" value="<?= esc(old('mac_address')) ?>" required data-mac-input>
-                        </span>
-                        <small class="field-help" data-mac-help>Formato: AA:BB:CC:DD:EE:FF</small>
-                    </label>
-
                     <div class="esp32-sensor-preview" data-sensor-preview>
                         <?php if ($selectedMetrics === []): ?>
                             <p class="text-muted">Este espacio no tiene sensores definidos.</p>
@@ -152,8 +139,6 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
 <?= $this->section('pageScripts') ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const macInput = document.querySelector('[data-mac-input]');
-    const macHelp = document.querySelector('[data-mac-help]');
     const spaceSelect = document.querySelector('[data-space-select]');
     const nameInput = document.querySelector('input[name="name"]');
     const preview = document.querySelector('[data-sensor-preview]');
@@ -162,16 +147,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function escapeHtml(value) {
         return String(value || '').replace(/[&<>"']/g, function (char) {
             return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[char];
-        });
-    }
-
-    if (macInput && macHelp) {
-        macInput.addEventListener('input', function () {
-            const clean = macInput.value.trim();
-            const valid = /^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$/.test(clean) || /^[0-9A-Fa-f]{12}$/.test(clean);
-            macHelp.textContent = clean === '' ? 'Formato: AA:BB:CC:DD:EE:FF' : (valid ? 'MAC valida' : 'Revisa la MAC');
-            macHelp.classList.toggle('is-ok', valid);
-            macHelp.classList.toggle('is-error', clean !== '' && !valid);
         });
     }
 

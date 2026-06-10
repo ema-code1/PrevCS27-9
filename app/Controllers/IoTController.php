@@ -53,21 +53,37 @@ class IoTController extends BaseController
             return $this->fail(422, 'Faltan credenciales: se requiere mac_address y token.');
         }
 
-        // 1) Buscar ESP32 por MAC
+        // 1) Identificar la placa por su TOKEN (no por MAC). La placa se autentica
+        //    con el token; la MAC se vincula sola en el primer contacto y luego
+        //    queda "candada" a esa placa física.
         $deviceModel = new Esp32DeviceModel();
-        $device      = $deviceModel->findByMac($mac);
+        $device      = $deviceModel->findByTokenHash(Esp32DeviceModel::hashToken($token));
         if ($device === null) {
-            return $this->fail(404, 'ESP32 no registrada.');
-        }
-
-        // 2) Validar token (comparación en tiempo constante contra el hash)
-        if (! Esp32DeviceModel::tokenMatches($device, $token)) {
             return $this->fail(401, 'Token de dispositivo inválido.');
         }
 
-        // 3) La placa debe estar activa
+        // 2) La placa debe estar activa
         if ((int) ($device['is_active'] ?? 1) !== 1) {
             return $this->fail(403, 'La ESP32 está deshabilitada.');
+        }
+
+        // 3) Vincular / verificar la MAC.
+        $incomingMac = Esp32DeviceModel::normalizeMac($mac);
+        $storedMac   = (string) ($device['mac_address'] ?? '');
+
+        if ($storedMac === '') {
+            // Primer contacto: la placa "reclama" su registro y graba su MAC.
+            if ($incomingMac === null) {
+                return $this->fail(422, 'MAC inválida: no se pudo vincular la placa.');
+            }
+            if ($deviceModel->macExists($incomingMac)) {
+                return $this->fail(409, 'Esa MAC ya está vinculada a otra placa.');
+            }
+            $deviceModel->update((int) $device['id'], ['mac_address' => $incomingMac]);
+            $device['mac_address'] = $incomingMac;
+        } elseif ($incomingMac !== null && ! hash_equals($storedMac, $incomingMac)) {
+            // Token candado: el token ya pertenece a otra placa física (MAC distinta).
+            return $this->fail(409, 'El token ya está vinculado a otra placa (MAC distinta).');
         }
 
         // 4) Normalizar a una lista de lecturas {type, value, measured_at}

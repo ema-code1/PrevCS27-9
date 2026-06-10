@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\Esp32DeviceModel;
 use App\Models\IndustryModel;
 use App\Models\IndustryUserModel;
 
@@ -142,6 +143,42 @@ class IndustryController extends BaseController
         $membershipModel->delete($membershipId);
 
         return redirect()->to(base_url('registros-iot'))->with('success', 'Acceso eliminado.');
+    }
+
+    /**
+     * Desbloquea el espacio con su clave: revela los tokens de TODAS sus ESP y
+     * habilita el borrado de sensores por 5 minutos (modal de configuración).
+     * El estado de desbloqueo vive en sesión (session('space_unlock')).
+     */
+    public function revealTokens($industryId = null)
+    {
+        $userId     = (int) session('user_id');
+        $industryId = (int) $industryId;
+        $back       = base_url('registros-iot?config=' . $industryId);
+
+        if (! $this->isAdmin($userId, $industryId)) {
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes permiso para administrar ese espacio.');
+        }
+
+        $industry = (new IndustryModel())->find($industryId);
+        $password = (string) $this->request->getPost('space_password');
+
+        if ($industry === null || ! password_verify($password, (string) $industry['space_password_hash'])) {
+            return redirect()->to($back)->with('error', 'Clave del espacio incorrecta.');
+        }
+
+        $tokens = [];
+        foreach ((new Esp32DeviceModel())->devicesForIndustry($industryId) as $device) {
+            $tokens[(int) $device['id']] = Esp32DeviceModel::revealToken($device['token_secret'] ?? null);
+        }
+
+        session()->set('space_unlock', [
+            'id'     => $industryId,
+            'at'     => time(),
+            'tokens' => $tokens,
+        ]);
+
+        return redirect()->to($back)->with('success', 'Espacio desbloqueado: tokens visibles y sensores borrables por 5 minutos.');
     }
 
     private function isAdmin(int $userId, int $industryId): bool

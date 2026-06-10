@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>">
+<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260609-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -58,7 +59,7 @@
                                             <span></span><span></span><span></span>
                                         </button>
                                         <div class="iot-kebab__menu" hidden data-kebab-menu>
-                                            <button type="button" data-edit-space>Editar espacio</button>
+                                            <button type="button" data-open-modal="space-modal-<?= $ind['id'] ?>">Configurar espacio</button>
                                         </div>
                                     </div>
                                 <?php endif; ?>
@@ -76,30 +77,51 @@
                                 <a href="<?= base_url('esp32/agregar?industry_id=' . $ind['id']) ?>" class="btn btn--secondary">Vincular ESP32</a>
                             <?php endif; ?>
                         </div>
+                    </article>
+                <?php endforeach; ?>
+            </div>
 
-                        <?php if ($isAdmin): ?>
-                            <section class="iot-space-editor<?= (int) session('editing_industry_id') === (int) $ind['id'] ? ' is-open' : '' ?>" data-space-editor>
-                                <form action="<?= base_url('espacios/' . $ind['id'] . '/editar') ?>" method="post" class="auth-form iot-space-editor__form">
+            <?php foreach ($industries as $ind): ?>
+                <?php if ($ind['role'] !== 'admin_principal') { continue; } ?>
+                <?php $isUnlocked = (int) ($unlockedSpaceId ?? 0) === (int) $ind['id']; ?>
+                <div class="space-modal" id="space-modal-<?= $ind['id'] ?>" data-space-modal<?= (int) ($openConfigId ?? 0) === (int) $ind['id'] ? '' : ' hidden' ?>>
+                    <div class="space-modal__backdrop" data-modal-dismiss></div>
+                    <div class="space-modal__dialog card" role="dialog" aria-modal="true" aria-labelledby="space-modal-title-<?= $ind['id'] ?>">
+                        <header class="space-modal__head">
+                            <div>
+                                <h3 id="space-modal-title-<?= $ind['id'] ?>">Configurar espacio</h3>
+                                <p class="text-muted mono"><?= esc($ind['space_name']) ?> · <?= esc($ind['industry_uid']) ?></p>
+                            </div>
+                            <button type="button" class="space-modal__close" data-modal-dismiss aria-label="Cerrar">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                            </button>
+                        </header>
+
+                        <div class="space-modal__body">
+                            <!-- 1) Datos del espacio -->
+                            <section class="space-modal__section">
+                                <h4>Datos del espacio</h4>
+                                <form action="<?= base_url('espacios/' . $ind['id'] . '/editar') ?>" method="post" class="auth-form space-modal__form">
                                     <?= csrf_field() ?>
                                     <label class="auth-field">
                                         <span class="auth-field__label">Empresa / industria</span>
                                         <span class="auth-field__control">
                                             <span class="auth-field__icon">E</span>
-                                            <input type="text" name="company_name" value="<?= esc(old('company_name', $ind['company_name'])) ?>" required>
+                                            <input type="text" name="company_name" value="<?= esc($ind['company_name']) ?>" required>
                                         </span>
                                     </label>
                                     <label class="auth-field">
                                         <span class="auth-field__label">Nombre del espacio</span>
                                         <span class="auth-field__control">
                                             <span class="auth-field__icon">#</span>
-                                            <input type="text" name="space_name" value="<?= esc(old('space_name', $ind['space_name'])) ?>" required>
+                                            <input type="text" name="space_name" value="<?= esc($ind['space_name']) ?>" required>
                                         </span>
                                     </label>
                                     <label class="auth-field">
                                         <span class="auth-field__label">Rubro o sector</span>
                                         <span class="auth-field__control">
                                             <span class="auth-field__icon">S</span>
-                                            <input type="text" name="sector" value="<?= esc(old('sector', $ind['sector'] ?? '')) ?>">
+                                            <input type="text" name="sector" value="<?= esc($ind['sector'] ?? '') ?>">
                                         </span>
                                     </label>
                                     <label class="auth-field">
@@ -111,12 +133,12 @@
                                     </label>
                                     <button type="submit" class="btn btn--primary">Guardar cambios</button>
                                 </form>
+                            </section>
 
+                            <!-- 2) Personas con acceso -->
+                            <section class="space-modal__section">
+                                <h4>Personas con acceso <span class="space-modal__count"><?= count($ind['members'] ?? []) ?></span></h4>
                                 <div class="iot-space-members">
-                                    <div class="iot-space-members__head">
-                                        <strong>Personas con acceso</strong>
-                                        <span><?= count($ind['members'] ?? []) ?></span>
-                                    </div>
                                     <?php foreach (($ind['members'] ?? []) as $member): ?>
                                         <div class="iot-space-member">
                                             <div>
@@ -133,10 +155,60 @@
                                     <?php endforeach; ?>
                                 </div>
                             </section>
-                        <?php endif; ?>
-                    </article>
-                <?php endforeach; ?>
-            </div>
+
+                            <!-- 3) Tokens de las ESP + sensores (se desbloquean con la clave) -->
+                            <section class="space-modal__section">
+                                <h4>Tokens y sensores</h4>
+                                <?php if (! $isUnlocked): ?>
+                                    <p class="text-muted">Ingresá la clave del espacio para ver los tokens de las ESP y poder borrar sensores.</p>
+                                    <form action="<?= base_url('espacios/' . $ind['id'] . '/tokens') ?>" method="post" class="space-modal__unlock">
+                                        <?= csrf_field() ?>
+                                        <input type="password" name="space_password" placeholder="Clave del espacio" required>
+                                        <button type="submit" class="btn btn--primary">Desbloquear</button>
+                                    </form>
+                                <?php else: ?>
+                                    <p class="space-modal__unlocked">✓ Desbloqueado por 5 minutos. Tokens visibles y sensores borrables.</p>
+
+                                    <div class="space-modal__group">
+                                        <strong>Tokens de las ESP</strong>
+                                        <?php if (($ind['devices'] ?? []) === []): ?>
+                                            <p class="text-muted">Este espacio no tiene ESP vinculadas.</p>
+                                        <?php else: ?>
+                                            <?php foreach ($ind['devices'] as $device): ?>
+                                                <?php $tk = $unlockedTokens[$device['id']] ?? null; ?>
+                                                <div class="space-modal__token-row">
+                                                    <span><?= esc($device['name']) ?></span>
+                                                    <code class="esp32-token"><?= $tk ? esc($tk) : 'sin token' ?></code>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <div class="space-modal__group">
+                                        <strong>Sensores del espacio</strong>
+                                        <?php if (($ind['sensors'] ?? []) === []): ?>
+                                            <p class="text-muted">No hay sensores en este espacio.</p>
+                                        <?php else: ?>
+                                            <?php foreach ($ind['sensors'] as $sensor): ?>
+                                                <div class="iot-space-member">
+                                                    <div>
+                                                        <strong><?= esc($sensor['label'] ?: $sensor['name']) ?></strong>
+                                                        <small><?= esc($sensor['device_name']) ?> · <?= esc($sensor['name']) ?><?= ! empty($sensor['unit']) ? ' (' . esc($sensor['unit']) . ')' : '' ?></small>
+                                                    </div>
+                                                    <form action="<?= base_url('espacios/' . $ind['id'] . '/sensores/' . $sensor['id'] . '/eliminar') ?>" method="post" onsubmit="return confirm('¿Borrar este sensor? Se eliminan también sus lecturas.');">
+                                                        <?= csrf_field() ?>
+                                                        <button type="submit" class="iot-danger-link">Borrar</button>
+                                                    </form>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         <?php endif; ?>
     </section>
 </main>
@@ -145,11 +217,10 @@
 <?= $this->section('pageScripts') ?>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // ─── Kebab (menú de opciones por tarjeta) ───────────────────────
     document.querySelectorAll('[data-kebab]').forEach(function (wrap) {
         const button = wrap.querySelector('[data-kebab-button]');
         const menu = wrap.querySelector('[data-kebab-menu]');
-        const card = wrap.closest('[data-space-card]');
-        const editor = card?.querySelector('[data-space-editor]');
 
         button?.addEventListener('click', function (event) {
             event.stopPropagation();
@@ -159,18 +230,49 @@ document.addEventListener('DOMContentLoaded', function () {
             menu.hidden = !willOpen;
             button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         });
-
-        wrap.querySelector('[data-edit-space]')?.addEventListener('click', function () {
-            menu.hidden = true;
-            button.setAttribute('aria-expanded', 'false');
-            editor?.classList.toggle('is-open');
-        });
     });
 
     document.addEventListener('click', function () {
         document.querySelectorAll('[data-kebab-menu]').forEach((item) => item.hidden = true);
         document.querySelectorAll('[data-kebab-button]').forEach((item) => item.setAttribute('aria-expanded', 'false'));
     });
+
+    // ─── Modal de configuración del espacio ─────────────────────────
+    function syncBody() {
+        document.body.classList.toggle('has-modal-open', !!document.querySelector('[data-space-modal]:not([hidden])'));
+    }
+    function openModal(modal) {
+        if (!modal) return;
+        modal.hidden = false;
+        syncBody();
+    }
+    function closeModal(modal) {
+        if (!modal) return;
+        modal.hidden = true;
+        syncBody();
+    }
+
+    document.querySelectorAll('[data-open-modal]').forEach(function (btn) {
+        btn.addEventListener('click', function (event) {
+            event.stopPropagation();
+            openModal(document.getElementById(btn.getAttribute('data-open-modal')));
+        });
+    });
+
+    document.querySelectorAll('[data-modal-dismiss]').forEach(function (el) {
+        el.addEventListener('click', function () {
+            closeModal(el.closest('[data-space-modal]'));
+        });
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            document.querySelectorAll('[data-space-modal]:not([hidden])').forEach(closeModal);
+        }
+    });
+
+    // Si se abrió vía ?config=<id> (tras desbloquear o borrar), marcar el body.
+    syncBody();
 });
 </script>
 <?= $this->endSection() ?>

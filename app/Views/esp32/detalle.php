@@ -6,6 +6,12 @@
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
+<style>
+.esp32-qr{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.esp32-qr__code{background:#fff;padding:10px;border-radius:var(--radius-md);border:1px solid var(--hair);line-height:0}
+.esp32-qr__code img,.esp32-qr__code canvas{display:block}
+.esp32-qr__hints{margin:0;padding-left:18px;color:var(--text-muted);font-size:var(--font-size-sm);display:grid;gap:4px}
+</style>
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -23,7 +29,7 @@
                 </p>
                 <h1><?= esc($device['name']) ?></h1>
                 <p class="dashboard-head__text">
-                    <code class="esp32-card__mac"><?= esc($device['mac_address']) ?></code>
+                    <code class="esp32-card__mac"><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : 'Sin vincular' ?></code>
                     · Sector: <?= esc($device['sector'] ?? '—') ?>
                 </p>
             </div>
@@ -56,16 +62,24 @@
         <section class="panel card esp32-token-access">
             <div class="panel__header"><h3>Datos de configuracion</h3></div>
             <dl class="esp32-sensor-meta">
-                <div><dt>MAC</dt><dd class="mono"><?= esc($device['mac_address']) ?></dd></div>
+                <div><dt>MAC</dt><dd class="mono"><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : 'Se vincula sola al primer dato' ?></dd></div>
                 <div><dt>Estado</dt><dd><?= esc($device['status'] ?? 'offline') ?></dd></div>
                 <div><dt>Última lectura</dt><dd class="mono"><?= esc($device['last_seen_at'] ?? '-') ?></dd></div>
             </dl>
 
             <?php if (! empty($deviceToken)): ?>
                 <div class="esp32-setup-box">
-                    <strong>Link listo para 192.168.4.1</strong>
-                    <p>Conectate a la red <code>PREVCS-CONFIG</code> y abri este link. API, token y nombre ya van cargados.</p>
+                    <strong>Configurá la placa: conectate a PREVCS-CONFIG</strong>
+                    <p>Primero conectate al WiFi <code>PREVCS-CONFIG</code> que crea la placa. API, token y nombre ya van cargados; en la placa solo elegís tu red WiFi.</p>
                     <?php if (! empty($setupUrl)): ?>
+                        <div class="esp32-qr" data-qr-url="<?= esc($setupUrl) ?>">
+                            <div class="esp32-qr__code" data-qr-target></div>
+                            <ul class="esp32-qr__hints">
+                                <li><strong>Desde el celular:</strong> tocá el botón de abajo.</li>
+                                <li><strong>Compu + celular:</strong> escaneá el QR con el celu (ya conectado a PREVCS-CONFIG).</li>
+                                <li><strong>Solo compu:</strong> tocá el botón.</li>
+                            </ul>
+                        </div>
                         <a class="btn btn--primary" href="<?= esc($setupUrl) ?>">Abrir formulario de la ESP32</a>
                         <code class="esp32-token"><?= esc($setupUrl) ?></code>
                     <?php endif; ?>
@@ -198,4 +212,20 @@
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
 <script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260609-1" defer></script>
+<script src="<?= base_url('js/qrcode.min.js') ?>"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const box = document.querySelector('[data-qr-url]');
+    const target = box && box.querySelector('[data-qr-target]');
+    if (!box || !target || typeof QRCode === 'undefined') return;
+    new QRCode(target, {
+        text: box.getAttribute('data-qr-url'),
+        width: 168,
+        height: 168,
+        colorDark: '#2A2C32',
+        colorLight: '#FFFFFF',
+        correctLevel: QRCode.CorrectLevel.M
+    });
+});
+</script>
 <?= $this->endSection() ?>

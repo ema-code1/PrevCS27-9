@@ -72,7 +72,6 @@ class Esp32Controller extends BaseController
 
         $rules = [
             'name'        => 'required|min_length[2]|max_length[150]',
-            'mac_address' => 'required|max_length[32]',
             'industry_id' => 'required|is_natural_no_zero',
         ];
 
@@ -89,20 +88,7 @@ class Esp32Controller extends BaseController
                 ->with('error', 'No tenes permiso para añadir ESP32 en ese espacio.');
         }
 
-        $mac = Esp32DeviceModel::normalizeMac((string) $this->request->getPost('mac_address'));
-        if ($mac === null) {
-            return redirect()->to(base_url('esp32/agregar'))
-                ->withInput()
-                ->with('errors', ['mac_address' => 'La MAC no es valida. Usa AA:BB:CC:DD:EE:FF.']);
-        }
-
         $deviceModel = new Esp32DeviceModel();
-        if ($deviceModel->macExists($mac)) {
-            return redirect()->to(base_url('esp32/agregar'))
-                ->withInput()
-                ->with('errors', ['mac_address' => 'Ya existe una ESP32 registrada con esa MAC.']);
-        }
-
         $token = Esp32DeviceModel::generateToken();
         $name  = trim((string) $this->request->getPost('name'));
 
@@ -112,7 +98,7 @@ class Esp32Controller extends BaseController
         $deviceId = $deviceModel->insert([
             'industry_id'  => $industryId,
             'name'         => $name,
-            'mac_address'  => $mac,
+            'mac_address'  => null, // se vincula sola en la 1.a lectura (auth por token)
             'sector'       => null,
             'token_hash'   => Esp32DeviceModel::hashToken($token),
             'token_secret' => Esp32DeviceModel::protectToken($token),
@@ -329,6 +315,7 @@ class Esp32Controller extends BaseController
             'device_name'  => $device['name'] ?? 'ESP32',
             'server_url'   => $this->publicApiUrl(),
             'device_token' => $token,
+            'return_url'   => base_url('registros-iot/' . (int) ($device['industry_id'] ?? 0)),
         ], '', '&', PHP_QUERY_RFC3986);
     }
 

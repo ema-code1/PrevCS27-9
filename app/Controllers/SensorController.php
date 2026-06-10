@@ -63,4 +63,35 @@ class SensorController extends BaseController
         return redirect()->to(base_url('esp32/' . $device['id']))
             ->with('success', 'Sensor agregado a la ESP32.');
     }
+
+    /**
+     * Borra un sensor del espacio desde el modal de configuración.
+     * Requiere admin del espacio + espacio "desbloqueado" con la clave hace < 5 min
+     * (el mismo desbloqueo que revela los tokens en IndustryController::revealTokens).
+     */
+    public function deleteFromSpace($industryId = null, $sensorId = null)
+    {
+        $userId     = (int) session('user_id');
+        $industryId = (int) $industryId;
+        $sensorId   = (int) $sensorId;
+        $back       = base_url('registros-iot?config=' . $industryId);
+
+        if ((new IndustryUserModel())->roleFor($userId, $industryId) !== IndustryUserModel::ROLE_ADMIN) {
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes permiso para administrar ese espacio.');
+        }
+
+        $unlock = session('space_unlock');
+        if (! is_array($unlock) || (int) ($unlock['id'] ?? 0) !== $industryId || (time() - (int) ($unlock['at'] ?? 0)) > 300) {
+            return redirect()->to($back)->with('error', 'Ingresá la clave del espacio para poder borrar sensores.');
+        }
+
+        $sensorModel = new Esp32SensorModel();
+        if (! $sensorModel->belongsToIndustry($sensorId, $industryId)) {
+            return redirect()->to($back)->with('error', 'Ese sensor no pertenece al espacio.');
+        }
+
+        $sensorModel->delete($sensorId);
+
+        return redirect()->to($back)->with('success', 'Sensor eliminado.');
+    }
 }

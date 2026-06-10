@@ -131,6 +131,20 @@ class Esp32DeviceModel extends Model
     }
 
     /**
+     * Busca la placa por el hash de su token. Es la identificación primaria de
+     * la API IoT: la placa se autentica por token y su MAC se vincula sola en el
+     * primer contacto (token-first). El token es aleatorio de 16 bytes → único.
+     */
+    public function findByTokenHash(string $tokenHash): ?array
+    {
+        if ($tokenHash === '') {
+            return null;
+        }
+
+        return $this->where('token_hash', $tokenHash)->first();
+    }
+
+    /**
      * Dispositivos visibles para un usuario (todas sus industrias).
      */
     public function devicesForUser(int $userId): array
