@@ -116,6 +116,7 @@
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 .pay-field input::placeholder { color: var(--text-muted); }
+.pay-field-hint { font-size: 12px; color: var(--text-muted); line-height: 1.4; }
 .pay-field input:focus {
   outline: none;
   border-color: var(--accent);
@@ -209,13 +210,37 @@
   transform: scale(1);
 }
 
-/* ─── Botón confirmar ─────────────────────────────────── */
+/* ─── Botón confirmar (autosuficiente, no depende de landing.css) ─── */
 .pay-submit {
   width: 100%;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 9px;
   margin-top: 4px;
   position: relative;
+  padding: 15px 22px;
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: var(--font-weight-semibold, 600);
+  letter-spacing: -0.005em;
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .12) inset, 0 8px 20px -8px var(--accent-ring);
+  transition: transform var(--transition-fast), background var(--transition-fast),
+              box-shadow var(--transition-fast);
 }
+.pay-submit:hover {
+  transform: translateY(-1px);
+  background: var(--accent-hover, var(--accent));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .12) inset, 0 14px 30px -10px var(--accent-ring);
+}
+.pay-submit:active { transform: translateY(0) scale(.985); }
+.pay-submit:disabled { cursor: default; }
+
 .pay-spinner {
   display: none;
   width: 16px;
@@ -226,9 +251,107 @@
   animation: pay-spin .7s linear infinite;
 }
 @keyframes pay-spin { to { transform: rotate(360deg); } }
+.pay-submit-arrow { width: 16px; height: 16px; flex: 0 0 auto; }
 .pay-submit.is-loading .pay-submit-arrow { display: none; }
 .pay-submit.is-loading .pay-spinner { display: inline-block; }
-.pay-submit.is-done { background: var(--success, #1f9d57); }
+
+/* ─── Modal de pago confirmado ────────────────────────── */
+.pay-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .28s ease;
+}
+.pay-modal.is-open { opacity: 1; pointer-events: auto; }
+.pay-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--bg) 55%, transparent);
+  backdrop-filter: blur(8px) saturate(1.1);
+  -webkit-backdrop-filter: blur(8px) saturate(1.1);
+}
+.pay-modal-card {
+  position: relative;
+  width: min(420px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: clamp(28px, 5vw, 40px) clamp(24px, 4vw, 34px);
+  background: var(--bg-card);
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .55);
+  transform: translateY(12px) scale(.97);
+  transition: transform .32s cubic-bezier(.2, .8, .2, 1);
+}
+.pay-modal.is-open .pay-modal-card { transform: translateY(0) scale(1); }
+
+.pay-modal-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--success, #1f9d57);
+  box-shadow: 0 0 0 8px color-mix(in oklab, var(--success, #1f9d57) 16%, transparent);
+}
+.pay-modal-icon svg { width: 32px; height: 32px; }
+.pay-modal-title {
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold, 600);
+}
+.pay-modal-text {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  line-height: 1.55;
+  max-width: 34ch;
+}
+.pay-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+}
+.pay-modal-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: var(--font-weight-medium, 500);
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform var(--transition-fast), background var(--transition-fast),
+              border-color var(--transition-fast), color var(--transition-fast);
+}
+.pay-modal-btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.pay-modal-btn--solid {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 20px -8px var(--accent-ring);
+}
+.pay-modal-btn--solid:hover { transform: translateY(-1px); background: var(--accent-hover, var(--accent)); color: #fff; }
+.pay-modal-btn--line {
+  background: transparent;
+  border-color: var(--hair-2);
+  color: var(--text-primary);
+}
+.pay-modal-btn--line:hover { border-color: var(--accent); color: var(--accent); }
 
 .pay-secure {
   display: flex;

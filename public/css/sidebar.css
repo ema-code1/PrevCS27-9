@@ -3,6 +3,10 @@
    ===================================================================== */
 
 .sidebar {
+  /* Light mode: the bg is now a card surface, so the on-sidebar text token
+     (a near-white meant for the old dark panel) must flip to dark ink. All
+     the color-mix(... --text-on-sidebar ...) rules below inherit this. */
+  --text-on-sidebar: var(--text-primary);
   position: sticky;
   top: calc(var(--header-height) + var(--content-gap));
   padding: 18px 14px;
@@ -10,10 +14,13 @@
   flex-direction: column;
   gap: 18px;
   align-self: start;
-  background: var(--bg-sidebar);
+  background: var(--bg-card);
   color: var(--text-on-sidebar);
   border-radius: var(--radius-lg);
   border: 1px solid var(--hair);
+  /* A touch more elevation + an accent hairline at the top so the sidebar
+     reads as distinct from the content cards without being heavy. */
+  box-shadow: var(--shadow);
   width: var(--sidebar-width);
   transition: width var(--transition-slow), padding var(--transition-slow);
   overflow: hidden;
@@ -23,6 +30,20 @@
    z-index so the tooltip paints over sibling content (kpi cards, etc) —
    .sidebar has position:sticky which traps z-index inside its stacking
    context, so this must live on the sidebar itself. */
+/* Subtle accent hairline along the top edge — a small identity cue that
+   separates the sidebar from the plain content cards. */
+.sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in oklab, var(--accent) 30%, transparent));
+  opacity: .55;
+  pointer-events: none;
+}
+
 .sidebar.is-collapsed { overflow: visible; z-index: 50; }
 .sidebar.is-collapsed {
   width: var(--sidebar-width-collapsed);
@@ -30,8 +51,11 @@
 }
 
 body[data-theme="dark"] .sidebar {
+  /* Dark panel: keep the light ink token it was originally designed for. */
+  --text-on-sidebar: #F2F1EC;
   background: var(--bg-2);
-  border-color: var(--hair);
+  border-color: var(--hair-2);
+  box-shadow: 0 1px 0 rgba(255,255,255,.03), 0 18px 40px -16px rgba(0,0,0,.6);
 }
 
 .sidebar__head {

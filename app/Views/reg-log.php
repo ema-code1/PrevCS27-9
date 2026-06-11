@@ -105,10 +105,21 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                         <span class="auth-field__label">Nombre</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">U</span>
-                            <input type="text" name="name" placeholder="Tu nombre completo" value="<?= esc(old('name')) ?>" required>
+                            <input type="text" name="nombre" placeholder="Tu nombre" value="<?= esc(old('nombre')) ?>" required>
                         </span>
-                        <?php if (isset($errors['name']) && $activeForm === 'register'): ?>
-                            <span class="auth-field__error"><?= esc($errors['name']) ?></span>
+                        <?php if (isset($errors['nombre']) && $activeForm === 'register'): ?>
+                            <span class="auth-field__error"><?= esc($errors['nombre']) ?></span>
+                        <?php endif; ?>
+                    </label>
+
+                    <label class="auth-field">
+                        <span class="auth-field__label">Apellido</span>
+                        <span class="auth-field__control">
+                            <span class="auth-field__icon">U</span>
+                            <input type="text" name="apellido" placeholder="Tu apellido" value="<?= esc(old('apellido')) ?>" required>
+                        </span>
+                        <?php if (isset($errors['apellido']) && $activeForm === 'register'): ?>
+                            <span class="auth-field__error"><?= esc($errors['apellido']) ?></span>
                         <?php endif; ?>
                     </label>
 

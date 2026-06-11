@@ -3,7 +3,7 @@
 <?php $showHeader = false; ?>
 
 <?= $this->section('pageStyles') ?>
-<link rel="stylesheet" href="<?= base_url('css/pago.css') ?>?v=20260610-1">
+<link rel="stylesheet" href="<?= base_url('css/pago.css') ?>?v=20260611-3">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -45,15 +45,30 @@
         <p class="pay-lede">Te toma menos de un minuto. Después creás tu cuenta y entrás al dashboard.</p>
       </div>
 
+<?php
+        $isLoggedIn = $isLoggedIn ?? false;
+        $userName   = $userName ?? '';
+        $userEmail  = $userEmail ?? '';
+      ?>
       <form id="payForm" class="pay-form" novalidate>
         <div class="pay-field">
           <label for="pay-name">Nombre completo</label>
-          <input type="text" id="pay-name" name="name" placeholder="Ej. Ana Pérez" autocomplete="name" required>
+          <input type="text" id="pay-name" name="name"
+                 value="<?= esc($userName, 'attr') ?>"
+                 placeholder="Ej. Ana Pérez" autocomplete="name" required>
+          <?php if ($isLoggedIn && $userName !== ''): ?>
+            <small class="pay-field-hint">Tomado de tu cuenta. Modificalo si querés usar otro nombre.</small>
+          <?php endif; ?>
         </div>
 
         <div class="pay-field">
           <label for="pay-email">Email</label>
-          <input type="email" id="pay-email" name="email" placeholder="tu@empresa.com" autocomplete="email" required>
+          <input type="email" id="pay-email" name="email"
+                 value="<?= esc($userEmail, 'attr') ?>"
+                 placeholder="tu@empresa.com" autocomplete="email" required>
+          <?php if ($isLoggedIn && $userEmail !== ''): ?>
+            <small class="pay-field-hint">Usaremos el email de tu cuenta salvo que lo cambies acá.</small>
+          <?php endif; ?>
         </div>
 
         <!-- ───────────── Método de pago ───────────── -->
@@ -97,7 +112,7 @@
           </div>
         </fieldset>
 
-        <button type="submit" class="l-btn l-btn--solid l-btn--lg pay-submit" id="payConfirm">
+        <button type="submit" class="pay-submit" id="payConfirm">
           <span class="pay-submit-label">Confirmar pago</span>
           <span class="pay-spinner" aria-hidden="true"></span>
           <svg class="pay-submit-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -154,9 +169,32 @@
   </div>
 </main>
 
+<!-- ───────────── Modal: pago confirmado ───────────── -->
+<div class="pay-modal" id="payModal" role="dialog" aria-modal="true" aria-labelledby="payModalTitle" aria-hidden="true">
+  <div class="pay-modal-overlay" data-modal-close></div>
+  <div class="pay-modal-card">
+    <span class="pay-modal-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 10 17.5 19 6.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </span>
+    <h2 class="pay-modal-title" id="payModalTitle">¡Pago confirmado!</h2>
+    <p class="pay-modal-text">Recibimos tu pago de <strong>USD&nbsp;$49.00</strong>. El siguiente paso es crear tu cuenta para entrar al dashboard.</p>
+
+    <div class="pay-modal-actions">
+      <a class="pay-modal-btn pay-modal-btn--solid" id="payModalContinue" href="<?= base_url('principal') ?>">
+        Continuar
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="pay-modal-btn pay-modal-btn--line" href="#" aria-disabled="true" title="Disponible próximamente">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M4 2.5h6l2.5 2.5v8.5a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M6 7.5h4M6 10h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Consultar factura
+      </a>
+    </div>
+  </div>
+</div>
+
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
-<script src="<?= base_url('js/pago.js') ?>?v=20260610-1" defer></script>
+<script src="<?= base_url('js/pago.js') ?>?v=20260611-3" defer></script>
 <?= $this->endSection() ?>

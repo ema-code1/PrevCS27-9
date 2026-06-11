@@ -119,7 +119,8 @@ class Auth extends BaseController
     public function register()
     {
         $rules = [
-            'name'             => 'required|min_length[3]|max_length[100]',
+            'nombre'           => 'required|min_length[2]|max_length[150]',
+            'apellido'         => 'required|min_length[2]|max_length[150]',
             'email'            => 'required|valid_email|is_unique[users.email]',
             'password'         => 'required|min_length[6]',
             'password_confirm' => 'required|matches[password]',
@@ -142,11 +143,10 @@ class Auth extends BaseController
         }
 
         $userModel = new UserModel();
-        $fullName = preg_split('/\s+/', trim((string) $this->request->getPost('name')), 2);
 
         $insertData = [
-            'nombre'        => $fullName[0] ?? '',
-            'apellido'      => $fullName[1] ?? '',
+            'nombre'        => trim((string) $this->request->getPost('nombre')),
+            'apellido'      => trim((string) $this->request->getPost('apellido')),
             'email'         => trim((string) $this->request->getPost('email')),
             'password_hash' => (string) $this->request->getPost('password'),
         ];

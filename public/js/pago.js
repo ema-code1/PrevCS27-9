@@ -17,9 +17,12 @@
     animEls.forEach((el) => { el.style.opacity = '1'; });
   } else {
     const { gsap } = window;
-    gsap.from('.pay-form-col', { opacity: 0, y: 28, duration: 0.6, ease: 'power3.out' });
-    gsap.from('.pay-summary-col', { opacity: 0, y: 28, duration: 0.6, delay: 0.12, ease: 'power3.out' });
-    gsap.to(animEls, { opacity: 1, duration: 0.01 });
+    gsap.fromTo('.pay-form-col',
+      { opacity: 0, y: 28 },
+      { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' });
+    gsap.fromTo('.pay-summary-col',
+      { opacity: 0, y: 28 },
+      { opacity: 1, y: 0, duration: 0.6, delay: 0.12, ease: 'power3.out' });
     gsap.from('.pay-method', {
       opacity: 0, y: 16, duration: 0.45, delay: 0.25, stagger: 0.1, ease: 'power2.out',
     });
@@ -69,11 +72,33 @@
     // Simula la llamada al proveedor de pago.
     window.setTimeout(() => {
       btn.classList.remove('is-loading');
-      btn.classList.add('is-done');
-      if (label) label.textContent = '¡Pago confirmado!';
-
-      // Pequeña pausa para que se lea el éxito y luego redirige al registro.
-      window.setTimeout(() => { window.location.href = NEXT_URL; }, 900);
+      if (label) label.textContent = 'Confirmar pago';
+      openModal();
     }, 1500);
+  });
+
+  /* ---------- Modal de pago confirmado ---------- */
+  const modal = document.getElementById('payModal');
+
+  function openModal() {
+    if (!modal) {
+      window.location.href = NEXT_URL;
+      return;
+    }
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    if (hasGSAP && !reduce) {
+      window.gsap.fromTo('.pay-modal-icon',
+        { scale: 0.4, rotate: -12 },
+        { scale: 1, rotate: 0, duration: 0.5, ease: 'back.out(2)', delay: 0.05 });
+    }
+    modal.querySelector('#payModalContinue')?.focus();
+  }
+
+  // El overlay no cierra el modal: el pago ya se confirmó y queremos guiar al registro.
+  // (El único cierre real es continuar al registro.)
+  document.getElementById('payModalContinue')?.addEventListener('click', () => {
+    document.body.style.overflow = '';
   });
 })();
