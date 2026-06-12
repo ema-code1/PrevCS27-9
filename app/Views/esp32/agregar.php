@@ -3,7 +3,7 @@
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260611-2">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -53,28 +53,7 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
                 <a class="btn btn--primary" href="<?= base_url('crear-espacio') ?>">Crear espacio</a>
             </section>
         <?php else: ?>
-            <section class="esp32-setup-guide">
-                <div class="esp32-setup-guide__intro">
-                    <span class="esp32-setup-guide__step">Guía de vinculación</span>
-                    <h2>Vinculá la placa sin tocar la MAC ni escribir la API</h2>
-                    <p>Solo completás el espacio y el nombre. PrevCS genera el token y, en la pantalla siguiente, te da un <strong>QR</strong> y un <strong>botón</strong> para configurar la placa. La MAC se vincula sola en la primera lectura.</p>
-                </div>
-                <div class="esp32-setup-guide__steps">
-                    <div>
-                        <span>1</span>
-                        <p>Elegí el <strong>espacio</strong> y el <strong>nombre</strong> acá abajo y tocá <strong>Vincular ESP32</strong>.</p>
-                    </div>
-                    <div>
-                        <span>2</span>
-                        <p>Conectate al WiFi <strong>PREVCS-CONFIG</strong> que crea la placa y abrí su formulario con el <strong>QR</strong> o el <strong>botón</strong>.</p>
-                    </div>
-                    <div>
-                        <span>3</span>
-                        <p>Elegí tu red WiFi en la placa y guardá. Se conecta y se <strong>vincula sola</strong>.</p>
-                    </div>
-                </div>
-            </section>
-
+            <div class="esp32-setup-layout">
             <section class="panel card esp32-form-card">
                 <form action="<?= base_url('esp32/agregar') ?>" method="post" class="auth-form" data-esp32-form>
                     <?= csrf_field() ?>
@@ -127,6 +106,26 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
                     <button type="submit" class="auth-submit">Vincular ESP32</button>
                 </form>
             </section>
+
+            <aside class="esp32-setup-guide" aria-label="Guía de vinculación">
+                <h2>Vinculá la placa</h2>
+                <p>Completás el espacio y el nombre. PrevCS genera el token y, en la pantalla siguiente, te da un <strong>QR</strong> y un <strong>botón</strong> para configurar la placa.</p>
+                <div class="esp32-setup-guide__steps">
+                    <div>
+                        <span>1</span>
+                        <p>Elegí el <strong>espacio</strong> y el <strong>nombre</strong> acá al lado y tocá <strong>Vincular ESP32</strong>.</p>
+                    </div>
+                    <div>
+                        <span>2</span>
+                        <p>Conectate al WiFi <strong>PREVCS-CONFIG</strong> que crea la placa y abrí su formulario con el <strong>QR</strong> o el <strong>botón</strong>.</p>
+                    </div>
+                    <div>
+                        <span>3</span>
+                        <p>Elegí tu red WiFi en la placa y guardá. Se conecta y se <strong>vincula sola</strong>.</p>
+                    </div>
+                </div>
+            </aside>
+            </div>
         <?php endif; ?>
     </section>
 </main>

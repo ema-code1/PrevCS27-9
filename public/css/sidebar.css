@@ -36,12 +36,16 @@
   content: "";
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  /* Inset past the card's corner radius: when collapsed the sidebar lifts
+     overflow:hidden (footer tooltip) and border-radius stops clipping this
+     bar, so it must never reach the rounded corners on its own. */
+  left: var(--radius-lg);
+  right: var(--radius-lg);
   height: 2px;
   background: linear-gradient(90deg, var(--accent), color-mix(in oklab, var(--accent) 30%, transparent));
   opacity: .55;
   pointer-events: none;
+  border-radius: 0 0 999px 999px;
 }
 
 .sidebar.is-collapsed { overflow: visible; z-index: 50; }

@@ -123,10 +123,25 @@
     /* ── Carga de la serie de un sensor ── */
     var loaded = new Set();
 
-    function loadSensor(target, force) {
+    function setSkeleton(grid, on) {
+      var chart = grid.querySelector('.iot-chart');
+      var skel = grid.querySelector('[data-sensor-skeleton]');
+      if (chart) chart.classList.toggle('is-skeleton', on);
+      if (skel) skel.hidden = !on;
+    }
+
+    function setError(grid, on) {
+      var chart = grid.querySelector('.iot-chart');
+      var err = grid.querySelector('[data-sensor-error]');
+      if (chart) chart.classList.toggle('has-error', on);
+      if (err) err.hidden = !on;
+    }
+
+    function loadSensor(target, force, isPoll) {
       var grid = document.querySelector('[data-section-pane="' + target + '"] .iot-grid');
       if (!grid) return;
       if (loaded.has(target) && !force) return;
+      var firstLoad = !loaded.has(target);
       loaded.add(target);
 
       var sensorId = grid.dataset.sensorId;
@@ -140,21 +155,34 @@
       }
 
       var card = grid.querySelector('.iot-chart-card');
-      if (card) card.classList.add('is-loading');
+      // El refresco en vivo no atenúa el gráfico ni muestra skeleton: solo
+      // pisa los datos cuando llegan (sin parpadeo).
+      if (card && !isPoll) card.classList.add('is-loading');
+      if (!isPoll) {
+        setError(grid, false);
+        if (firstLoad) setSkeleton(grid, true);
+      }
 
       fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
         .then(function (data) {
+          setSkeleton(grid, false);
+          setError(grid, false);
+
           var points = data.points || [];
           drawLine(grid, points);
 
           var latestEl = grid.querySelector('[data-sensor-latest]');
+          var latestAtEl = grid.querySelector('[data-sensor-latest-at]');
           var obsEl = grid.querySelector('[data-sensor-observation]');
           var histEl = grid.querySelector('[data-sensor-history]');
           var rangeNote = (range && range.from) ? ' (rango filtrado)' : '';
 
           if (data.latest !== null && data.latest !== undefined) {
             if (latestEl) latestEl.textContent = data.latest + ' ' + unit;
+            if (latestAtEl && points.length) {
+              latestAtEl.textContent = points[points.length - 1].at || points[points.length - 1].label || '—';
+            }
             var obs = 'Última medición: ' + data.latest + ' ' + unit + '. ' +
               points.length + ' lecturas' + rangeNote + '.';
             if (code === 'rpm') {
@@ -165,6 +193,13 @@
             obsEl.textContent = range && range.from
               ? 'Sin lecturas en el rango seleccionado.'
               : 'Sin lecturas todavía para este sensor.';
+          }
+
+          // "Última: <ts>" del encabezado de la placa (vista detalle):
+          // sin filtro de rango, la cola de la serie es la última lectura real.
+          var headLast = document.querySelector('[data-device-last-seen]');
+          if (headLast && points.length && !(range && range.from)) {
+            headLast.textContent = points[points.length - 1].at || headLast.textContent;
           }
 
           if (histEl) {
@@ -180,11 +215,36 @@
         })
         .catch(function () {
           loaded.delete(target);
+          // Un fallo del refresco en vivo no rompe lo ya dibujado: se
+          // reintenta solo en el próximo ciclo.
+          if (isPoll) return;
+          setSkeleton(grid, false);
+          setError(grid, true);
           var histEl = grid.querySelector('[data-sensor-history]');
           if (histEl) histEl.innerHTML = '<p class="text-muted">No se pudieron cargar las lecturas.</p>';
         })
         .finally(function () { if (card) card.classList.remove('is-loading'); });
     }
+
+    /* ── Reintentar tras un error de red ── */
+    document.querySelectorAll('[data-sensor-retry]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var pane = btn.closest('[data-section-pane]');
+        if (pane) loadSensor(pane.dataset.sectionPane, true);
+      });
+    });
+
+    /* ── "Live" de verdad: refresco periódico del sensor visible ── */
+    var POLL_MS = 15000;
+    setInterval(function () {
+      if (document.hidden) return;
+      var active = document.querySelector('.section-pane.is-active');
+      if (!active) return;
+      var grid = active.querySelector('.iot-grid');
+      // Con un rango histórico aplicado no hay nada "vivo" que refrescar.
+      if (!grid || grid._range) return;
+      loadSensor(active.dataset.sectionPane, true, true);
+    }, POLL_MS);
 
     /* ── Date range selector → recarga la serie del sensor ── */
     document.querySelectorAll('.iot-grid').forEach(function (grid) {

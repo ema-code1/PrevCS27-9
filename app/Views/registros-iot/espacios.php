@@ -2,10 +2,10 @@
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>">
+<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260611-2">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260609-1">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260611-2">
+<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260611-2">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -16,8 +16,8 @@
         <header class="dashboard-head card">
             <div>
                 <p class="dashboard-head__eyebrow">Monitoreo de dispositivos</p>
-                <h1>Registros IoT</h1>
-                <p class="dashboard-head__text">Elegí un espacio para ver los gráficos de sus sensores en tiempo real.</p>
+                <h1>Mis espacios</h1>
+                <p class="dashboard-head__text">Desplegá un espacio para ver sus ESP32 y entrar a los gráficos de cada placa.</p>
             </div>
             <div class="dashboard-head__meta">
                 <span class="badge badge--info"><?= count($industries) ?> espacio<?= count($industries) === 1 ? '' : 's' ?></span>
@@ -43,12 +43,24 @@
                 <a href="<?= base_url('crear-espacio') ?>" class="btn btn--primary">Crear espacio</a>
             </section>
         <?php else: ?>
-            <div class="esp32-grid">
+            <a class="iot-acc__add iot-create-space" href="<?= base_url('crear-espacio') ?>">
+                <span aria-hidden="true">+</span> Crear espacio
+            </a>
+
+            <div class="iot-acc-list">
                 <?php foreach ($industries as $ind): ?>
                     <?php $isAdmin = $ind['role'] === 'admin_principal'; ?>
-                    <article class="esp32-card card iot-space-card" data-space-card>
-                        <div class="esp32-card__head">
-                            <h3><?= esc($ind['space_name']) ?></h3>
+                    <article class="esp32-card card iot-space-card iot-acc" data-acc<?= (int) ($openConfigId ?? 0) === (int) $ind['id'] ? ' data-acc-start-open' : '' ?>>
+                        <div class="iot-acc__head" data-acc-toggle role="button" tabindex="0" aria-label="Desplegar <?= esc($ind['space_name']) ?>">
+                            <div class="iot-acc__info">
+                                <div class="esp32-card__head">
+                                    <h3><?= esc($ind['space_name']) ?></h3>
+                                </div>
+                                <p class="esp32-card__sub">
+                                    <?= esc($ind['company_name']) ?><?= ! empty($ind['sector']) ? ' - ' . esc($ind['sector']) : '' ?>
+                                </p>
+                                <p class="text-muted mono"><?= (int) $ind['device_count'] ?> ESP32 - <?= esc($ind['industry_uid']) ?></p>
+                            </div>
                             <div class="iot-space-card__top-actions">
                                 <span class="badge <?= $isAdmin ? 'badge--success' : 'badge--info' ?>">
                                     <?= $isAdmin ? 'Admin' : 'Supervisor' ?>
@@ -63,19 +75,40 @@
                                         </div>
                                     </div>
                                 <?php endif; ?>
+                                <span class="iot-acc__chevron" data-acc-chevron aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" fill="none"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </span>
                             </div>
                         </div>
 
-                        <p class="esp32-card__sub">
-                            <?= esc($ind['company_name']) ?><?= ! empty($ind['sector']) ? ' - ' . esc($ind['sector']) : '' ?>
-                        </p>
-                        <p class="text-muted mono"><?= (int) $ind['device_count'] ?> ESP32 - <?= esc($ind['industry_uid']) ?></p>
+                        <div class="iot-acc__panel">
+                            <div class="iot-acc__panel-inner">
+                                <?php if (($ind['devices'] ?? []) === []): ?>
+                                    <p class="text-muted iot-acc__empty">Este espacio todavía no tiene ESP32 vinculadas.</p>
+                                <?php else: ?>
+                                    <div class="iot-acc__esp-list">
+                                        <?php foreach ($ind['devices'] as $device): ?>
+                                            <a class="iot-acc__esp" href="<?= base_url('esp32/' . $device['id']) ?>">
+                                                <span class="iot-acc__esp-status">
+                                                    <span class="dot <?= ($device['status'] ?? '') === 'online' ? 'dot--live' : '' ?>"></span>
+                                                </span>
+                                                <span class="iot-acc__esp-id">
+                                                    <strong><?= esc($device['name']) ?></strong>
+                                                    <code><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : 'Sin vincular' ?></code>
+                                                </span>
+                                                <span class="iot-acc__esp-meta mono"><?= esc($device['last_seen_at'] ?? '—') ?></span>
+                                                <svg class="iot-acc__esp-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                            </a>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
 
-                        <div class="esp32-card__actions">
-                            <a href="<?= base_url('registros-iot/' . $ind['id']) ?>" class="btn btn--primary">Registros IoT</a>
-                            <?php if ($isAdmin): ?>
-                                <a href="<?= base_url('esp32/agregar?industry_id=' . $ind['id']) ?>" class="btn btn--secondary">Vincular ESP32</a>
-                            <?php endif; ?>
+                                <?php if ($isAdmin): ?>
+                                    <a class="iot-acc__add" href="<?= base_url('esp32/agregar?industry_id=' . $ind['id']) ?>">
+                                        <span aria-hidden="true">+</span> Vincular ESP32
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </article>
                 <?php endforeach; ?>
@@ -97,7 +130,7 @@
                             </button>
                         </header>
 
-                        <div class="space-modal__body">
+                        <div class="space-modal__body" data-lenis-prevent>
                             <!-- 1) Datos del espacio -->
                             <section class="space-modal__section">
                                 <h4>Datos del espacio</h4>
@@ -146,7 +179,8 @@
                                                 <small><?= esc($member['email']) ?> - <?= $member['role'] === 'admin_principal' ? 'Admin' : 'Supervisor' ?></small>
                                             </div>
                                             <?php if ($member['role'] !== 'admin_principal'): ?>
-                                                <form action="<?= base_url('espacios/' . $ind['id'] . '/miembros/' . $member['id'] . '/eliminar') ?>" method="post">
+                                                <form action="<?= base_url('espacios/' . $ind['id'] . '/miembros/' . $member['id'] . '/eliminar') ?>" method="post"
+                                                      data-confirm="¿Quitar a <?= esc(trim(($member['nombre'] ?? '') . ' ' . ($member['apellido'] ?? '')) ?: $member['email']) ?> del espacio? Va a perder el acceso a los registros.">
                                                     <?= csrf_field() ?>
                                                     <button type="submit" class="iot-danger-link">Quitar</button>
                                                 </form>
@@ -195,7 +229,8 @@
                                                         <strong><?= esc($sensor['label'] ?: $sensor['name']) ?></strong>
                                                         <small><?= esc($sensor['device_name']) ?> · <?= esc($sensor['name']) ?><?= ! empty($sensor['unit']) ? ' (' . esc($sensor['unit']) . ')' : '' ?></small>
                                                     </div>
-                                                    <form action="<?= base_url('espacios/' . $ind['id'] . '/sensores/' . $sensor['id'] . '/eliminar') ?>" method="post" onsubmit="return confirm('¿Borrar este sensor? Se eliminan también sus lecturas.');">
+                                                    <form action="<?= base_url('espacios/' . $ind['id'] . '/sensores/' . $sensor['id'] . '/eliminar') ?>" method="post"
+                                                          data-confirm="¿Borrar el sensor &quot;<?= esc($sensor['label'] ?: $sensor['name']) ?>&quot;? Se eliminan también todas sus lecturas.">
                                                         <?= csrf_field() ?>
                                                         <button type="submit" class="iot-danger-link">Borrar</button>
                                                     </form>
@@ -209,70 +244,44 @@
                     </div>
                 </div>
             <?php endforeach; ?>
+
+            <!-- Confirmación de acciones destructivas (reemplaza al confirm() nativo) -->
+            <div class="space-modal iot-confirm" data-space-modal data-confirm-modal hidden>
+                <div class="space-modal__backdrop" data-modal-dismiss></div>
+                <div class="space-modal__dialog card iot-confirm__dialog" role="alertdialog" aria-modal="true" aria-labelledby="iot-confirm-title">
+                    <header class="space-modal__head">
+                        <div>
+                            <h3 id="iot-confirm-title">¿Estás seguro?</h3>
+                        </div>
+                        <button type="button" class="space-modal__close" data-modal-dismiss aria-label="Cerrar">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                        </button>
+                    </header>
+                    <div class="space-modal__body" data-lenis-prevent>
+                        <p class="iot-confirm__text" data-confirm-text>Esta acción no se puede deshacer.</p>
+                        <div class="iot-confirm__actions">
+                            <button type="button" class="btn btn--secondary" data-modal-dismiss>Cancelar</button>
+                            <button type="button" class="btn btn--danger" data-confirm-accept>Sí, continuar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         <?php endif; ?>
     </section>
 </main>
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260611-1" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // ─── Kebab (menú de opciones por tarjeta) ───────────────────────
-    document.querySelectorAll('[data-kebab]').forEach(function (wrap) {
-        const button = wrap.querySelector('[data-kebab-button]');
-        const menu = wrap.querySelector('[data-kebab-menu]');
-
-        button?.addEventListener('click', function (event) {
-            event.stopPropagation();
-            const willOpen = menu.hidden;
-            document.querySelectorAll('[data-kebab-menu]').forEach((item) => item.hidden = true);
-            document.querySelectorAll('[data-kebab-button]').forEach((item) => item.setAttribute('aria-expanded', 'false'));
-            menu.hidden = !willOpen;
-            button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-        });
+    // Si la página volvió con ?config=<id> (desbloqueo / borrado), dejar
+    // desplegado el acordeón de ese espacio para mantener el contexto.
+    document.querySelectorAll('[data-acc-start-open]').forEach(function (acc) {
+        acc.classList.add('is-open');
+        var chevron = acc.querySelector('[data-acc-chevron]');
+        if (chevron) chevron.setAttribute('aria-expanded', 'true');
     });
-
-    document.addEventListener('click', function () {
-        document.querySelectorAll('[data-kebab-menu]').forEach((item) => item.hidden = true);
-        document.querySelectorAll('[data-kebab-button]').forEach((item) => item.setAttribute('aria-expanded', 'false'));
-    });
-
-    // ─── Modal de configuración del espacio ─────────────────────────
-    function syncBody() {
-        document.body.classList.toggle('has-modal-open', !!document.querySelector('[data-space-modal]:not([hidden])'));
-    }
-    function openModal(modal) {
-        if (!modal) return;
-        modal.hidden = false;
-        syncBody();
-    }
-    function closeModal(modal) {
-        if (!modal) return;
-        modal.hidden = true;
-        syncBody();
-    }
-
-    document.querySelectorAll('[data-open-modal]').forEach(function (btn) {
-        btn.addEventListener('click', function (event) {
-            event.stopPropagation();
-            openModal(document.getElementById(btn.getAttribute('data-open-modal')));
-        });
-    });
-
-    document.querySelectorAll('[data-modal-dismiss]').forEach(function (el) {
-        el.addEventListener('click', function () {
-            closeModal(el.closest('[data-space-modal]'));
-        });
-    });
-
-    document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') {
-            document.querySelectorAll('[data-space-modal]:not([hidden])').forEach(closeModal);
-        }
-    });
-
-    // Si se abrió vía ?config=<id> (tras desbloquear o borrar), marcar el body.
-    syncBody();
 });
 </script>
 <?= $this->endSection() ?>

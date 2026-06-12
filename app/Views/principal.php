@@ -48,7 +48,7 @@ $lastReading = $dashboard['last_reading_at'] ?? null;
                 <?php else: ?>
                     <h2>ESP32 lista</h2>
                     <p>Falta la primera lectura. Entra a la placa para ver token y link listo para 192.168.4.1.</p>
-                    <a class="btn btn--primary" href="<?= base_url('esp32') ?>">Ver ESP32</a>
+                    <a class="btn btn--primary" href="<?= base_url('registros-iot') ?>">Ver ESP32</a>
                 <?php endif; ?>
             </section>
         <?php endif; ?>
@@ -59,7 +59,7 @@ $lastReading = $dashboard['last_reading_at'] ?? null;
                 <strong><?= (int) $dashboard['spaces_count'] ?></strong>
                 <small class="text-muted mono">creados</small>
             </a>
-            <a class="kpi-card card" href="<?= base_url('esp32') ?>">
+            <a class="kpi-card card" href="<?= base_url('registros-iot') ?>">
                 <p>ESP32</p>
                 <strong><?= (int) $dashboard['devices_count'] ?></strong>
                 <small class="text-muted mono"><?= (int) $dashboard['active_devices'] ?> activas 24h</small>

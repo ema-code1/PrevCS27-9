@@ -303,6 +303,9 @@ img, svg { display: block; max-width: 100%; }
   padding: var(--content-gap);
   align-items: start;
   min-height: calc(100vh - var(--header-height));
+  /* El colapso del sidebar cambia la columna de la grilla: animarla para
+     que el contenido acompañe al sidebar en vez de saltar de golpe. */
+  transition: grid-template-columns var(--transition-slow);
 }
 .page > .sidebar.is-collapsed ~ .content-area,
 .page:has(.sidebar.is-collapsed) {
@@ -387,6 +390,13 @@ img, svg { display: block; max-width: 100%; }
   background: transparent;
 }
 .btn--ghost:hover { background: var(--hair); }
+
+.btn--danger {
+  background: var(--error);
+  color: #fff;
+  box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 6px 16px -6px var(--error-soft);
+}
+.btn--danger:hover { transform: translateY(-1px); color: #fff; filter: brightness(.96); }
 
 .btn--lg { padding: 14px 22px; font-size: 15.5px; }
 .btn--sm { padding: 6px 12px; font-size: 13px; }
@@ -548,6 +558,7 @@ input:focus, select:focus, textarea:focus {
 
 /* ─────────────────────────────── SECTION SWITCH (tabs) ──── */
 .section-switch {
+  position: relative;
   display: inline-flex;
   gap: 4px;
   padding: 4px;
@@ -556,7 +567,7 @@ input:focus, select:focus, textarea:focus {
   width: max-content;
   background: var(--bg-card);
 }
-.section-switch__radio { position: relative; }
+.section-switch__radio { position: relative; z-index: 1; }
 .section-switch__radio input {
   position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; padding: 0; border: 0;
 }
@@ -574,6 +585,31 @@ input:focus, select:focus, textarea:focus {
 .section-switch__radio:has(input:checked) .section-switch__name {
   background: var(--text-primary);
   color: var(--bg);
+}
+/* Píldora negra deslizante (la posiciona JS en prevcs-ui.js): el fondo de
+   la opción activa pasa a ser este indicador, que se desliza entre opciones
+   igual que el segmented del reg-log. Sin JS queda el fallback de arriba. */
+.section-switch__indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  width: 0;
+  border-radius: var(--radius-pill);
+  background: var(--text-primary);
+  pointer-events: none;
+  z-index: 0;
+  transition:
+    transform 280ms cubic-bezier(.22, 1, .36, 1),
+    width 280ms cubic-bezier(.22, 1, .36, 1);
+}
+.section-switch__indicator.is-jump { transition: none; }
+.section-switch--js .section-switch__radio:has(input:checked) .section-switch__name {
+  background: transparent;
+  color: var(--bg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .section-switch__indicator { transition-duration: 1ms; }
 }
 
 /* section panes — slide horizontal + fade (sensacion direccional) */

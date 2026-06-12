@@ -15,15 +15,8 @@ class Esp32Controller extends BaseController
 {
     public function index()
     {
-        $userId = (int) session('user_id');
-
-        return view('esp32/listado', [
-            'title'      => 'Mis ESP32 | Preventive Control System',
-            'activeMenu' => 'esp32',
-            'devices'    => (new Esp32DeviceModel())->devicesForUser($userId),
-            'newToken'   => session('new_device_token'),
-            'newDevice'  => session('new_device_name'),
-        ]);
+        // El listado de placas vive ahora dentro de "Mis espacios" (acordeón por espacio).
+        return redirect()->to(base_url('registros-iot'));
     }
 
     public function createForm()
@@ -56,7 +49,7 @@ class Esp32Controller extends BaseController
 
         return view('esp32/agregar', [
             'title'              => 'Añadir ESP | Preventive Control System',
-            'activeMenu'         => 'esp32',
+            'activeMenu'         => 'registros-iot',
             'industries'         => $adminSpaces,
             'selectedIndustry'   => $selectedIndustry,
             'metricsByIndustry'  => $metricsByIndustry,
@@ -131,7 +124,7 @@ class Esp32Controller extends BaseController
     {
         $device = $this->findAccessibleDevice((int) $id);
         if ($device === null) {
-            return redirect()->to(base_url('esp32'))->with('error', 'No tenes acceso a esa ESP32.');
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes acceso a esa ESP32.');
         }
 
         $sensorModel  = new Esp32SensorModel();
@@ -158,7 +151,7 @@ class Esp32Controller extends BaseController
 
         return view('esp32/detalle', [
             'title'          => esc($device['name']) . ' | ESP32',
-            'activeMenu'     => 'esp32',
+            'activeMenu'     => 'registros-iot',
             'device'         => $device,
             'sensors'        => $sensors,
             'availableTypes' => $availableTypes,
@@ -173,7 +166,7 @@ class Esp32Controller extends BaseController
     {
         $device = $this->findAccessibleDevice((int) $id);
         if ($device === null) {
-            return redirect()->to(base_url('esp32'))->with('error', 'No tenes acceso a esa ESP32.');
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes acceso a esa ESP32.');
         }
 
         $industry = (new IndustryModel())->find((int) $device['industry_id']);

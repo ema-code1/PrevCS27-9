@@ -19,9 +19,10 @@
   position: absolute;
   inset: 0;
   background: rgba(11, 12, 14, .42);
-  backdrop-filter: saturate(1.1) blur(2px);
-  -webkit-backdrop-filter: saturate(1.1) blur(2px);
-  animation: spaceModalFade 160ms ease;
+  /* Desenfoca el fondo para que el modal sea el único foco. */
+  backdrop-filter: saturate(1.1) blur(7px);
+  -webkit-backdrop-filter: saturate(1.1) blur(7px);
+  animation: spaceModalFade 200ms ease;
 }
 
 .space-modal__dialog {
@@ -40,6 +41,29 @@
 @keyframes spaceModalPop {
   from { opacity: 0; transform: translateY(8px) scale(.98); }
   to   { opacity: 1; transform: none; }
+}
+
+/* Animación de salida: prevcs-ui.js agrega .is-closing y oculta el modal
+   recién cuando termina la animación del diálogo. */
+.space-modal.is-closing .space-modal__backdrop {
+  animation: spaceModalFadeOut 180ms ease forwards;
+}
+.space-modal.is-closing .space-modal__dialog {
+  animation: spaceModalPopOut 180ms cubic-bezier(.2, .7, .2, 1) forwards;
+}
+@keyframes spaceModalFadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes spaceModalPopOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(8px) scale(.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space-modal__backdrop,
+  .space-modal__dialog,
+  .space-modal.is-closing .space-modal__backdrop,
+  .space-modal.is-closing .space-modal__dialog {
+    animation-duration: 1ms;
+  }
 }
 
 .space-modal__head {
@@ -85,6 +109,10 @@
   overflow-y: auto;
   display: grid;
   gap: var(--space-lg);
+  /* Sin esto el item flex no puede encogerse y el scroll interno nunca
+     se activa (el diálogo lo recorta). */
+  min-height: 0;
+  overscroll-behavior: contain;
 }
 
 .space-modal__section {

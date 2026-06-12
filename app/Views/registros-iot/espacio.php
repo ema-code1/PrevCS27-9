@@ -2,9 +2,9 @@
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>">
+<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260611-2">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260611-2">
 <link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
 <?= $this->endSection() ?>
 
@@ -18,7 +18,7 @@
                 <p class="dashboard-head__eyebrow">
                     <a href="<?= base_url('registros-iot') ?>" class="esp32-back">
                         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m12 5-5 5 5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        Registros IoT
+                        Mis espacios
                     </a>
                 </p>
                 <h1><?= esc($industry['space_name']) ?></h1>
@@ -94,7 +94,7 @@
                                     <span class="badge badge--info"><?= esc($s['device_name']) ?> · <?= esc($s['default_chart']) ?></span>
                                 </div>
                             </div>
-                            <div class="iot-chart">
+                            <div class="iot-chart is-skeleton">
                                 <svg class="iot-line-chart" viewBox="0 0 640 360" role="img" aria-label="Gráfico de <?= esc($s['name']) ?>">
                                     <g class="iot-line-chart__grid">
                                         <line x1="78" y1="48" x2="600" y2="48"></line>
@@ -111,6 +111,20 @@
                                     <polyline class="iot-line-chart__stroke" data-sensor-line points=""></polyline>
                                     <g data-sensor-points></g>
                                 </svg>
+                                <div class="iot-chart__skeleton" data-sensor-skeleton aria-hidden="true">
+                                    <span class="iot-skel" style="height:42%"></span>
+                                    <span class="iot-skel" style="height:64%"></span>
+                                    <span class="iot-skel" style="height:50%"></span>
+                                    <span class="iot-skel" style="height:74%"></span>
+                                    <span class="iot-skel" style="height:58%"></span>
+                                    <span class="iot-skel" style="height:82%"></span>
+                                    <span class="iot-skel" style="height:46%"></span>
+                                    <span class="iot-skel" style="height:66%"></span>
+                                </div>
+                                <div class="iot-chart__error" data-sensor-error hidden>
+                                    <p>No se pudieron cargar las lecturas. Revisá tu conexión.</p>
+                                    <button type="button" class="btn btn--secondary btn--sm" data-sensor-retry>Reintentar</button>
+                                </div>
                                 <p class="esp32-chart-empty" data-sensor-empty hidden>Sin lecturas todavía para este sensor.</p>
                             </div>
                         </section>
@@ -126,7 +140,7 @@
                                             <?= $s['latest_value'] !== null ? esc($s['latest_value']) . ' ' . esc($s['unit'] ?? '') : '—' ?>
                                         </dd>
                                     </div>
-                                    <div><dt>Registrada</dt><dd class="mono"><?= esc($s['latest_at'] ?? '—') ?></dd></div>
+                                    <div><dt>Registrada</dt><dd class="mono" data-sensor-latest-at><?= esc($s['latest_at'] ?? '—') ?></dd></div>
                                 </dl>
                             </aside>
 
@@ -138,7 +152,11 @@
                             <aside class="panel card">
                                 <div class="panel__header"><h3>Historial</h3></div>
                                 <div class="esp32-history" data-sensor-history>
-                                    <p class="text-muted">Cargando…</p>
+                                    <div class="iot-skel-rows" aria-hidden="true">
+                                        <span class="iot-skel"></span>
+                                        <span class="iot-skel"></span>
+                                        <span class="iot-skel"></span>
+                                    </div>
                                 </div>
                             </aside>
                         </div>
@@ -152,5 +170,6 @@
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
-<script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260609-1" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260611-1" defer></script>
+<script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260611-1" defer></script>
 <?= $this->endSection() ?>
