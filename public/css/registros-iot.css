@@ -838,3 +838,237 @@ body[data-theme="dark"] .iot-illustration__image { filter: drop-shadow(0 12px 32
   .iot-date-controls { grid-template-columns: 1fr; }
   .iot-date-field--range { grid-column: auto; }
 }
+
+/* =====================================================================
+   Acordeon de espacios (registros-iot/espacios.php · "Mis espacios")
+   ===================================================================== */
+.iot-acc-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--content-gap);
+}
+
+.iot-acc { cursor: default; }
+
+.iot-acc__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+}
+.iot-acc__head:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.iot-acc__info {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.iot-acc__info > p { margin: 0; }
+
+.iot-acc__chevron {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: transform 280ms cubic-bezier(.22, 1, .36, 1), color var(--transition-fast);
+}
+.iot-acc__chevron svg { width: 20px; height: 20px; }
+.iot-acc__head:hover .iot-acc__chevron { color: var(--text-primary); }
+.iot-acc.is-open .iot-acc__chevron { transform: rotate(180deg); }
+
+/* Panel desplegable: el truco 0fr -> 1fr anima la altura de forma fluida
+   sin max-height magico. */
+.iot-acc__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 320ms cubic-bezier(.22, 1, .36, 1);
+}
+.iot-acc.is-open .iot-acc__panel { grid-template-rows: 1fr; }
+
+.iot-acc__panel-inner {
+  overflow: hidden;
+  min-height: 0;
+  display: grid;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 240ms ease, transform 280ms cubic-bezier(.22, 1, .36, 1);
+}
+.iot-acc.is-open .iot-acc__panel-inner {
+  opacity: 1;
+  transform: none;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--hair);
+}
+
+.iot-acc__empty { margin: 0; font-size: var(--font-size-sm); }
+
+.iot-acc__esp-list {
+  display: grid;
+  gap: 6px;
+}
+
+.iot-acc__esp {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  background: var(--bg-card-soft);
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+.iot-acc__esp:hover {
+  border-color: var(--hair-2);
+  background: var(--bg-card);
+  transform: translateX(2px);
+}
+.iot-acc__esp-status { display: grid; place-items: center; }
+.iot-acc__esp-id {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.iot-acc__esp-id strong {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.iot-acc__esp-id code {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+.iot-acc__esp-meta {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+.iot-acc__esp-arrow {
+  width: 16px;
+  height: 16px;
+  color: var(--text-faint);
+  transition: transform var(--transition-fast), color var(--transition-fast);
+}
+.iot-acc__esp:hover .iot-acc__esp-arrow {
+  color: var(--text-primary);
+  transform: translateX(2px);
+}
+
+.iot-acc__add {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px dashed var(--hair-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+.iot-acc__add:hover {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+  background: var(--bg-card-soft);
+}
+
+@media (max-width: 560px) {
+  .iot-acc__esp { grid-template-columns: auto 1fr auto; }
+  .iot-acc__esp-meta { display: none; }
+}
+
+/* =====================================================================
+   Modal de confirmacion (acciones destructivas)
+   ===================================================================== */
+.iot-confirm__dialog { width: min(420px, 100%); }
+.iot-confirm__text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.iot-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* =====================================================================
+   Skeletons (estado de carga de graficos e historial)
+   ===================================================================== */
+.iot-skel {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklab, var(--text-muted) 12%, transparent);
+}
+.iot-skel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--bg-card) 65%, transparent), transparent);
+  animation: iotSkelShimmer 1.4s ease-in-out infinite;
+}
+@keyframes iotSkelShimmer { to { transform: translateX(100%); } }
+
+.iot-skel-rows { display: grid; gap: 8px; }
+.iot-skel-rows .iot-skel { height: 30px; }
+.iot-skel-rows .iot-skel:nth-child(2) { opacity: .75; }
+.iot-skel-rows .iot-skel:nth-child(3) { opacity: .5; }
+
+/* Overlay con forma de grafico mientras llega la primera serie */
+.iot-chart__skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 12% 4% 14% 14%;
+}
+.iot-chart__skeleton .iot-skel { flex: 1; }
+.iot-chart__skeleton[hidden] { display: none; }
+.iot-chart.is-skeleton .iot-line-chart { opacity: 0; }
+
+/* Estado de error de la peticion (sin conexion / API caida) */
+.iot-chart__error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: var(--space-md);
+}
+.iot-chart__error[hidden] { display: none; }
+.iot-chart__error p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+.iot-chart.has-error .iot-line-chart { opacity: .15; }
+
+@media (prefers-reduced-motion: reduce) {
+  .iot-skel::after { animation-duration: 3s; }
+  .iot-acc__panel,
+  .iot-acc__panel-inner,
+  .iot-acc__chevron { transition-duration: 1ms; }
+}
+
+/* Boton "Crear espacio" bajo el encabezado de Mis espacios: discreto pero
+   a la vista (mismo lenguaje punteado que "+ Vincular ESP32"). */
+.iot-create-space {
+  align-self: flex-start;
+  margin-top: calc(-1 * (var(--content-gap) - 10px));
+}

@@ -13,9 +13,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>?v=20260611-2">
     <link rel="stylesheet" href="<?= base_url('css/header.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>?v=20260611-2">
     <link rel="stylesheet" href="<?= base_url('css/password-toggle.css') ?>?v=20260609-2">
     <?= $this->renderSection('pageStyles') ?>
 

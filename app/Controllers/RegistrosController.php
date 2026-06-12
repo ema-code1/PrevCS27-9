@@ -35,15 +35,15 @@ class RegistrosController extends BaseController
         foreach ($industries as &$ind) {
             $devices = $deviceModel->devicesForIndustry((int) $ind['id']);
             $ind['device_count'] = count($devices);
+            // Lista de placas del acordeón: visible para cualquier miembro del espacio.
+            $ind['devices'] = $devices;
 
             // El modal de configuración (miembros, tokens, sensores) es solo de admin.
             if ($ind['role'] === IndustryUserModel::ROLE_ADMIN) {
                 $ind['members'] = $membershipModel->membersForIndustry((int) $ind['id']);
-                $ind['devices'] = $devices;
                 $ind['sensors'] = $sensorModel->sensorsForIndustry((int) $ind['id']);
             } else {
                 $ind['members'] = [];
-                $ind['devices'] = [];
                 $ind['sensors'] = [];
             }
         }
@@ -60,7 +60,7 @@ class RegistrosController extends BaseController
         }
 
         return view('registros-iot/espacios', [
-            'title'           => 'Registros IoT | Preventive Control System',
+            'title'           => 'Mis espacios | Preventive Control System',
             'activeMenu'      => 'registros-iot',
             'industries'      => $industries,
             'openConfigId'    => (int) ($this->request->getGet('config') ?? 0),

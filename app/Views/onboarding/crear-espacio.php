@@ -45,9 +45,18 @@ $chartLabels = [
                     <span class="wizard-stepper__fill" data-step-line-fill></span>
                 </span>
                 <ol class="wizard-steps" data-wizard-indicator>
-                    <li class="wizard-steps__item is-active" data-step-dot="1"><span>1</span> Espacio</li>
-                    <li class="wizard-steps__item" data-step-dot="2"><span>2</span> Seguridad</li>
-                    <li class="wizard-steps__item" data-step-dot="3"><span>3</span> Sensores</li>
+                    <li class="wizard-steps__item is-active" data-step-dot="1">
+                        <span class="wizard-steps__label">Espacio</span>
+                        <span class="wizard-steps__dot">1</span>
+                    </li>
+                    <li class="wizard-steps__item" data-step-dot="2">
+                        <span class="wizard-steps__label">Seguridad</span>
+                        <span class="wizard-steps__dot">2</span>
+                    </li>
+                    <li class="wizard-steps__item" data-step-dot="3">
+                        <span class="wizard-steps__label">Sensores</span>
+                        <span class="wizard-steps__dot">3</span>
+                    </li>
                 </ol>
             </div>
 
@@ -183,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ── Línea de progreso del stepper (calculada sobre la posición real de los puntos) ── */
     function layoutStepLine() {
         if (!stepper || !stepLine || dots.length < 2) return;
-        const spans = dots.map((dot) => dot.querySelector('span'));
+        const spans = dots.map((dot) => dot.querySelector('.wizard-steps__dot'));
         const base = stepper.getBoundingClientRect();
         const first = spans[0].getBoundingClientRect();
         const last = spans[spans.length - 1].getBoundingClientRect();

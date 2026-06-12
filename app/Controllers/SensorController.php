@@ -18,7 +18,7 @@ class SensorController extends BaseController
         $device = (new Esp32DeviceModel())->find((int) $deviceId);
 
         if ($device === null) {
-            return redirect()->to(base_url('esp32'))->with('error', 'ESP32 no encontrada.');
+            return redirect()->to(base_url('registros-iot'))->with('error', 'ESP32 no encontrada.');
         }
 
         $membership = new IndustryUserModel();
