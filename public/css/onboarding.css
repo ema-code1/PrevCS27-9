@@ -83,23 +83,30 @@
     z-index: 1;
     list-style: none;
     margin: 0;
-    padding: 0;
+    /* Espacio superior reservado para las etiquetas, que van arriba de los puntos. */
+    padding: 26px 0 0;
     display: flex;
-    flex-wrap: wrap;
-    gap: 50px;
     justify-content: space-between;
 }
 
 .wizard-steps__item {
+    position: relative;
     display: inline-flex;
-    align-items: center;
-    gap: 8px;
     font-size: var(--font-size-sm);
     color: var(--text-faint);
     transition: color var(--transition-fast);
 }
 
-.wizard-steps__item span {
+/* Etiqueta centrada arriba de cada punto, así la línea no la tapa. */
+.wizard-steps__label {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+}
+
+.wizard-steps__dot {
     width: 26px;
     height: 26px;
     border-radius: var(--radius-pill);
@@ -113,7 +120,7 @@
 }
 
 .wizard-steps__item.is-active { color: var(--text-primary); }
-.wizard-steps__item.is-active span {
+.wizard-steps__item.is-active .wizard-steps__dot {
     background: var(--accent);
     color: var(--text-on-active);
 }

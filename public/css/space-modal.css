@@ -150,10 +150,16 @@
 .space-modal__unlock {
   display: flex;
   gap: 8px;
-  align-items: stretch;
+  /* center (no stretch): el wrapper del toggle de contraseña hacía crecer
+     al botón "Desbloquear" más alto de lo debido. */
+  align-items: center;
 }
 .space-modal__unlock input { flex: 1; }
-.space-modal__unlock .btn { white-space: nowrap; }
+.space-modal__unlock .pcs-pw-wrap { flex: 1; }
+.space-modal__unlock .btn {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
 
 .space-modal__unlocked {
   margin: 0;

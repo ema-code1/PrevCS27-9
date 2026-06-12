@@ -1,0 +1,81 @@
+/* ─────────────────────────────────────────────────────────────────
+   PrevCS · Toasts (notificaciones emergentes, esquina superior derecha)
+   Las crea prevcs-ui.js: convierte los flash banners (.auth-alert) y
+   expone window.PrevcsToast.show(mensaje, tipo, duracionMs).
+   La línea inferior se alarga de izquierda a derecha e indica cuánto
+   le queda de vida a la notificación.
+   ───────────────────────────────────────────────────────────────── */
+
+.pv-toasts {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 36px));
+  pointer-events: none;
+}
+
+.pv-toast {
+  pointer-events: auto;
+  position: relative;
+  overflow: hidden;
+  padding: 13px 16px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg, 0 18px 40px rgba(11, 12, 14, .18));
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  line-height: 1.45;
+  animation: pvToastIn 280ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.pv-toast.is-leaving {
+  animation: pvToastOut 240ms ease forwards;
+}
+
+.pv-toast__text {
+  display: grid;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+/* Línea de duración (estilo barra de YouTube, con el verde temático). */
+.pv-toast__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation-name: pvToastBar;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.pv-toast--error .pv-toast__bar { background: var(--error); }
+
+@keyframes pvToastBar {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes pvToastIn {
+  from { opacity: 0; transform: translateX(16px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes pvToastOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateX(16px) scale(.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-toast,
+  .pv-toast.is-leaving { animation-duration: 1ms; }
+}

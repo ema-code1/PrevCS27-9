@@ -31,9 +31,77 @@
       document.querySelectorAll('[data-kebab-button]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
     });
 
+    /* ── Toasts (esquina superior derecha, con línea de duración) ──── */
+    var toastHost = null;
+
+    function toastContainer() {
+      if (!toastHost) {
+        toastHost = document.createElement('div');
+        toastHost.className = 'pv-toasts';
+        document.body.appendChild(toastHost);
+      }
+      return toastHost;
+    }
+
+    function showToast(message, type, duration) {
+      duration = duration || 3500;
+      var toast = document.createElement('div');
+      toast.className = 'pv-toast pv-toast--' + (type === 'error' ? 'error' : 'success');
+      toast.setAttribute('role', 'status');
+
+      var text = document.createElement('div');
+      text.className = 'pv-toast__text';
+      text.textContent = String(message);
+
+      var bar = document.createElement('span');
+      bar.className = 'pv-toast__bar';
+      bar.setAttribute('aria-hidden', 'true');
+      bar.style.animationDuration = duration + 'ms';
+
+      toast.appendChild(text);
+      toast.appendChild(bar);
+      toastContainer().appendChild(toast);
+
+      window.setTimeout(function () {
+        toast.classList.add('is-leaving');
+        window.setTimeout(function () { toast.remove(); }, 260);
+      }, duration);
+      return toast;
+    }
+
+    window.PrevcsToast = { show: showToast };
+
+    // Los flash banners del server (.auth-alert) se convierten en toasts.
+    document.querySelectorAll('.content-area > .auth-alert').forEach(function (alert) {
+      var type = alert.classList.contains('auth-alert--error') ? 'error' : 'success';
+      var message = (alert.innerText || alert.textContent || '').trim();
+      alert.remove();
+      if (message) showToast(message, type);
+    });
+
     /* ── Modales (apertura/cierre con animación de salida) ────────── */
+    var confirmModal = document.querySelector('[data-confirm-modal]');
+    var pendingAccept = null;
+
+    function requestConfirm(text, onAccept) {
+      if (!confirmModal) {
+        if (window.confirm(text)) onAccept();
+        return;
+      }
+      pendingAccept = onAccept;
+      var confirmText = confirmModal.querySelector('[data-confirm-text]');
+      if (confirmText) confirmText.textContent = text;
+      openModal(confirmModal);
+    }
+
     function syncBody() {
-      document.body.classList.toggle('has-modal-open', !!document.querySelector('[data-space-modal]:not([hidden])'));
+      var open = !!document.querySelector('[data-space-modal]:not([hidden])');
+      document.body.classList.toggle('has-modal-open', open);
+      // Lenis scrollea con transforms e ignora overflow:hidden: hay que frenarlo.
+      if (window.PCSSmoothScroll) {
+        if (open) window.PCSSmoothScroll.stop();
+        else window.PCSSmoothScroll.start();
+      }
     }
 
     function openModal(modal) {
@@ -43,8 +111,15 @@
       syncBody();
     }
 
-    function closeModal(modal) {
+    function closeModal(modal, force) {
       if (!modal || modal.hidden || modal.classList.contains('is-closing')) return;
+      // Aviso de cambios sin guardar antes de cerrar la ventana.
+      if (!force && modal !== confirmModal && modal.querySelector('form[data-warn-unsaved][data-dirty="1"]')) {
+        requestConfirm('Tenés cambios sin guardar. Si cerrás ahora, se van a perder.', function () {
+          closeModal(modal, true);
+        });
+        return;
+      }
       var dialog = modal.querySelector('.space-modal__dialog');
       var finish = function () {
         modal.classList.remove('is-closing');
@@ -88,6 +163,12 @@
     syncBody();
     window.PrevcsModal = { open: openModal, close: closeModal };
 
+    /* ── Cambios sin guardar: marca los forms editados ([data-warn-unsaved]) ── */
+    document.querySelectorAll('[data-space-modal] form[data-warn-unsaved]').forEach(function (form) {
+      form.addEventListener('input', function () { form.dataset.dirty = '1'; });
+      form.addEventListener('submit', function () { delete form.dataset.dirty; });
+    });
+
     /* ── Acordeón de espacios ─────────────────────────────────────── */
     document.querySelectorAll('[data-acc]').forEach(function (acc) {
       var head = acc.querySelector('[data-acc-toggle]');
@@ -114,32 +195,30 @@
     });
 
     /* ── Confirmación estilada para forms destructivos ────────────── */
-    var confirmModal = document.querySelector('[data-confirm-modal]');
-    if (confirmModal) {
-      var confirmText = confirmModal.querySelector('[data-confirm-text]');
-      var confirmBtn = confirmModal.querySelector('[data-confirm-accept]');
-      var pendingForm = null;
-
-      document.querySelectorAll('form[data-confirm]').forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-          if (form.dataset.confirmed === '1') return; // ya confirmado
-          event.preventDefault();
-          pendingForm = form;
-          if (confirmText) confirmText.textContent = form.getAttribute('data-confirm');
-          openModal(confirmModal);
-        });
-      });
-
-      if (confirmBtn) {
-        confirmBtn.addEventListener('click', function () {
-          if (!pendingForm) return;
-          pendingForm.dataset.confirmed = '1';
-          var form = pendingForm;
-          pendingForm = null;
-          closeModal(confirmModal);
+    document.querySelectorAll('form[data-confirm]').forEach(function (form) {
+      form.addEventListener('submit', function (event) {
+        if (form.dataset.confirmed === '1') return; // ya confirmado
+        event.preventDefault();
+        requestConfirm(form.getAttribute('data-confirm'), function () {
+          form.dataset.confirmed = '1';
           form.requestSubmit ? form.requestSubmit() : form.submit();
         });
+      });
+    });
+
+    if (confirmModal) {
+      var confirmBtn = confirmModal.querySelector('[data-confirm-accept]');
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', function () {
+          var accept = pendingAccept;
+          pendingAccept = null;
+          closeModal(confirmModal);
+          if (accept) accept();
+        });
       }
+      confirmModal.querySelectorAll('[data-modal-dismiss]').forEach(function (el) {
+        el.addEventListener('click', function () { pendingAccept = null; });
+      });
     }
 
     /* ── Section-switch: píldora negra deslizante ─────────────────── */
@@ -171,6 +250,97 @@
       sw.addEventListener('change', function () { place(true); });
       window.addEventListener('resize', function () { place(false); });
       place(false);
+    });
+
+    /* ── Selects estilizados (.esp32-select) ──────────────────────────
+       El <select> nativo queda oculto (sigue mandando el valor del form)
+       y se reemplaza por un trigger + lista que se despliega y contrae
+       con transición suave. ─────────────────────────────────────────── */
+    function closeAllSelects(except) {
+      document.querySelectorAll('.pv-select.is-open').forEach(function (open) {
+        if (open !== except) {
+          open.classList.remove('is-open');
+          var btn = open.querySelector('.pv-select__trigger');
+          if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    document.querySelectorAll('select.esp32-select').forEach(function (select) {
+      var wrap = document.createElement('div');
+      wrap.className = 'pv-select';
+      select.parentNode.insertBefore(wrap, select);
+      wrap.appendChild(select);
+      select.tabIndex = -1;
+      select.setAttribute('aria-hidden', 'true');
+
+      var trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'pv-select__trigger';
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-expanded', 'false');
+
+      var label = document.createElement('span');
+      label.className = 'pv-select__label';
+      var caret = document.createElement('span');
+      caret.className = 'pv-select__caret';
+      caret.setAttribute('aria-hidden', 'true');
+      trigger.appendChild(label);
+      trigger.appendChild(caret);
+
+      var list = document.createElement('ul');
+      list.className = 'pv-select__list';
+      list.setAttribute('role', 'listbox');
+
+      function syncLabel() {
+        var current = select.options[select.selectedIndex];
+        var isPlaceholder = !current || current.disabled || current.value === '';
+        label.textContent = current ? current.textContent.trim() : '';
+        trigger.classList.toggle('is-placeholder', isPlaceholder);
+        list.querySelectorAll('.pv-select__option').forEach(function (opt) {
+          var selected = opt.dataset.value === select.value && !isPlaceholder;
+          opt.classList.toggle('is-selected', selected);
+          opt.setAttribute('aria-selected', selected ? 'true' : 'false');
+        });
+      }
+
+      Array.prototype.forEach.call(select.options, function (option) {
+        if (option.disabled && option.value === '') return; // placeholder
+        var item = document.createElement('li');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pv-select__option';
+        btn.setAttribute('role', 'option');
+        btn.dataset.value = option.value;
+        btn.textContent = option.textContent.trim();
+        btn.addEventListener('click', function () {
+          select.value = option.value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          syncLabel();
+          wrap.classList.remove('is-open');
+          trigger.setAttribute('aria-expanded', 'false');
+        });
+        item.appendChild(btn);
+        list.appendChild(item);
+      });
+
+      trigger.addEventListener('click', function (event) {
+        event.stopPropagation();
+        var willOpen = !wrap.classList.contains('is-open');
+        closeAllSelects(null);
+        wrap.classList.toggle('is-open', willOpen);
+        trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      });
+
+      wrap.appendChild(trigger);
+      wrap.appendChild(list);
+      select.addEventListener('change', syncLabel);
+      syncLabel();
+    });
+
+    document.addEventListener('click', function () { closeAllSelects(null); });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closeAllSelects(null);
     });
   });
 })();

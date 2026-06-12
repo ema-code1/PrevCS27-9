@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720">
+  <defs>
+    <style>
+      .title { font: 700 36px Arial, sans-serif; fill: #172033; }
+      .subtitle { font: 400 20px Arial, sans-serif; fill: #596579; }
+      .box-title { font: 700 28px Arial, sans-serif; fill: #ffffff; }
+      .pin { font: 700 22px Arial, sans-serif; fill: #172033; }
+      .note { font: 400 19px Arial, sans-serif; fill: #39445a; }
+      .small { font: 700 18px Arial, sans-serif; fill: #172033; }
+      .wire { fill: none; stroke-width: 10; stroke-linecap: round; }
+    </style>
+    <marker id="arrow-red" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#e53935"/>
+    </marker>
+    <marker id="arrow-black" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#263238"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#1976d2"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#2e7d32"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="720" fill="#f7f9fc"/>
+  <text x="600" y="58" text-anchor="middle" class="title">Conexion LM393 con ESP32</text>
+  <text x="600" y="92" text-anchor="middle" class="subtitle">Usar los nombres impresos en el modulo. El orden fisico puede cambiar.</text>
+
+  <rect x="80" y="145" width="350" height="430" rx="28" fill="#3b465c"/>
+  <text x="255" y="195" text-anchor="middle" class="box-title">MODULO LM393</text>
+  <circle cx="255" cy="300" r="72" fill="#1f2937" stroke="#a9b4c6" stroke-width="8"/>
+  <circle cx="255" cy="300" r="30" fill="#f7f9fc"/>
+  <text x="255" y="404" text-anchor="middle" class="note" fill="#ffffff">Sensor / disco</text>
+
+  <rect x="360" y="225" width="100" height="48" rx="10" fill="#ffcdd2"/>
+  <rect x="360" y="305" width="100" height="48" rx="10" fill="#cfd8dc"/>
+  <rect x="360" y="385" width="100" height="48" rx="10" fill="#bbdefb"/>
+  <rect x="360" y="465" width="100" height="48" rx="10" fill="#c8e6c9"/>
+  <text x="410" y="257" text-anchor="middle" class="pin">VCC</text>
+  <text x="410" y="337" text-anchor="middle" class="pin">GND</text>
+  <text x="410" y="417" text-anchor="middle" class="pin">DO</text>
+  <text x="410" y="497" text-anchor="middle" class="pin">AO</text>
+
+  <rect x="770" y="145" width="350" height="430" rx="28" fill="#16697a"/>
+  <text x="945" y="195" text-anchor="middle" class="box-title">ESP32</text>
+
+  <rect x="740" y="225" width="150" height="48" rx="10" fill="#ffcdd2"/>
+  <rect x="740" y="305" width="150" height="48" rx="10" fill="#cfd8dc"/>
+  <rect x="740" y="385" width="150" height="48" rx="10" fill="#bbdefb"/>
+  <rect x="740" y="465" width="150" height="48" rx="10" fill="#c8e6c9"/>
+  <text x="815" y="257" text-anchor="middle" class="pin">3V3</text>
+  <text x="815" y="337" text-anchor="middle" class="pin">GND</text>
+  <text x="815" y="417" text-anchor="middle" class="pin">GPIO26</text>
+  <text x="815" y="497" text-anchor="middle" class="pin">GPIO35</text>
+
+  <path d="M460 249 C570 249 630 249 740 249" class="wire" stroke="#e53935" marker-end="url(#arrow-red)"/>
+  <path d="M460 329 C570 329 630 329 740 329" class="wire" stroke="#263238" marker-end="url(#arrow-black)"/>
+  <path d="M460 409 C570 409 630 409 740 409" class="wire" stroke="#1976d2" marker-end="url(#arrow-blue)"/>
+  <path d="M460 489 C570 489 630 489 740 489" class="wire" stroke="#2e7d32" marker-end="url(#arrow-green)"/>
+
+  <text x="600" y="239" text-anchor="middle" class="small">3.3 V</text>
+  <text x="600" y="319" text-anchor="middle" class="small">TIERRA COMUN</text>
+  <text x="600" y="399" text-anchor="middle" class="small">PULSOS RPM</text>
+  <text x="600" y="479" text-anchor="middle" class="small">SOLO DIAGNOSTICO</text>
+
+  <rect x="80" y="620" width="1040" height="65" rx="16" fill="#fff3cd" stroke="#e0b64b" stroke-width="2"/>
+  <text x="600" y="648" text-anchor="middle" class="note">
+    Alimentar el modulo con 3.3 V. No mandar 5 V hacia GPIO26 ni GPIO35.
+  </text>
+  <text x="600" y="674" text-anchor="middle" class="note">
+    La luz de senal debe cambiar o parpadear cuando pasa la ranura del disco.
+  </text>
+</svg>

@@ -90,17 +90,27 @@ class IndustryController extends BaseController
         }
 
         $rules = [
-            'company_name'   => 'required|min_length[2]|max_length[200]',
-            'space_name'     => 'required|min_length[2]|max_length[200]',
-            'sector'         => 'permit_empty|max_length[120]',
-            'space_password' => 'permit_empty|min_length[6]|max_length[200]',
+            'current_password' => 'required',
+            'company_name'     => 'required|min_length[2]|max_length[200]',
+            'space_name'       => 'required|min_length[2]|max_length[200]',
+            'sector'           => 'permit_empty|max_length[120]',
+            'space_password'   => 'permit_empty|min_length[6]|max_length[200]',
         ];
 
         if (! $this->validate($rules)) {
-            return redirect()->to(base_url('registros-iot'))
+            return redirect()->to(base_url('registros-iot?config=' . $industryId))
                 ->withInput()
                 ->with('errors', $this->validator->getErrors())
                 ->with('editing_industry_id', $industryId);
+        }
+
+        // Sin la clave actual del espacio no se actualiza nada.
+        $industry = (new IndustryModel())->find($industryId);
+        $current  = (string) $this->request->getPost('current_password');
+        if ($industry === null || ! password_verify($current, (string) $industry['space_password_hash'])) {
+            return redirect()->to(base_url('registros-iot?config=' . $industryId))
+                ->withInput()
+                ->with('error', 'La clave actual del espacio es incorrecta. No se guardaron los cambios.');
         }
 
         $payload = [
@@ -142,7 +152,45 @@ class IndustryController extends BaseController
 
         $membershipModel->delete($membershipId);
 
-        return redirect()->to(base_url('registros-iot'))->with('success', 'Acceso eliminado.');
+        return redirect()->to(base_url('registros-iot?config=' . $industryId))
+            ->with('success', 'Acceso eliminado. Por seguridad, te recomendamos cambiar la contraseña del espacio.');
+    }
+
+    /**
+     * Cambia el permiso (read | edit) de un supervisor dentro del espacio.
+     */
+    public function updateMemberPermission($industryId = null, $membershipId = null)
+    {
+        $userId       = (int) session('user_id');
+        $industryId   = (int) $industryId;
+        $membershipId = (int) $membershipId;
+        $back         = base_url('registros-iot?config=' . $industryId);
+
+        if (! $this->isAdmin($userId, $industryId)) {
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes permiso para administrar ese espacio.');
+        }
+
+        $permission = (string) $this->request->getPost('permission');
+        if (! in_array($permission, [IndustryUserModel::PERM_READ, IndustryUserModel::PERM_EDIT], true)) {
+            return redirect()->to($back)->with('error', 'Permiso invalido.');
+        }
+
+        $membershipModel = new IndustryUserModel();
+        $membership = $membershipModel->where('id', $membershipId)->where('industry_id', $industryId)->first();
+
+        if ($membership === null) {
+            return redirect()->to($back)->with('error', 'Ese acceso ya no existe.');
+        }
+
+        if ($membership['role'] === IndustryUserModel::ROLE_ADMIN) {
+            return redirect()->to($back)->with('error', 'El administrador principal siempre tiene control total.');
+        }
+
+        $membershipModel->update($membershipId, ['permission' => $permission]);
+
+        $label = $permission === IndustryUserModel::PERM_EDIT ? 'editar el espacio' : 'solo lectura';
+
+        return redirect()->to($back)->with('success', 'Permiso actualizado: ahora puede ' . $label . '.');
     }
 
     /**

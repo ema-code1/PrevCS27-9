@@ -2,7 +2,7 @@
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/onboarding.css') ?>?v=20260610-1">
+<link rel="stylesheet" href="<?= base_url('css/onboarding.css') ?>?v=20260612-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateStepFill(withMotion) {
         if (!stepFill || dots.length < 2) return;
-        const spans = dots.map((dot) => dot.querySelector('span'));
+        const spans = dots.map((dot) => dot.querySelector('.wizard-steps__dot'));
         const base = stepper.getBoundingClientRect();
         const startX = spans[0].getBoundingClientRect().left + spans[0].getBoundingClientRect().width / 2 - base.left;
         const curRect = spans[current - 1].getBoundingClientRect();

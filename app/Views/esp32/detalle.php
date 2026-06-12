@@ -2,16 +2,17 @@
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260611-2">
+<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260612-1">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260611-2">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
 <link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
-<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260611-2">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=wifi_off" />
+<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260612-1">
 <style>
-.esp32-qr{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:10px 0}
+.esp32-qr{display:flex;flex-direction:column;gap:16px;align-items:center;margin:10px 0}
 .esp32-qr__code{background:#fff;padding:10px;border-radius:var(--radius-md);border:1px solid var(--hair);line-height:0}
 .esp32-qr__code img,.esp32-qr__code canvas{display:block}
-.esp32-qr__hints{margin:0;padding-left:18px;color:var(--text-muted);font-size:var(--font-size-sm);display:grid;gap:4px}
+.material-symbols-rounded{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
 </style>
 <?= $this->endSection() ?>
 
@@ -61,7 +62,19 @@
             <div class="auth-alert auth-alert--success"><?= (int) $sensorCount ?> sensores creados automaticamente.</div>
         <?php endif; ?>
 
-        <?php if ($sensors === []): ?>
+        <?php if (empty($device['mac_address'])): ?>
+            <!-- La placa todavía no se vinculó: en lugar de gráficos vacíos,
+                 mostramos el aviso con la guía para vincularla. -->
+            <section class="panel card esp32-unlinked">
+                <h3>¡No has conectado tu ESP32!</h3>
+                <img src="<?= base_url('images/no_esp_conected.svg') ?>" alt="ESP32 sin conectar">
+                <p>Conecta tu placa para poder empezar a recibir los datos</p>
+                <button type="button" class="btn btn--primary esp32-unlinked__cta" data-open-modal="esp32-config-modal">
+                    <span class="material-symbols-rounded" aria-hidden="true">wifi_off</span>
+                    Vincular mi ESP
+                </button>
+            </section>
+        <?php elseif ($sensors === []): ?>
             <section class="panel card esp32-empty">
                 <h3>Sin sensores</h3>
                 <p>Esta ESP32 todavía no tiene sensores asociados.</p>
@@ -164,7 +177,7 @@
         <!-- Configuración de la placa: ventana emergente (botón de engranaje).
              Si acabamos de crear la placa o revelar el token, llega abierta
              para que el token/QR quede a la vista sin un click extra. -->
-        <div class="space-modal" id="esp32-config-modal" data-space-modal<?= (! empty($deviceToken) || ! empty($sensorCount)) ? '' : ' hidden' ?>>
+        <div class="space-modal" id="esp32-config-modal" data-space-modal<?= ! empty($autoOpenConfig) ? '' : ' hidden' ?>>
             <div class="space-modal__backdrop" data-modal-dismiss></div>
             <div class="space-modal__dialog card" role="dialog" aria-modal="true" aria-labelledby="esp32-config-title">
                 <header class="space-modal__head">
@@ -182,7 +195,13 @@
                     <section class="space-modal__section">
                         <h4>Datos de configuración</h4>
                         <dl class="esp32-sensor-meta">
-                            <div><dt>MAC</dt><dd class="mono"><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : 'Se vincula sola al primer dato' ?></dd></div>
+                            <div>
+                                <dt>MAC
+                                    <button type="button" class="pv-tip" aria-label="¿Por qué importa la MAC?"
+                                        data-tip="La MAC identifica de forma única a tu placa en la red. Cuando la ESP32 envía su primer dato, el sistema la reconoce por su MAC y queda vinculada sola a este panel.">?</button>
+                                </dt>
+                                <dd class="mono"><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : '<em>No hubo comunicacion con la placa</em>' ?></dd>
+                            </div>
                             <div><dt>Estado</dt><dd><?= esc($device['status'] ?? 'offline') ?></dd></div>
                             <div><dt>Última lectura</dt><dd class="mono"><?= esc($device['last_seen_at'] ?? '-') ?></dd></div>
                         </dl>
@@ -190,27 +209,23 @@
 
                     <!-- 2) Token / vinculación con el firmware -->
                     <section class="space-modal__section">
-                        <h4>Token del dispositivo</h4>
+                        <h4>Token del dispositivo
+                            <button type="button" class="pv-tip" aria-label="¿Para qué sirve el token?"
+                                data-tip="Configuralo en el firmware. Se envía en cada lectura (header X-Device-Token).">?</button>
+                        </h4>
                         <?php if (! empty($deviceToken)): ?>
-                            <p class="text-muted">Configuralo en el firmware. Se envía en cada lectura (header <code>X-Device-Token</code>).</p>
                             <code class="esp32-token"><?= esc($deviceToken) ?></code>
 
-                            <div class="esp32-setup-box">
-                                <strong>Configurá la placa: conectate a PREVCS-CONFIG</strong>
-                                <p>Primero conectate al WiFi <code>PREVCS-CONFIG</code> que crea la placa. API, token y nombre ya van cargados; en la placa solo elegís tu red WiFi.</p>
-                                <?php if (! empty($setupUrl)): ?>
+                            <?php if (! empty($setupUrl)): ?>
+                                <div class="esp32-setup-box">
+                                    <strong>Configurá la placa: conectate a PREVCS-CONFIG</strong>
+                                    <p>Primero conectate al WiFi <code>PREVCS-CONFIG</code> que crea la placa y escaneá el QR (o tocá el botón).</p>
                                     <div class="esp32-qr" data-qr-url="<?= esc($setupUrl) ?>">
                                         <div class="esp32-qr__code" data-qr-target></div>
-                                        <ul class="esp32-qr__hints">
-                                            <li><strong>Desde el celular:</strong> tocá el botón de abajo.</li>
-                                            <li><strong>Compu + celular:</strong> escaneá el QR con el celu (ya conectado a PREVCS-CONFIG).</li>
-                                            <li><strong>Solo compu:</strong> tocá el botón.</li>
-                                        </ul>
                                     </div>
-                                    <a class="btn btn--primary" href="<?= esc($setupUrl) ?>">Abrir formulario de la ESP32</a>
-                                    <code class="esp32-token"><?= esc($setupUrl) ?></code>
-                                <?php endif; ?>
-                            </div>
+                                    <a class="btn btn--primary" href="<?= esc($setupUrl) ?>">Completar configuracion</a>
+                                </div>
+                            <?php endif; ?>
                         <?php elseif ($isAdmin): ?>
                             <form action="<?= base_url('esp32/' . $device['id'] . '/token') ?>" method="post" class="esp32-token-form">
                                 <?= csrf_field() ?>
@@ -222,6 +237,9 @@
                                     </span>
                                 </label>
                                 <button type="submit" class="btn btn--primary">Mostrar token</button>
+                                <?php if (! empty($tokenError)): ?>
+                                    <span class="auth-field__error"><?= esc($tokenError) ?></span>
+                                <?php endif; ?>
                             </form>
                         <?php else: ?>
                             <p class="text-muted">Solo el admin del espacio puede ver el token.</p>
@@ -249,6 +267,39 @@
                             <?php endif; ?>
                         </section>
                     <?php endif; ?>
+
+                    <!-- 4) Eliminar la placa: solo si ya está creada y configurada (tiene MAC)
+                         y el usuario puede editar el espacio (admin o supervisor con permiso). -->
+                    <?php if (! empty($canEdit) && ! empty($device['mac_address'])): ?>
+                        <section class="space-modal__section esp32-delete">
+                            <div class="esp32-delete__intro">
+                                <h4>Zona de peligro</h4>
+                                <p class="text-muted">Eliminar la placa borra también sus sensores y todas sus lecturas. Esta acción no se puede deshacer.</p>
+                            </div>
+                            <button type="button" class="btn btn--danger" data-delete-toggle aria-expanded="<?= ! empty($deleteError) ? 'true' : 'false' ?>">Eliminar ESP32</button>
+                            <form action="<?= base_url('esp32/' . $device['id'] . '/eliminar') ?>" method="post" class="esp32-delete__form" data-delete-form<?= ! empty($deleteError) ? '' : ' hidden' ?>>
+                                <?= csrf_field() ?>
+                                <label class="auth-field">
+                                    <span class="auth-field__label">Escribí el nombre exacto de la placa: <strong><?= esc($device['name']) ?></strong></span>
+                                    <span class="auth-field__control">
+                                        <span class="auth-field__icon">E</span>
+                                        <input type="text" name="confirm_name" placeholder="<?= esc($device['name']) ?>" autocomplete="off" required data-delete-name data-expected-name="<?= esc($device['name']) ?>">
+                                    </span>
+                                </label>
+                                <label class="auth-field">
+                                    <span class="auth-field__label">Clave del espacio</span>
+                                    <span class="auth-field__control">
+                                        <span class="auth-field__icon">*</span>
+                                        <input type="password" name="space_password" placeholder="Clave del espacio" required>
+                                    </span>
+                                </label>
+                                <?php if (! empty($deleteError)): ?>
+                                    <span class="auth-field__error"><?= esc($deleteError) ?></span>
+                                <?php endif; ?>
+                                <button type="submit" class="btn btn--danger" disabled data-delete-submit>Eliminar definitivamente</button>
+                            </form>
+                        </section>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -258,7 +309,7 @@
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260611-1" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260612-2" defer></script>
 <script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260611-1" defer></script>
 <script src="<?= base_url('js/qrcode.min.js') ?>"></script>
 <script>
@@ -268,11 +319,30 @@ document.addEventListener('DOMContentLoaded', function () {
     if (box && target && typeof QRCode !== 'undefined') {
         new QRCode(target, {
             text: box.getAttribute('data-qr-url'),
-            width: 168,
-            height: 168,
+            width: 252,
+            height: 252,
             colorDark: '#2A2C32',
             colorLight: '#FFFFFF',
             correctLevel: QRCode.CorrectLevel.M
+        });
+    }
+
+    /* Eliminar ESP32: despliega el form y habilita el submit recién
+       cuando el nombre tipeado coincide exactamente con el de la placa. */
+    var deleteToggle = document.querySelector('[data-delete-toggle]');
+    var deleteForm = document.querySelector('[data-delete-form]');
+    if (deleteToggle && deleteForm) {
+        deleteToggle.addEventListener('click', function () {
+            var willOpen = deleteForm.hidden;
+            deleteForm.hidden = !willOpen;
+            deleteToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            if (willOpen) deleteForm.querySelector('[data-delete-name]').focus();
+        });
+
+        var nameInput = deleteForm.querySelector('[data-delete-name]');
+        var submitBtn = deleteForm.querySelector('[data-delete-submit]');
+        nameInput.addEventListener('input', function () {
+            submitBtn.disabled = nameInput.value.trim() !== nameInput.dataset.expectedName;
         });
     }
 });

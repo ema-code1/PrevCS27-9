@@ -78,6 +78,17 @@
 }
 .esp32-setup-layout .esp32-form-card { max-width: none; }
 
+/* Línea punteada divisoria entre el formulario y la guía. */
+.esp32-setup-layout .esp32-setup-guide { position: relative; }
+.esp32-setup-layout .esp32-setup-guide::before {
+    content: '';
+    position: absolute;
+    top: var(--space-sm);
+    bottom: var(--space-sm);
+    left: calc(-1 * var(--content-gap) / 2);
+    border-left: 2px dashed var(--border);
+}
+
 .esp32-setup-guide {
     display: flex;
     flex-direction: column;
@@ -179,6 +190,9 @@
 .esp32-info-strip {
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
+    /* Mismo ancho total que las dos columnas de .esp32-setup-layout. */
+    width: 100%;
+    max-width: calc(540px + 480px + var(--content-gap));
 }
 
 .esp32-readonly-box,
@@ -210,11 +224,17 @@
     padding: var(--space-md);
 }
 
+/* Campo "Clave del espacio" y botón "Mostrar token" en la misma fila. */
 .esp32-token-form {
     display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
     gap: var(--space-sm);
     margin-top: var(--space-sm);
 }
+.esp32-token-form .auth-field { min-width: 0; }
+.esp32-token-form .btn { white-space: nowrap; }
+.esp32-token-form .auth-field__error { grid-column: 1 / -1; }
 
 .esp32-setup-box {
     margin-top: var(--space-sm);
@@ -281,6 +301,7 @@
     .esp32-setup-layout {
         grid-template-columns: minmax(0, 540px);
     }
+    .esp32-setup-layout .esp32-setup-guide::before { display: none; }
 }
 
 /* ── Detalle ──────────────────────────────────────────────────────── */
@@ -293,6 +314,17 @@
 .esp32-sensor-form { display: flex; flex-wrap: wrap; gap: var(--space-sm); align-items: center; }
 .esp32-sensor-form .esp32-select { flex: 1 1 180px; width: auto; }
 .esp32-sensor-form .esp32-input { flex: 1 1 180px; width: auto; }
+
+/* Variante del modal: select, etiqueta y botón "Agregar" en una sola fila. */
+.esp32-sensor-form--modal {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
+    align-items: center;
+}
+.esp32-sensor-form--modal .pv-select,
+.esp32-sensor-form--modal .esp32-select,
+.esp32-sensor-form--modal .esp32-input { width: 100%; min-width: 0; }
+.esp32-sensor-form--modal .btn { white-space: nowrap; }
 
 .esp32-sensor-meta { margin: 0; display: grid; gap: var(--space-sm); }
 .esp32-sensor-meta > div { display: flex; flex-direction: column; gap: 2px; }
@@ -316,6 +348,254 @@
 
 .esp32-chart-empty { text-align: center; color: var(--text-muted); padding: var(--space-lg); }
 .iot-line-chart__point { fill: var(--accent); }
+
+/* ── Placa sin vincular: aviso centrado en lugar de los gráficos ──── */
+.esp32-unlinked {
+    flex: 1;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: var(--space-sm);
+    padding: var(--space-xl);
+}
+.esp32-unlinked h3 { margin: 0; font-size: var(--font-size-xl); }
+.esp32-unlinked img { width: min(300px, 60vw); height: auto; }
+.esp32-unlinked p { margin: 0; color: var(--text-secondary); max-width: 46ch; }
+.esp32-unlinked__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: var(--space-xs);
+}
+.esp32-unlinked__cta .material-symbols-rounded { font-size: 20px; }
+
+/* ── Tooltips (.pv-tip): icono "?" con burbuja al hover/focus ──────── */
+.pv-tip {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin-left: 6px;
+    display: inline-grid;
+    place-items: center;
+    vertical-align: middle;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: var(--font-weight-bold);
+    cursor: help;
+}
+.pv-tip:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-ring); }
+
+/* La burbuja abre hacia abajo para no quedar recortada por el scroll del modal. */
+.pv-tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: max-content;
+    max-width: 250px;
+    padding: 8px 11px;
+    border-radius: var(--radius-sm);
+    background: var(--text-primary);
+    color: var(--bg-card);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-regular, 400);
+    line-height: 1.45;
+    text-align: left;
+    white-space: normal;
+    box-shadow: var(--shadow);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-4px);
+    transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear 180ms;
+    z-index: 80;
+}
+.pv-tip::before {
+    content: '';
+    position: absolute;
+    top: calc(100% + 3px);
+    left: 5px;
+    border: 5px solid transparent;
+    border-bottom-color: var(--text-primary);
+    border-top: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+    z-index: 80;
+}
+.pv-tip:hover::after,
+.pv-tip:focus-visible::after,
+.pv-tip:hover::before,
+.pv-tip:focus-visible::before {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+}
+
+/* ── Eliminar ESP32 (zona de peligro del modal) ─────────────────────── */
+/* Texto a la izquierda y botón "Eliminar ESP32" a la derecha, en la misma
+   fila; el form de confirmación se despliega abajo a lo ancho. */
+.esp32-delete {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: var(--space-md);
+}
+.esp32-delete__intro { display: grid; gap: var(--space-sm); min-width: 0; }
+.esp32-delete__intro p { margin: 0; }
+.esp32-delete .btn--danger { justify-self: start; }
+.esp32-delete > [data-delete-toggle] { justify-self: end; }
+.esp32-delete__form {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border: var(--border-thin) dashed var(--error);
+    border-radius: var(--radius-md);
+    background: var(--error-soft);
+    /* Despliegue suave cada vez que se muestra (al tocar "Eliminar ESP32"). */
+    transform-origin: top center;
+    animation: espDeleteReveal 320ms cubic-bezier(.22, 1, .36, 1);
+}
+@keyframes espDeleteReveal {
+    from { opacity: 0; transform: translateY(-10px) scaleY(.95); }
+    to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .esp32-delete__form { animation-duration: 1ms; }
+}
+.esp32-delete__form .btn--danger:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ── Select estilizado (.pv-select): lo arma prevcs-ui.js ───────────
+   El nativo queda oculto; el trigger replica el look de .esp32-select
+   y la lista se despliega/contrae con transición. ──────────────────── */
+.pv-select { position: relative; min-width: 0; }
+.esp32-sensor-form .pv-select { flex: 1 1 180px; }
+.auth-field__control .pv-select { flex: 1; }
+
+.pv-select .esp32-select {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pv-select__trigger {
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    color: var(--text-primary);
+    background: var(--input-bg);
+    border: var(--border-thin) solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 38px 10px 12px;
+    position: relative;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.pv-select__trigger.is-placeholder { color: var(--text-muted); }
+.pv-select__trigger:focus-visible,
+.pv-select.is-open .pv-select__trigger {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.pv-select__label {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.pv-select__caret {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    margin-top: -6px;
+    border-right: 2px solid var(--text-muted);
+    border-bottom: 2px solid var(--text-muted);
+    transform: rotate(45deg);
+    transition: transform 280ms cubic-bezier(.22, 1, .36, 1), margin-top 280ms cubic-bezier(.22, 1, .36, 1);
+}
+.pv-select.is-open .pv-select__caret {
+    transform: rotate(225deg);
+    margin-top: -2px;
+}
+
+.pv-select__list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 40;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: var(--bg-card);
+    border: var(--border-thin) solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    max-height: 240px;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-8px) scaleY(.94);
+    transform-origin: top center;
+    transition:
+        opacity 220ms ease,
+        transform 280ms cubic-bezier(.22, 1, .36, 1),
+        visibility 0s linear 280ms;
+}
+.pv-select.is-open .pv-select__list {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+    transition-delay: 0s;
+}
+
+.pv-select__option {
+    display: block;
+    width: 100%;
+    font: inherit;
+    text-align: left;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+.pv-select__option:hover { background: var(--surface-2); }
+.pv-select__option.is-selected {
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: var(--font-weight-medium);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pv-select__list,
+    .pv-select__caret,
+    .pv-select__trigger { transition-duration: 1ms; }
+}
 
 /* ─── Botón de engranaje (abre el modal de configuración de la placa) ── */
 .iot-gear-btn {

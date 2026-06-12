@@ -16,7 +16,8 @@
     <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>?v=20260611-2">
     <link rel="stylesheet" href="<?= base_url('css/header.css') ?>">
     <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>?v=20260611-2">
-    <link rel="stylesheet" href="<?= base_url('css/password-toggle.css') ?>?v=20260609-2">
+    <link rel="stylesheet" href="<?= base_url('css/password-toggle.css') ?>?v=20260612-1">
+    <link rel="stylesheet" href="<?= base_url('css/toast.css') ?>?v=20260612-1">
     <?= $this->renderSection('pageStyles') ?>
 
     <!-- Lenis — smooth scroll global para todas las vistas -->

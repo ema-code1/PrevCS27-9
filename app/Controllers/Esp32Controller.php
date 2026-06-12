@@ -144,10 +144,20 @@ class Esp32Controller extends BaseController
             static fn ($type) => ! in_array((int) $type['id'], $usedTypeIds, true)
         ));
 
-        $isAdmin = (new IndustryUserModel())->roleFor((int) session('user_id'), (int) $device['industry_id'])
+        $membershipModel = new IndustryUserModel();
+        $isAdmin = $membershipModel->roleFor((int) session('user_id'), (int) $device['industry_id'])
             === IndustryUserModel::ROLE_ADMIN;
+        $canEdit = $membershipModel->canEdit((int) session('user_id'), (int) $device['industry_id']);
 
-        $deviceToken = session('new_device_token');
+        $flashToken  = session('new_device_token');
+        $deviceToken = $flashToken;
+        $isLinked    = ! empty($device['mac_address']);
+
+        // Mientras la placa no está vinculada, el admin ve el QR directo,
+        // sin pedir la clave del espacio (todavía no hay nada que proteger).
+        if ($deviceToken === null && ! $isLinked && $isAdmin) {
+            $deviceToken = Esp32DeviceModel::revealToken($device['token_secret'] ?? null);
+        }
 
         return view('esp32/detalle', [
             'title'          => esc($device['name']) . ' | ESP32',
@@ -156,10 +166,53 @@ class Esp32Controller extends BaseController
             'sensors'        => $sensors,
             'availableTypes' => $availableTypes,
             'isAdmin'        => $isAdmin,
+            'canEdit'        => $canEdit,
             'deviceToken'    => $deviceToken,
+            'tokenError'     => session('token_error'),
+            'deleteError'    => session('delete_error'),
             'sensorCount'    => session('new_device_sensor_count'),
-            'setupUrl'       => $this->firmwareSetupUrl($device, $deviceToken),
+            // El QR de vinculación solo tiene sentido si la placa aún no se vinculó.
+            'setupUrl'       => $isLinked ? null : $this->firmwareSetupUrl($device, $deviceToken),
+            'autoOpenConfig' => $flashToken !== null || session('new_device_sensor_count') || session('token_error') || session('delete_error'),
         ]);
+    }
+
+    /**
+     * Elimina una ESP32 ya creada y configurada. Exige el nombre exacto de la
+     * placa + la clave del espacio, y que el usuario pueda editar el espacio
+     * (admin o supervisor con permiso de edición).
+     */
+    public function delete($id = null)
+    {
+        $device = $this->findAccessibleDevice((int) $id);
+        if ($device === null) {
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes acceso a esa ESP32.');
+        }
+
+        $back = base_url('esp32/' . $device['id']);
+
+        if (! (new IndustryUserModel())->canEdit((int) session('user_id'), (int) $device['industry_id'])) {
+            return redirect()->to($back)->with('error', 'No tenes permiso para eliminar placas de este espacio.');
+        }
+
+        // Los errores de confirmación se muestran inline dentro del modal
+        // (que se reabre con el form desplegado), no como toast.
+        $confirmName = trim((string) $this->request->getPost('confirm_name'));
+        if ($confirmName !== (string) $device['name']) {
+            return redirect()->to($back)->with('delete_error', 'El nombre no coincide con el de la placa. No se eliminó nada.');
+        }
+
+        $industry = (new IndustryModel())->find((int) $device['industry_id']);
+        $password = (string) $this->request->getPost('space_password');
+        if ($industry === null || ! password_verify($password, (string) $industry['space_password_hash'])) {
+            return redirect()->to($back)->with('delete_error', 'Contraseña incorrecta. No se eliminó nada.');
+        }
+
+        // Las FK en cascada borran también sensores y lecturas de la placa.
+        (new Esp32DeviceModel())->delete((int) $device['id']);
+
+        return redirect()->to(base_url('registros-iot'))
+            ->with('success', 'La ESP32 "' . $device['name'] . '" fue eliminada junto a sus sensores y lecturas.');
     }
 
     public function revealToken($id = null)
@@ -173,8 +226,9 @@ class Esp32Controller extends BaseController
         $password = (string) $this->request->getPost('space_password');
 
         if ($industry === null || ! password_verify($password, (string) $industry['space_password_hash'])) {
+            // El error se muestra inline bajo el campo (el modal se reabre solo).
             return redirect()->to(base_url('esp32/' . $device['id']))
-                ->with('error', 'Clave del espacio incorrecta.');
+                ->with('token_error', 'Contraseña incorrecta.');
         }
 
         $token = Esp32DeviceModel::revealToken($device['token_secret'] ?? null);

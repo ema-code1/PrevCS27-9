@@ -88,6 +88,32 @@
   background: var(--bg-card-soft);
 }
 
+/* Opciones con icono (configurar acceso de un miembro) */
+.iot-kebab__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iot-kebab__option svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.iot-kebab__option.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: var(--font-weight-medium);
+}
+.iot-kebab__option.is-active svg { color: var(--accent); }
+
+/* Rojo sutil para acciones destructivas */
+.iot-kebab__option--danger { color: var(--error); }
+.iot-kebab__option--danger svg { color: var(--error); }
+.iot-kebab__option--danger:hover { background: var(--error-soft); }
+
 .iot-space-editor {
   display: none;
   gap: var(--space-md);

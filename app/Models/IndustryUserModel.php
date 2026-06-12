@@ -9,12 +9,15 @@ class IndustryUserModel extends Model
     public const ROLE_ADMIN      = 'admin_principal';
     public const ROLE_SUPERVISOR = 'supervisor';
 
+    public const PERM_READ = 'read';
+    public const PERM_EDIT = 'edit';
+
     protected $table            = 'industry_users';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $protectFields    = true;
-    protected $allowedFields    = ['industry_id', 'user_id', 'role'];
+    protected $allowedFields    = ['industry_id', 'user_id', 'role', 'permission'];
 
     protected bool $allowEmptyInserts = false;
 
@@ -39,6 +42,24 @@ class IndustryUserModel extends Model
             ->first();
 
         return $row['role'] ?? null;
+    }
+
+    /**
+     * ¿El usuario puede editar el espacio y sus placas?
+     * El admin siempre puede; los supervisores solo con permission = edit.
+     */
+    public function canEdit(int $userId, int $industryId): bool
+    {
+        $row = $this->select('role, permission')
+            ->where('user_id', $userId)
+            ->where('industry_id', $industryId)
+            ->first();
+
+        if ($row === null) {
+            return false;
+        }
+
+        return $row['role'] === self::ROLE_ADMIN || ($row['permission'] ?? self::PERM_READ) === self::PERM_EDIT;
     }
 
     /**

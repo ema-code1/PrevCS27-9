@@ -2,9 +2,9 @@
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260611-2">
+<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260612-1">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260611-2">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
 <link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
 <?= $this->endSection() ?>
 
@@ -170,6 +170,6 @@
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260611-1" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260612-2" defer></script>
 <script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260611-1" defer></script>
 <?= $this->endSection() ?>

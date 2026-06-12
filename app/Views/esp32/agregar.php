@@ -3,7 +3,7 @@
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260611-2">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -108,7 +108,7 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
             </section>
 
             <aside class="esp32-setup-guide" aria-label="Guía de vinculación">
-                <h2>Vinculá la placa</h2>
+                <h2>Cómo vincular tu placa</h2>
                 <p>Completás el espacio y el nombre. PrevCS genera el token y, en la pantalla siguiente, te da un <strong>QR</strong> y un <strong>botón</strong> para configurar la placa.</p>
                 <div class="esp32-setup-guide__steps">
                     <div>
@@ -136,6 +136,7 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260612-2" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const spaceSelect = document.querySelector('[data-space-select]');

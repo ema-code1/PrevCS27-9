@@ -56,6 +56,7 @@ $routes->get('unirse-espacio', 'IndustryController::joinForm');
 $routes->post('unirse-espacio', 'IndustryController::join');
 $routes->post('espacios/(:num)/editar', 'IndustryController::update/$1');
 $routes->post('espacios/(:num)/miembros/(:num)/eliminar', 'IndustryController::removeMember/$1/$2');
+$routes->post('espacios/(:num)/miembros/(:num)/permiso', 'IndustryController::updateMemberPermission/$1/$2');
 $routes->post('espacios/(:num)/tokens', 'IndustryController::revealTokens/$1');
 $routes->post('espacios/(:num)/sensores/(:num)/eliminar', 'SensorController::deleteFromSpace/$1/$2');
 
@@ -64,6 +65,7 @@ $routes->get('esp32', 'Esp32Controller::index');
 $routes->get('esp32/agregar', 'Esp32Controller::createForm');
 $routes->post('esp32/agregar', 'Esp32Controller::store');
 $routes->post('esp32/(:num)/token', 'Esp32Controller::revealToken/$1');
+$routes->post('esp32/(:num)/eliminar', 'Esp32Controller::delete/$1');
 $routes->post('esp32/(:num)/sensores', 'SensorController::store/$1');
 $routes->get('esp32/(:num)', 'Esp32Controller::show/$1');
 
