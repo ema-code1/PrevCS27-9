@@ -413,6 +413,47 @@
 .iot-line-chart__point:hover { r: 5; }
 .iot-line-chart__points circle.is-warn { fill: var(--warning); }
 .iot-line-chart__points circle.is-error { fill: var(--error); }
+
+/* tooltip flotante sobre cada punto: valor exacto + hora de la lectura */
+.iot-chart__tooltip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, calc(-100% - 12px)) scale(.94);
+  transform-origin: 50% 100%;
+  transition: opacity var(--transition-fast), transform var(--transition-fast),
+              visibility var(--transition-fast);
+}
+.iot-chart__tooltip.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, calc(-100% - 12px)) scale(1);
+}
+.iot-chart__tooltip strong {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.iot-chart__tooltip span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.iot-chart__tooltip span[hidden] { display: none; }
 .iot-line-chart__labels text {
   font-family: var(--font-mono);
   font-size: 9.5px;

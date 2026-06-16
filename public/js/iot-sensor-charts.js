@@ -1,10 +1,13 @@
 /* =====================================================================
    PrevCS · IoT Sensor Charts
    Lógica compartida por registros-iot/espacio.php y esp32/detalle.php.
-   - Cambio de sensor (section-switch).
+   - Cambio de sensor (section-switch) con persistencia de pestaña (F5).
    - Carga de la serie del sensor desde la API (con rango de fechas opcional).
    - Dibujo del gráfico de línea con ejes: grilla vertical + marcas/labels
      en el eje Y (Valores) y el eje X (Tiempo).
+   - Redibujado incremental: los nodos del SVG se reutilizan entre refrescos
+     (solo se actualizan atributos) para que el "live" no parpadee.
+   - Tooltip con el valor exacto al pasar el mouse por cada punto.
    - Integración con el date range selector (js/date-range-picker.js).
    ===================================================================== */
 (function () {
@@ -22,6 +25,10 @@
     return e;
   }
 
+  function setAttrs(node, attrs) {
+    for (var k in attrs) node.setAttribute(k, attrs[k]);
+  }
+
   // Formatea un valor del eje Y de forma compacta (sin ceros sobrantes).
   function fmtVal(v) {
     var a = Math.abs(v), s;
@@ -32,7 +39,26 @@
     return s.replace(/\.0+($|k)/, '$1').replace(/(\.\d*?)0+($|k)/, '$1$2');
   }
 
-  function clear(node) { while (node && node.firstChild) node.removeChild(node.firstChild); }
+  // Deja exactamente `count` hijos <tag> dentro de `parent`, reutilizando los
+  // existentes. Al no recrear nodos en cada refresco no se reinician las
+  // animaciones de entrada del CSS → el gráfico se actualiza sin parpadear.
+  function syncChildren(parent, tag, count, className) {
+    var nodes = [], i;
+    for (i = 0; i < parent.children.length; i++) {
+      if (parent.children[i].tagName === tag) nodes.push(parent.children[i]);
+    }
+    while (nodes.length < count) {
+      var node = el(tag, className ? { 'class': className } : {});
+      parent.appendChild(node);
+      nodes.push(node);
+    }
+    while (nodes.length > count) parent.removeChild(nodes.pop());
+    return nodes;
+  }
+
+  function hideTooltip(grid) {
+    if (grid._tip) grid._tip.classList.remove('is-visible');
+  }
 
   function drawLine(grid, points) {
     var line = grid.querySelector('[data-sensor-line]');
@@ -42,10 +68,16 @@
     var yAxis = grid.querySelector('[data-axis-y]');
     var xAxis = grid.querySelector('[data-axis-x]');
 
-    clear(dots); clear(vGrid); clear(yAxis); clear(xAxis);
+    hideTooltip(grid);
 
     if (!points.length) {
       line.setAttribute('points', '');
+      syncChildren(dots, 'circle', 0);
+      syncChildren(vGrid, 'line', 0);
+      syncChildren(yAxis, 'line', 0);
+      syncChildren(yAxis, 'text', 0);
+      syncChildren(xAxis, 'line', 0);
+      syncChildren(xAxis, 'text', 0);
       if (empty) empty.hidden = false;
       return;
     }
@@ -64,37 +96,94 @@
     });
 
     /* ── Eje Y: marcas + valores alineados a la grilla horizontal ── */
+    var yTicks = syncChildren(yAxis, 'line', LEVELS + 1, 'iot-line-chart__tick');
+    var yTexts = syncChildren(yAxis, 'text', LEVELS + 1);
     for (var l = 0; l <= LEVELS; l++) {
       var yy = Y0 + (Y1 - Y0) * (l / LEVELS);
       var val = max - (max - min) * (l / LEVELS);
-      yAxis.appendChild(el('line', { x1: X0 - 6, y1: yy, x2: X0, y2: yy, 'class': 'iot-line-chart__tick' }));
-      var ty = el('text', { x: X0 - 11, y: yy + 3.4, 'text-anchor': 'end' });
-      ty.textContent = fmtVal(val);
-      yAxis.appendChild(ty);
+      setAttrs(yTicks[l], { x1: X0 - 6, y1: yy, x2: X0, y2: yy });
+      setAttrs(yTexts[l], { x: X0 - 11, y: yy + 3.4, 'text-anchor': 'end' });
+      yTexts[l].textContent = fmtVal(val);
     }
 
     /* ── Eje X: líneas verticales + marcas de tiempo ── */
     var ticks = Math.min(X_TICKS, n);
-    var seen = {};
+    var tickIdx = [], seen = {};
     for (var t = 0; t < ticks; t++) {
       var idx = ticks === 1 ? 0 : Math.round(t * (n - 1) / (ticks - 1));
       if (seen[idx]) continue;
       seen[idx] = true;
-      var cx = coords[idx][0];
-      vGrid.appendChild(el('line', { x1: cx, y1: Y0, x2: cx, y2: Y1 }));
-      xAxis.appendChild(el('line', { x1: cx, y1: Y1, x2: cx, y2: Y1 + 5, 'class': 'iot-line-chart__tick' }));
-      var tx = el('text', { x: cx, y: Y1 + 18, 'text-anchor': 'middle' });
-      tx.textContent = points[idx].label || '';
-      xAxis.appendChild(tx);
+      tickIdx.push(idx);
     }
+    var vLines = syncChildren(vGrid, 'line', tickIdx.length);
+    var xTicksEls = syncChildren(xAxis, 'line', tickIdx.length, 'iot-line-chart__tick');
+    var xTexts = syncChildren(xAxis, 'text', tickIdx.length);
+    tickIdx.forEach(function (pIdx, i) {
+      var cx = coords[pIdx][0];
+      setAttrs(vLines[i], { x1: cx, y1: Y0, x2: cx, y2: Y1 });
+      setAttrs(xTicksEls[i], { x1: cx, y1: Y1, x2: cx, y2: Y1 + 5 });
+      setAttrs(xTexts[i], { x: cx, y: Y1 + 18, 'text-anchor': 'middle' });
+      xTexts[i].textContent = points[pIdx].label || '';
+    });
 
-    /* ── Serie + puntos ── */
+    /* ── Serie + puntos (con data para el tooltip) ── */
     line.setAttribute('points', coords.map(function (c) {
       return c[0].toFixed(1) + ',' + c[1].toFixed(1);
     }).join(' '));
-    coords.forEach(function (c) {
-      var circle = el('circle', { cx: c[0].toFixed(1), cy: c[1].toFixed(1), r: 3, 'class': 'iot-line-chart__point' });
-      dots.appendChild(circle);
+    var circles = syncChildren(dots, 'circle', n, 'iot-line-chart__point');
+    coords.forEach(function (c, i) {
+      setAttrs(circles[i], {
+        cx: c[0].toFixed(1),
+        cy: c[1].toFixed(1),
+        r: 3,
+        'data-value': points[i].value,
+        'data-when': points[i].at || points[i].label || ''
+      });
+    });
+  }
+
+  /* ── Tooltip flotante: valor exacto + hora del punto ── */
+  function initTooltip(grid) {
+    var chart = grid.querySelector('.iot-chart');
+    if (!chart) return;
+
+    var tip = document.createElement('div');
+    tip.className = 'iot-chart__tooltip';
+    var tipVal = document.createElement('strong');
+    var tipWhen = document.createElement('span');
+    tip.appendChild(tipVal);
+    tip.appendChild(tipWhen);
+    chart.appendChild(tip);
+    grid._tip = tip;
+
+    var unit = grid.dataset.sensorUnit || '';
+
+    chart.addEventListener('mouseover', function (e) {
+      var c = e.target.closest ? e.target.closest('circle[data-value]') : null;
+      if (!c) return;
+
+      tipVal.textContent = c.getAttribute('data-value') + (unit ? ' ' + unit : '');
+      var when = c.getAttribute('data-when') || '';
+      tipWhen.textContent = when;
+      tipWhen.hidden = !when;
+
+      // Posición del punto relativa al contenedor del gráfico, clampeada
+      // para que el tooltip no se salga de la card.
+      var cRect = c.getBoundingClientRect();
+      var hRect = chart.getBoundingClientRect();
+      var x = cRect.left + cRect.width / 2 - hRect.left;
+      var y = cRect.top - hRect.top;
+      var half = tip.offsetWidth / 2 + 4;
+      x = Math.max(half, Math.min(hRect.width - half, x));
+      tip.style.left = x + 'px';
+      tip.style.top = y + 'px';
+      tip.classList.add('is-visible');
+    });
+
+    chart.addEventListener('mouseout', function (e) {
+      if (e.target.closest && e.target.closest('circle[data-value]')) {
+        tip.classList.remove('is-visible');
+      }
     });
   }
 
@@ -106,6 +195,12 @@
     var switchers = document.querySelectorAll('[data-section-target]');
     var panes = document.querySelectorAll('[data-section-pane]');
 
+    // Persistencia de la pestaña activa: F5 vuelve a donde estaba el usuario.
+    var TAB_KEY = 'prevcs:sensor-tab:' + location.pathname;
+    function rememberTab(target) {
+      try { sessionStorage.setItem(TAB_KEY, target); } catch (err) { /* sin storage */ }
+    }
+
     function activatePane(target) {
       panes.forEach(function (p) { p.classList.toggle('is-active', p.dataset.sectionPane === target); });
       switchers.forEach(function (input) {
@@ -114,6 +209,7 @@
         var lbl = input.closest('.section-switch__radio');
         if (lbl) lbl.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
+      rememberTab(target);
       loadSensor(target);
     }
     switchers.forEach(function (input) {
@@ -248,6 +344,8 @@
 
     /* ── Date range selector → recarga la serie del sensor ── */
     document.querySelectorAll('.iot-grid').forEach(function (grid) {
+      initTooltip(grid);
+
       var drp = grid.querySelector('[data-date-range]');
       if (!drp) return;
       var paneOf = function () {
@@ -264,7 +362,21 @@
       });
     });
 
-    var first = document.querySelector('.section-pane.is-active');
-    if (first) loadSensor(first.dataset.sectionPane);
+    /* ── Pestaña inicial: la guardada (si existe) o la activa por defecto ── */
+    var savedTab = null;
+    try { savedTab = sessionStorage.getItem(TAB_KEY); } catch (err) { /* sin storage */ }
+    var savedInput = savedTab
+      ? document.querySelector('[data-section-target="' + savedTab + '"]')
+      : null;
+
+    if (savedInput && !savedInput.checked) {
+      // El change burbujea hasta .section-switch, así la píldora del
+      // switch (prevcs-ui.js) también se recoloca sola.
+      savedInput.checked = true;
+      savedInput.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      var first = document.querySelector('.section-pane.is-active');
+      if (first) loadSensor(first.dataset.sectionPane);
+    }
   });
 })();
