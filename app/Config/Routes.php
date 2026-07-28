@@ -69,6 +69,9 @@ $routes->post('esp32/(:num)/eliminar', 'Esp32Controller::delete/$1');
 $routes->post('esp32/(:num)/sensores', 'SensorController::store/$1');
 $routes->get('esp32/(:num)', 'Esp32Controller::show/$1');
 
+// show user
+$routes->get('showuser/', 'ShowUserController::index');
+
 // APIs IoT
 $routes->get('api/esp32/(:num)/lecturas', 'Esp32Controller::readings/$1');
 $routes->post('api/iot/lectura', 'IoTController::ingest'); // ingesta desde ESP32 (MAC + token)
