@@ -32,12 +32,12 @@
                 <h1><?= esc($device['name']) ?></h1>
                 <p class="dashboard-head__text">
                     <code class="esp32-card__mac"><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : 'Sin vincular' ?></code>
-                    Â· Sector: <?= esc($device['sector'] ?? 'â€”') ?>
+                    · Sector: <?= esc($device['sector'] ?? '~') ?>
                 </p>
             </div>
             <div class="dashboard-head__meta dashboard-head__meta--esp">
-                <button type="button" class="iot-gear-btn" data-open-modal="esp32-config-modal" aria-label="ConfiguraciÃ³n de la placa" title="ConfiguraciÃ³n de la placa">
-                    <!-- Heroicons v2 solid Â· cog-6-tooth (MIT) -->
+                <button type="button" class="iot-gear-btn" data-open-modal="esp32-config-modal" aria-label="Configuración de la placa" title="Configuración de la placa">
+                    <!-- Heroicons v2 solid · cog-6-tooth (MIT) -->
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path fill-rule="evenodd" clip-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"/>
                     </svg>
@@ -47,7 +47,7 @@
                         <span class="dot <?= ($device['status'] ?? '') === 'online' ? 'dot--live' : '' ?>"></span>
                         <?= esc($device['status'] ?? 'offline') ?>
                     </span>
-                    <small class="text-muted mono">Ãšltima: <span data-device-last-seen><?= esc($device['last_seen_at'] ?? 'â€”') ?></span></small>
+                    <small class="text-muted mono">Última: <span data-device-last-seen><?= esc($device['last_seen_at'] ?? '�') ?></span></small>
                 </div>
             </div>
         </header>
@@ -63,10 +63,10 @@
         <?php endif; ?>
 
         <?php if (empty($device['mac_address'])): ?>
-            <!-- La placa todavÃ­a no se vinculÃ³: en lugar de grÃ¡ficos vacÃ­os,
-                 mostramos el aviso con la guÃ­a para vincularla. -->
+            <!-- La placa todavía no se vinculó: en lugar de gráficos vacíos,
+                 mostramos el aviso con la guía para vincularla. -->
             <section class="panel card esp32-unlinked">
-                <h3>Â¡No has conectado tu ESP32!</h3>
+                <h3>¡No has conectado tu ESP32!</h3>
                 <img src="<?= base_url('images/no_esp_conected.svg') ?>" alt="ESP32 sin conectar">
                 <p>Conecta tu placa para poder empezar a recibir los datos</p>
                 <button type="button" class="btn btn--primary esp32-unlinked__cta" data-open-modal="esp32-config-modal">
@@ -77,7 +77,7 @@
         <?php elseif ($sensors === []): ?>
             <section class="panel card esp32-empty">
                 <h3>Sin sensores</h3>
-                <p>Esta ESP32 todavÃ­a no tiene sensores asociados.</p>
+                <p>Esta ESP32 todavía no tiene sensores asociados.</p>
             </section>
         <?php else: ?>
             <div class="section-switch" role="tablist" aria-label="Sensores de la ESP32">
@@ -98,14 +98,14 @@
                         data-readings-url="<?= base_url('api/esp32/' . $device['id'] . '/lecturas') ?>">
                         <section class="panel card iot-chart-card">
                             <div class="panel__header">
-                                <h3><?= esc($s['name']) ?><?= !empty($s['unit']) ? ' Â· ' . esc($s['unit']) : '' ?></h3>
+                                <h3><?= esc($s['name']) ?><?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?></h3>
                                 <div class="iot-chart-toolbar">
                                     <div class="drp" data-date-range></div>
                                     <span class="badge badge--info" data-chart-type><?= esc($s['default_chart']) ?></span>
                                 </div>
                             </div>
                             <div class="iot-chart is-skeleton">
-                                <svg class="iot-line-chart" viewBox="0 0 640 360" role="img" aria-label="GrÃ¡fico de <?= esc($s['name']) ?>">
+                                <svg class="iot-line-chart" viewBox="0 0 640 360" role="img" aria-label="Gráfico de <?= esc($s['name']) ?>">
                                     <g class="iot-line-chart__grid">
                                         <line x1="78" y1="48" x2="600" y2="48"></line>
                                         <line x1="78" y1="112" x2="600" y2="112"></line>
@@ -116,7 +116,7 @@
                                     <g class="iot-line-chart__grid iot-line-chart__grid--v" data-grid-v></g>
                                     <g class="iot-line-chart__axis iot-line-chart__axis--y" data-axis-y></g>
                                     <g class="iot-line-chart__axis iot-line-chart__axis--x" data-axis-x></g>
-                                    <text class="iot-line-chart__axis-title" x="18" y="176" transform="rotate(-90 18 176)" text-anchor="middle">Valores<?= !empty($s['unit']) ? ' Â· ' . esc($s['unit']) : '' ?></text>
+                                    <text class="iot-line-chart__axis-title" x="18" y="176" transform="rotate(-90 18 176)" text-anchor="middle">Valores<?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?></text>
                                     <text class="iot-line-chart__axis-title" x="339" y="350" text-anchor="middle">Tiempo</text>
                                     <polyline class="iot-line-chart__stroke" data-sensor-line points=""></polyline>
                                     <g data-sensor-points></g>
@@ -132,10 +132,10 @@
                                     <span class="iot-skel" style="height:66%"></span>
                                 </div>
                                 <div class="iot-chart__error" data-sensor-error hidden>
-                                    <p>No se pudieron cargar las lecturas. RevisÃ¡ tu conexiÃ³n.</p>
+                                    <p>No se pudieron cargar las lecturas. Revisá tu conexión.</p>
                                     <button type="button" class="btn btn--secondary btn--sm" data-sensor-retry>Reintentar</button>
                                 </div>
-                                <p class="esp32-chart-empty" data-sensor-empty hidden>Sin lecturas todavÃ­a para este sensor.</p>
+                                <p class="esp32-chart-empty" data-sensor-empty hidden>Sin lecturas todavía para este sensor.</p>
                             </div>
                         </section>
 
@@ -143,19 +143,19 @@
                             <aside class="panel card">
                                 <div class="panel__header"><h3>Resumen</h3></div>
                                 <dl class="esp32-sensor-meta">
-                                    <div><dt>DescripciÃ³n</dt><dd>Mediciones de <?= esc(mb_strtolower($s['name'])) ?> reportadas por la ESP32.</dd></div>
-                                    <div><dt>Ãšltima lectura</dt>
+                                    <div><dt>Descripción</dt><dd>Mediciones de <?= esc(mb_strtolower($s['name'])) ?> reportadas por la ESP32.</dd></div>
+                                    <div><dt>Última lectura</dt>
                                         <dd class="mono" data-sensor-latest>
-                                            <?= $s['latest_value'] !== null ? esc($s['latest_value']) . ' ' . esc($s['unit'] ?? '') : 'â€”' ?>
+                                            <?= $s['latest_value'] !== null ? esc($s['latest_value']) . ' ' . esc($s['unit'] ?? '') : '�' ?>
                                         </dd>
                                     </div>
-                                    <div><dt>Registrada</dt><dd class="mono" data-sensor-latest-at><?= esc($s['latest_at'] ?? 'â€”') ?></dd></div>
+                                    <div><dt>Registrada</dt><dd class="mono" data-sensor-latest-at><?= esc($s['latest_at'] ?? '�') ?></dd></div>
                                 </dl>
                             </aside>
 
                             <aside class="panel card">
                                 <div class="panel__header"><h3>Observaciones</h3></div>
-                                <p class="esp32-observations" data-sensor-observation>Esperando datos del sensorâ€¦</p>
+                                <p class="esp32-observations" data-sensor-observation>Esperando datos del sensor��</p>
                             </aside>
 
                             <aside class="panel card">
@@ -174,7 +174,7 @@
             <?php endforeach; ?>
         <?php endif; ?>
 
-        <!-- ConfiguraciÃ³n de la placa: ventana emergente (botÃ³n de engranaje).
+        <!-- Configuración de la placa: ventana emergente (botón de engranaje).
              Si acabamos de crear la placa o revelar el token, llega abierta
              para que el token/QR quede a la vista sin un click extra. -->
         <div class="space-modal" id="esp32-config-modal" data-space-modal<?= ! empty($autoOpenConfig) ? '' : ' hidden' ?>>
@@ -182,7 +182,7 @@
             <div class="space-modal__dialog card" role="dialog" aria-modal="true" aria-labelledby="esp32-config-title">
                 <header class="space-modal__head">
                     <div>
-                        <h3 id="esp32-config-title">ConfiguraciÃ³n de la placa</h3>
+                        <h3 id="esp32-config-title">Configuración de la placa</h3>
                         <p class="text-muted mono"><?= esc($device['name']) ?></p>
                     </div>
                     <button type="button" class="space-modal__close" data-modal-dismiss aria-label="Cerrar">
@@ -191,35 +191,35 @@
                 </header>
 
                 <div class="space-modal__body" data-lenis-prevent>
-                    <!-- 1) Datos de configuraciÃ³n -->
+                    <!-- 1) Datos de configuración -->
                     <section class="space-modal__section">
-                        <h4>Datos de configuraciÃ³n</h4>
+                        <h4>Datos de configuración</h4>
                         <dl class="esp32-sensor-meta">
                             <div>
                                 <dt>MAC
-                                    <button type="button" class="pv-tip" aria-label="Â¿Por quÃ© importa la MAC?"
-                                        data-tip="La MAC identifica de forma Ãºnica a tu placa en la red. Cuando la ESP32 envÃ­a su primer dato, el sistema la reconoce por su MAC y queda vinculada sola a este panel.">?</button>
+                                    <button type="button" class="pv-tip" aria-label="¿Por qué importa la MAC?"
+                                        data-tip="La MAC identifica de forma única a tu placa en la red. Cuando la ESP32 envía su primer dato, el sistema la reconoce por su MAC y queda vinculada sola a este panel.">?</button>
                                 </dt>
                                 <dd class="mono"><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : '<em>No hubo comunicacion con la placa</em>' ?></dd>
                             </div>
                             <div><dt>Estado</dt><dd><?= esc($device['status'] ?? 'offline') ?></dd></div>
-                            <div><dt>Ãšltima lectura</dt><dd class="mono"><?= esc($device['last_seen_at'] ?? '-') ?></dd></div>
+                            <div><dt>Última lectura</dt><dd class="mono"><?= esc($device['last_seen_at'] ?? '-') ?></dd></div>
                         </dl>
                     </section>
 
-                    <!-- 2) Token / vinculaciÃ³n con el firmware -->
+                    <!-- 2) Token / vinculación con el firmware -->
                     <section class="space-modal__section">
                         <h4>Token del dispositivo
-                            <button type="button" class="pv-tip" aria-label="Â¿Para quÃ© sirve el token?"
-                                data-tip="Configuralo en el firmware. Se envÃ­a en cada lectura (header X-Device-Token).">?</button>
+                            <button type="button" class="pv-tip" aria-label="¿Para qué sirve el token?"
+                                data-tip="Configuralo en el firmware. Se envía en cada lectura (header X-Device-Token).">?</button>
                         </h4>
                         <?php if (! empty($deviceToken)): ?>
                             <code class="esp32-token"><?= esc($deviceToken) ?></code>
 
                             <?php if (! empty($setupUrl)): ?>
                                 <div class="esp32-setup-box">
-                                    <strong>ConfigurÃ¡ la placa: conectate a PREVCS-CONFIG</strong>
-                                    <p>Primero conectate al WiFi <code>PREVCS-CONFIG</code> que crea la placa y escaneÃ¡ el QR (o tocÃ¡ el botÃ³n).</p>
+                                    <strong>Configurá la placa: conectate a PREVCS-CONFIG</strong>
+                                    <p>Primero conectate al WiFi <code>PREVCS-CONFIG</code> que crea la placa y escaneá el QR (o tocá el botón).</p>
                                     <div class="esp32-qr" data-qr-url="<?= esc($setupUrl) ?>">
                                         <div class="esp32-qr__code" data-qr-target></div>
                                     </div>
@@ -251,12 +251,12 @@
                         <section class="space-modal__section">
                             <h4>Agregar sensor extra</h4>
                             <?php if ($availableTypes === []): ?>
-                                <p class="text-muted">Todos los tipos de sensor ya estÃ¡n asociados a esta placa.</p>
+                                <p class="text-muted">Todos los tipos de sensor ya están asociados a esta placa.</p>
                             <?php else: ?>
                                 <form action="<?= base_url('esp32/' . $device['id'] . '/sensores') ?>" method="post" class="esp32-sensor-form esp32-sensor-form--modal">
                                     <?= csrf_field() ?>
                                     <select name="sensor_type_id" class="esp32-select" required>
-                                        <option value="" disabled selected>Tipo de sensorâ€¦</option>
+                                        <option value="" disabled selected>Tipo de sensor</option>
                                         <?php foreach ($availableTypes as $t): ?>
                                             <option value="<?= esc($t['id']) ?>"><?= esc($t['name']) ?><?= !empty($t['unit']) ? ' (' . esc($t['unit']) . ')' : '' ?></option>
                                         <?php endforeach; ?>
@@ -268,19 +268,19 @@
                         </section>
                     <?php endif; ?>
 
-                    <!-- 4) Eliminar la placa: solo si ya estÃ¡ creada y configurada (tiene MAC)
+                    <!-- 4) Eliminar la placa: solo si ya está creada y configurada (tiene MAC)
                          y el usuario puede editar el espacio (admin o supervisor con permiso). -->
                     <?php if (! empty($canEdit) && ! empty($device['mac_address'])): ?>
                         <section class="space-modal__section esp32-delete">
                             <div class="esp32-delete__intro">
                                 <h4>Zona de peligro</h4>
-                                <p class="text-muted">Eliminar la placa borra tambiÃ©n sus sensores y todas sus lecturas. Esta acciÃ³n no se puede deshacer.</p>
+                                <p class="text-muted">Eliminar la placa borra también sus sensores y todas sus lecturas. Esta acción no se puede deshacer.</p>
                             </div>
                             <button type="button" class="btn btn--danger" data-delete-toggle aria-expanded="<?= ! empty($deleteError) ? 'true' : 'false' ?>">Eliminar ESP32</button>
                             <form action="<?= base_url('esp32/' . $device['id'] . '/eliminar') ?>" method="post" class="esp32-delete__form" data-delete-form<?= ! empty($deleteError) ? '' : ' hidden' ?>>
                                 <?= csrf_field() ?>
                                 <label class="auth-field">
-                                    <span class="auth-field__label">EscribÃ­ el nombre exacto de la placa: <strong><?= esc($device['name']) ?></strong></span>
+                                    <span class="auth-field__label">Escribí el nombre exacto de la placa: <strong><?= esc($device['name']) ?></strong></span>
                                     <span class="auth-field__control">
                                         <span class="auth-field__icon">E</span>
                                         <input type="text" name="confirm_name" placeholder="<?= esc($device['name']) ?>" autocomplete="off" required data-delete-name data-expected-name="<?= esc($device['name']) ?>">
@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* Eliminar ESP32: despliega el form y habilita el submit reciÃ©n
+    /* Eliminar ESP32: despliega el form y habilita el submit recién
        cuando el nombre tipeado coincide exactamente con el de la placa. */
     var deleteToggle = document.querySelector('[data-delete-toggle]');
     var deleteForm = document.querySelector('[data-delete-form]');
