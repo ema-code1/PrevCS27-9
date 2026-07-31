@@ -78,6 +78,7 @@ class Filters extends BaseFilters
                 '/',
                 'portfolio',
                 'pago', // vista de pago: ocurre antes del registro -> publica
+                'usuarios',
                 'api/form-metrics',
                 'reg-log',
                 'login',
