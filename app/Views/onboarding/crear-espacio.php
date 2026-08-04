@@ -166,6 +166,7 @@ $chartLabels = [
 
 <?= $this->section('pageScripts') ?>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260612-2" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('[data-wizard-form]');
@@ -367,6 +368,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     form.querySelectorAll('[data-wizard-prev]').forEach((button) => {
         button.addEventListener('click', () => goTo(current - 1, -1));
+    });
+
+    /* ── Enter: avanza de paso / hace submit solo si el paso actual esta completo ── */
+    form.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' || event.target.tagName === 'BUTTON' || event.target.tagName === 'TEXTAREA') return;
+        event.preventDefault();
+        if (busy) return;
+
+        if (validateCurrent()) {
+            if (current < panes.length) {
+                goTo(current + 1, 1);
+            } else if (form.requestSubmit) {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
+        } else if (window.PrevcsToast) {
+            window.PrevcsToast.show('Completá los datos de este paso antes de continuar.', 'error');
+        }
     });
 
     form.querySelectorAll('input[name="metrics[]"]').forEach((input) => {
