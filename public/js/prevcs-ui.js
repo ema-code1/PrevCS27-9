@@ -43,7 +43,9 @@
       return toastHost;
     }
 
-    function showToast(message, type, duration) {
+    /* action (opcional): { label, onClick }. Se usa para los "Deshacer"
+       que aparecen después de mover, archivar o eliminar algo. */
+    function showToast(message, type, duration, action) {
       duration = duration || 3500;
       var toast = document.createElement('div');
       toast.className = 'pv-toast pv-toast--' + (type === 'error' ? 'error' : 'success');
@@ -59,13 +61,30 @@
       bar.style.animationDuration = duration + 'ms';
 
       toast.appendChild(text);
+
+      var timer = null;
+      var dismiss = function () {
+        window.clearTimeout(timer);
+        toast.classList.add('is-leaving');
+        window.setTimeout(function () { toast.remove(); }, 260);
+      };
+
+      if (action && action.label && typeof action.onClick === 'function') {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'pv-toast__action';
+        button.textContent = action.label;
+        button.addEventListener('click', function () {
+          dismiss();
+          action.onClick();
+        });
+        toast.appendChild(button);
+      }
+
       toast.appendChild(bar);
       toastContainer().appendChild(toast);
 
-      window.setTimeout(function () {
-        toast.classList.add('is-leaving');
-        window.setTimeout(function () { toast.remove(); }, 260);
-      }, duration);
+      timer = window.setTimeout(dismiss, duration);
       return toast;
     }
 

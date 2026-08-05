@@ -75,3 +75,45 @@ $routes->get('showuser/', 'ShowUserController::index');
 // APIs IoT
 $routes->get('api/esp32/(:num)/lecturas', 'Esp32Controller::readings/$1');
 $routes->post('api/iot/lectura', 'IoTController::ingest'); // ingesta desde ESP32 (MAC + token)
+
+// === Tablero Kanban (uno por ESP32) ===
+// El primer (:num) es SIEMPRE el id de la placa: el controlador resuelve el
+// espacio a partir de ella y valida la membresía en cada request, así los
+// datos de un tablero no se pueden tocar desde otro espacio.
+$routes->get('kanban/(:num)/tablero', 'KanbanController::board/$1');
+$routes->post('kanban/(:num)/tablero', 'KanbanController::updateBoard/$1');
+
+// Columnas ("orden" va antes que (:num) por claridad de lectura)
+$routes->post('kanban/(:num)/columnas', 'KanbanController::createColumn/$1');
+$routes->post('kanban/(:num)/columnas/orden', 'KanbanController::reorderColumns/$1');
+$routes->post('kanban/(:num)/columnas/(:num)', 'KanbanController::updateColumn/$1/$2');
+$routes->post('kanban/(:num)/columnas/(:num)/accion', 'KanbanController::columnAction/$1/$2');
+
+// Tareas
+$routes->post('kanban/(:num)/tareas', 'KanbanController::createTask/$1');
+$routes->get('kanban/(:num)/tareas/(:num)', 'KanbanController::taskDetail/$1/$2');
+$routes->post('kanban/(:num)/tareas/(:num)', 'KanbanController::updateTask/$1/$2');
+$routes->post('kanban/(:num)/tareas/(:num)/mover', 'KanbanController::moveTask/$1/$2');
+$routes->post('kanban/(:num)/tareas/(:num)/accion', 'KanbanController::taskAction/$1/$2');
+$routes->post('kanban/(:num)/tareas/(:num)/responsables', 'KanbanController::toggleAssignee/$1/$2');
+$routes->post('kanban/(:num)/tareas/(:num)/etiquetas', 'KanbanController::toggleLabel/$1/$2');
+$routes->post('kanban/(:num)/tareas/(:num)/checklists', 'KanbanController::createChecklist/$1/$2');
+$routes->post('kanban/(:num)/tareas/(:num)/comentarios', 'KanbanController::createComment/$1/$2');
+$routes->post('kanban/(:num)/tareas/(:num)/enlaces', 'KanbanController::createLink/$1/$2');
+$routes->post('kanban/(:num)/tareas/(:num)/adjuntos', 'KanbanController::uploadAttachment/$1/$2');
+
+// Sub-recursos de tarea
+$routes->post('kanban/(:num)/checklists/(:num)', 'KanbanController::updateChecklist/$1/$2');
+$routes->post('kanban/(:num)/checklists/(:num)/items', 'KanbanController::createChecklistItem/$1/$2');
+$routes->post('kanban/(:num)/items/(:num)', 'KanbanController::updateChecklistItem/$1/$2');
+$routes->post('kanban/(:num)/comentarios/(:num)', 'KanbanController::updateComment/$1/$2');
+$routes->post('kanban/(:num)/enlaces/(:num)', 'KanbanController::deleteLink/$1/$2');
+$routes->post('kanban/(:num)/adjuntos/(:num)', 'KanbanController::deleteAttachment/$1/$2');
+
+// Etiquetas del tablero
+$routes->post('kanban/(:num)/etiquetas', 'KanbanController::createLabel/$1');
+$routes->post('kanban/(:num)/etiquetas/(:num)', 'KanbanController::updateLabel/$1/$2');
+
+// Paneles auxiliares
+$routes->get('kanban/(:num)/archivo', 'KanbanController::archive/$1');
+$routes->get('kanban/(:num)/completadas', 'KanbanController::completed/$1');

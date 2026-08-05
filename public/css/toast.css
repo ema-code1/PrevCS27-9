@@ -43,6 +43,30 @@
   overflow-wrap: anywhere;
 }
 
+/* Acción opcional del toast ("Deshacer", "Reintentar"). */
+.pv-toast__action {
+  margin-top: 8px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hair-2);
+  background: var(--bg-card-soft);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.pv-toast__action:hover {
+  border-color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.pv-toast__action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
 /* Línea de duración (estilo barra de YouTube, con el verde temático). */
 .pv-toast__bar {
   position: absolute;

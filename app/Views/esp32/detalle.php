@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=wifi_off" />
 <link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260612-1">
+<link rel="stylesheet" href="<?= base_url('css/kanban.css') ?>?v=20260805-10">
 <style>
 .esp32-qr{display:flex;flex-direction:column;gap:16px;align-items:center;margin:10px 0}
 .esp32-qr__code{background:#fff;padding:10px;border-radius:var(--radius-md);border:1px solid var(--hair);line-height:0}
@@ -174,6 +175,10 @@
             <?php endforeach; ?>
         <?php endif; ?>
 
+        <!-- Tablero de tareas de la placa. Va FUERA del foreach de sensores:
+             es global a la ESP32 y no cambia al moverse entre las pestañas. -->
+        <?= $this->include('esp32/_kanban') ?>
+
         <!-- Configuración de la placa: ventana emergente (botón de engranaje).
              Si acabamos de crear la placa o revelar el token, llega abierta
              para que el token/QR quede a la vista sin un click extra. -->
@@ -311,6 +316,7 @@
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
 <script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260612-2" defer></script>
 <script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260612-1" defer></script>
+<script src="<?= base_url('js/kanban.js') ?>?v=20260805-10" defer></script>
 <script src="<?= base_url('js/qrcode.min.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {

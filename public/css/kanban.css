@@ -1,0 +1,1362 @@
+/* =====================================================================
+   PrevCS · Tablero Kanban por ESP32
+   Vive debajo de los gráficos, dentro de la vista de cada placa.
+   Usa exclusivamente los tokens de styles.css, así que acompaña el
+   cambio de tema sin reglas duplicadas por modo.
+
+   Criterio visual: herramienta limpia. Superficies planas, poco borde,
+   el color aparece en puntos concretos (punto de la columna, etiqueta,
+   franja de la tarjeta) y nunca como relleno pesado.
+   ===================================================================== */
+
+/* ─────────────── Paleta cerrada (compartida con el backend) ───────────
+   Los mismos 10 nombres que valida KanbanBoardModel::COLORS. En oklch
+   para poder subir la luminosidad en oscuro sin recalcular tonos.
+   ──────────────────────────────────────────────────────────────────── */
+:root {
+  --kb-azul:     oklch(0.55 0.150 258);
+  --kb-celeste:  oklch(0.62 0.120 232);
+  --kb-turquesa: oklch(0.60 0.100 195);
+  --kb-verde:    oklch(0.55 0.120 150);
+  --kb-amarillo: oklch(0.70 0.140 85);
+  --kb-naranja:  oklch(0.64 0.150 55);
+  --kb-rojo:     oklch(0.58 0.190 28);
+  --kb-rosa:     oklch(0.62 0.160 355);
+  --kb-violeta:  oklch(0.55 0.160 300);
+  --kb-gris:     oklch(0.52 0.010 260);
+
+  /* geometría del tablero */
+  --kb-col-w: clamp(288px, 25vw, 320px);
+  --kb-col-gap: 14px;
+  --kb-col-radius: 16px;
+  --kb-card-radius: 12px;
+  --kb-col-pad: 12px;
+
+  /* foco neutro: el mismo para todos los campos del tablero */
+  --kb-focus-ring: color-mix(in oklab, var(--text-primary) 16%, transparent);
+  --kb-focus-border: color-mix(in oklab, var(--text-primary) 34%, transparent);
+}
+
+body[data-theme="dark"] {
+  --kb-azul:     oklch(0.72 0.130 258);
+  --kb-celeste:  oklch(0.78 0.110 232);
+  --kb-turquesa: oklch(0.76 0.090 195);
+  --kb-verde:    oklch(0.74 0.110 150);
+  --kb-amarillo: oklch(0.83 0.130 85);
+  --kb-naranja:  oklch(0.78 0.130 55);
+  --kb-rojo:     oklch(0.72 0.160 28);
+  --kb-rosa:     oklch(0.76 0.140 355);
+  --kb-violeta:  oklch(0.72 0.140 300);
+  --kb-gris:     oklch(0.70 0.010 260);
+
+  --kb-focus-ring: color-mix(in oklab, var(--text-primary) 20%, transparent);
+  --kb-focus-border: color-mix(in oklab, var(--text-primary) 42%, transparent);
+}
+
+/* Color por defecto cuando el elemento todavía no tiene uno elegido.
+   Va en :where() (especificidad 0) para que cualquier [data-kb-color]
+   lo pise, sin depender del orden de las reglas. */
+:where(.kb, .kb-col, .kb-card) { --kb-c: var(--kb-gris); }
+
+[data-kb-color="azul"]     { --kb-c: var(--kb-azul); }
+[data-kb-color="celeste"]  { --kb-c: var(--kb-celeste); }
+[data-kb-color="turquesa"] { --kb-c: var(--kb-turquesa); }
+[data-kb-color="verde"]    { --kb-c: var(--kb-verde); }
+[data-kb-color="amarillo"] { --kb-c: var(--kb-amarillo); }
+[data-kb-color="naranja"]  { --kb-c: var(--kb-naranja); }
+[data-kb-color="rojo"]     { --kb-c: var(--kb-rojo); }
+[data-kb-color="rosa"]     { --kb-c: var(--kb-rosa); }
+[data-kb-color="violeta"]  { --kb-c: var(--kb-violeta); }
+[data-kb-color="gris"]     { --kb-c: var(--kb-gris); }
+
+/* ─────────────────────────── Contenedor ───────────────────────────── */
+.kb {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  min-width: 0;
+}
+
+.kb[hidden] { display: none; }
+
+/* ─────────────────────────── Encabezado ───────────────────────────── */
+.kb__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.kb__heading { min-width: 0; display: flex; align-items: center; }
+
+/* ─────────────── Campos de texto del tablero ───────────────────────
+   Un solo look para todo: sin brillo de color al enfocar, sin manija
+   de redimensionado y creciendo con el contenido.
+   ──────────────────────────────────────────────────────────────────── */
+.kb textarea,
+.kb-modal textarea,
+.kb-menu textarea { resize: none; overflow: hidden; }
+
+.kb input:focus,
+.kb textarea:focus,
+.kb-modal input:focus,
+.kb-modal textarea:focus,
+.kb-menu input:focus {
+  outline: none;
+  border-color: var(--kb-focus-border);
+  box-shadow: 0 0 0 3px var(--kb-focus-ring);
+}
+
+/* styles.css pinta un :focus-visible verde global. Dentro del tablero el
+   foco es neutro, así que se reemplaza para todo lo que quede suelto
+   (links de acción, checkboxes, filas de selector…). */
+.kb :focus-visible,
+.kb-modal :focus-visible,
+.kb-menu :focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--kb-focus-ring);
+}
+
+/* Campo que se ve como texto hasta que se lo edita (doble clic). */
+.kb-inline {
+  font: inherit;
+  color: inherit;
+  width: auto;
+  max-width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  padding: 3px 7px;
+  margin-left: -7px;
+  cursor: default;
+  text-overflow: ellipsis;
+  transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.kb-inline:read-only:hover { background: var(--bg-card-soft); }
+.kb-inline:not(:read-only) { cursor: text; background: var(--input-bg); border-color: var(--hair-2); }
+
+/* Dentro del encabezado de la columna el título en modo lectura es parte
+   de la zona de arrastre, así que muestra la manito de agarrar. */
+.kb-col__head .kb-inline:read-only { cursor: inherit; }
+
+.kb__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-tight);
+}
+
+/* ─────────────────────────── Barra de herramientas ────────────────── */
+.kb__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.kb-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.kb-search svg {
+  position: absolute;
+  left: 12px;
+  width: 15px;
+  height: 15px;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+.kb-search input {
+  width: clamp(160px, 22vw, 250px);
+  padding: 9px 13px 9px 34px;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-pill);
+  border-color: var(--hair);
+  background: var(--bg-card-soft);
+}
+
+.kb-search input:hover:not(:focus) { border-color: var(--hair-2); }
+
+/* Botón chico y neutro para todos los controles de la toolbar. */
+.kb-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 14px;
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.kb-tool svg { width: 15px; height: 15px; }
+
+.kb-tool:hover {
+  color: var(--text-primary);
+  background: var(--bg-card-soft);
+}
+
+.kb-tool.is-on {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg);
+}
+
+/* Variante solo icono (Archivadas, Apariencia). */
+.kb-tool--icon { padding: 9px; width: 36px; justify-content: center; }
+
+.kb-tool__badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--text-primary) 10%, transparent);
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sin número no hay burbuja: si no, queda un puntito suelto. */
+.kb-tool__badge:empty { display: none; }
+
+.kb-tool.is-on .kb-tool__badge { background: color-mix(in oklab, var(--bg) 26%, transparent); color: var(--bg); }
+
+.kb-tool:focus-visible,
+.kb-search input:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
+
+/* ── Panel de filtros desplegable ──────────────────────────────────── */
+.kb-filters {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card-soft);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  transform-origin: top center;
+  animation: kbReveal 260ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.kb-filters[hidden] { display: none; }
+
+.kb-filters__group { display: grid; gap: 7px; align-content: start; }
+
+.kb-filters__group > strong {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.kb-filters__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.kb-filters__foot {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+@keyframes kbReveal {
+  from { opacity: 0; transform: translateY(-8px) scaleY(.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ─────────────────────────── Superficie del tablero ───────────────── */
+.kb__board {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--kb-col-gap);
+  padding: var(--space-md);
+  border-radius: var(--radius-xl);
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* Tinte apenas perceptible del color elegido sobre la superficie del
+     tema: da identidad sin competir con las tarjetas.
+
+     Va en dos capas a propósito. Chrome no vuelve a resolver un
+     color-mix() entre DOS variables heredadas cuando cambia el tema en
+     caliente (el tablero se quedaba con el fondo claro al pasar a
+     oscuro). Separando el color plano en background-color y el tinte
+     translúcido en background-image, las dos capas se actualizan. */
+  background-color: var(--bg-2);
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--kb-c) 6%, transparent),
+    color-mix(in oklab, var(--kb-c) 6%, transparent)
+  );
+  scroll-behavior: smooth;
+  min-height: 200px;
+  transition: background-color var(--transition-slow);
+  overscroll-behavior-x: contain;
+}
+
+body[data-theme="dark"] .kb__board {
+  background-image: linear-gradient(
+    color-mix(in oklab, var(--kb-c) 9%, transparent),
+    color-mix(in oklab, var(--kb-c) 9%, transparent)
+  );
+}
+
+/* Mientras se arrastra, el scroll suave pelea con el arrastre. */
+.kb__board.is-dragging { scroll-behavior: auto; cursor: grabbing; }
+
+/* ─────────────────────────── Columna ──────────────────────────────── */
+.kb-col {
+  flex: 0 0 var(--kb-col-w);
+  width: var(--kb-col-w);
+  max-height: 66vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--kb-col-radius);
+  background: var(--bg-card);
+  border: 1px solid var(--hair);
+  box-shadow: var(--shadow-sm);
+  animation: kbColIn 380ms cubic-bezier(.2, .7, .2, 1) both;
+  transition: box-shadow var(--transition-normal), opacity var(--transition-fast);
+}
+
+@keyframes kbColIn {
+  from { opacity: 0; transform: translateY(10px) scale(.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* El original queda oculto mientras su clon flota siguiendo el puntero. */
+.kb-col.is-ghosted,
+.kb-card.is-ghosted { opacity: 0; pointer-events: none; }
+
+.kb-col__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px var(--kb-col-pad) 8px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.kb-col__head:active { cursor: grabbing; }
+
+/* Punto de color: identifica la columna sin teñir toda la superficie. */
+.kb-col__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--kb-c);
+}
+
+.kb-col__title {
+  min-width: 0;
+  flex: 0 1 auto;
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin-left: 0;
+}
+
+.kb-col__count {
+  flex: 0 0 auto;
+  color: var(--text-faint);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Límite superado: además del color, el contador suma un signo. */
+.kb-col.is-over-limit .kb-col__count { color: var(--error); font-weight: var(--font-weight-medium); }
+.kb-col.is-over-limit .kb-col__dot { background: var(--error); }
+
+.kb-col__spacer { flex: 1 1 auto; min-width: 8px; align-self: stretch; }
+
+.kb-col__desc {
+  margin: 0 var(--kb-col-pad) 6px;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ── Iconos de acción de la columna ────────────────────────────────── */
+.kb-icon-btn {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.kb-icon-btn svg { width: 15px; height: 15px; }
+
+.kb-icon-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card-soft);
+}
+
+.kb-icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
+
+/* ── Lista de tarjetas ─────────────────────────────────────────────── */
+.kb-col__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px var(--kb-col-pad) 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1 1 auto;
+  /* La columna vacía no muestra ningún texto, pero necesita alto real
+     para ser un blanco cómodo al soltar una tarjeta encima. */
+  min-height: 56px;
+  overscroll-behavior: contain;
+}
+
+.kb-col__foot { padding: 6px var(--kb-col-pad) var(--kb-col-pad); }
+
+/* ── Estado vacío del tablero ──────────────────────────────────────── */
+.kb-board-empty {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: var(--space-xl);
+  margin: auto;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.kb-board-empty strong { color: var(--text-primary); font-weight: var(--font-weight-medium); }
+.kb-board-empty p { font-size: var(--font-size-sm); max-width: 42ch; }
+
+.kb-empty {
+  padding: 10px;
+  border-radius: var(--kb-card-radius);
+  color: var(--text-faint);
+  font-size: var(--font-size-xs);
+  text-align: center;
+}
+
+/* ─────────────────────────── Tarjeta de tarea ─────────────────────── */
+.kb-card {
+  position: relative;
+  display: grid;
+  gap: 7px;
+  padding: 11px 12px;
+  border-radius: var(--kb-card-radius);
+  background: var(--card-bg);
+  border: 1px solid var(--hair);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+              border-color var(--transition-fast), opacity var(--transition-fast);
+}
+
+/* Franja lateral de color cuando la tarea tiene uno asignado. */
+.kb-card[data-kb-color] { border-left: 3px solid var(--kb-c); }
+
+.kb-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow);
+  border-color: var(--hair-2);
+}
+
+.kb-card:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
+
+/* Tarjeta seleccionada con teclado (modo mover con flechas). */
+.kb-card.is-selected {
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--kb-focus-ring);
+}
+
+/* Etiquetas: pastilla suave con el nombre siempre visible. */
+.kb-card__labels { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.kb-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in oklab, var(--kb-c) 14%, transparent);
+  color: var(--kb-c);
+  font-size: 10.5px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.kb-card__title {
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.kb-card.is-completed .kb-card__title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.kb-card__desc {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.kb-card__badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.kb-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card-soft);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.kb-badge svg { width: 11px; height: 11px; }
+
+/* Prioridad: glifo + texto, nunca solo color (requisito de accesibilidad). */
+.kb-badge--prio {
+  background: color-mix(in oklab, var(--kb-c) 13%, transparent);
+  color: var(--kb-c);
+  font-weight: var(--font-weight-medium);
+}
+
+.kb-badge--prio b { font-weight: var(--font-weight-bold); }
+
+.kb-badge--due-soon { background: var(--warning-soft); color: var(--warning); }
+.kb-badge--overdue  { background: var(--error-soft);   color: var(--error); }
+.kb-badge--done     { background: var(--success-soft); color: var(--success); }
+
+.kb-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kb-avatars { display: flex; align-items: center; }
+
+.kb-avatar {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--text-primary) 8%, transparent);
+  color: var(--text-secondary);
+  border: 1.5px solid var(--card-bg);
+  font-size: 9.5px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
+.kb-avatar + .kb-avatar { margin-left: -7px; }
+
+.kb-avatar--more { background: var(--bg-3); color: var(--text-muted); }
+
+/* Barra de avance del checklist. */
+.kb-progress {
+  flex: 1;
+  height: 4px;
+  min-width: 34px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--text-primary) 8%, transparent);
+  overflow: hidden;
+}
+
+.kb-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--text-secondary);
+  transition: width var(--transition-normal);
+}
+
+.kb-progress.is-full i { background: var(--success); }
+
+/* ── Alta rápida de tarea / columna ────────────────────────────────── */
+.kb-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.kb-add svg { width: 14px; height: 14px; }
+
+.kb-add:hover {
+  background: var(--bg-card-soft);
+  color: var(--text-primary);
+}
+
+.kb-add:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
+
+.kb-compose {
+  display: grid;
+  gap: 8px;
+  animation: kbReveal 220ms cubic-bezier(.22, 1, .36, 1);
+}
+
+/* El campo arranca en una línea y crece con el texto. */
+.kb-compose textarea,
+.kb-compose input {
+  font-size: 13px;
+  padding: 9px 11px;
+  border-radius: var(--kb-card-radius);
+  border-color: var(--hair-2);
+  line-height: 1.45;
+}
+
+.kb-compose textarea { min-height: 0; }
+
+.kb-compose__row { display: flex; align-items: center; gap: 7px; }
+.kb-compose__hint { font-size: 11px; color: var(--text-faint); margin-left: auto; }
+
+/* Columna fantasma para agregar una nueva. */
+.kb-add-col {
+  flex: 0 0 var(--kb-col-w);
+  width: var(--kb-col-w);
+  display: grid;
+  gap: 8px;
+  padding: var(--kb-col-pad);
+  border-radius: var(--kb-col-radius);
+  border: 1px dashed var(--hair-2);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.kb-add-col:hover { border-color: var(--text-faint); background: var(--bg-card); }
+
+/* ─────────────────────────── Drag and drop ────────────────────────── */
+
+/* Hueco reservado durante el arrastre. */
+.kb-placeholder {
+  flex: 0 0 auto;
+  border-radius: var(--kb-card-radius);
+  border: 1px dashed var(--hair-2);
+  background: color-mix(in oklab, var(--text-primary) 4%, transparent);
+  animation: kbPlaceholderIn 180ms ease;
+}
+
+.kb-placeholder--col { border-radius: var(--kb-col-radius); }
+
+@keyframes kbPlaceholderIn {
+  from { opacity: 0; transform: scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Clon que sigue al puntero. */
+.kb-drag-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 400;
+  pointer-events: none;
+  margin: 0;
+  border-radius: var(--kb-card-radius);
+  box-shadow: var(--shadow-lg);
+  transform-origin: center;
+  will-change: transform;
+  cursor: grabbing;
+  opacity: .97;
+}
+
+.kb-drag-ghost--col { border-radius: var(--kb-col-radius); }
+
+/* Animación de aterrizaje al soltar. */
+.kb-drag-ghost.is-dropping {
+  transition: transform 200ms cubic-bezier(.2, .7, .2, 1), opacity 200ms ease;
+}
+
+/* Columna que puede recibir la tarjeta arrastrada. */
+.kb-col.is-drop-target { box-shadow: 0 0 0 2px var(--kb-focus-border); }
+
+/* Mientras se arrastra, no queremos selección de texto en toda la página. */
+body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+
+/* ─────────────────────────── Menús contextuales ───────────────────── */
+.kb-menu {
+  position: fixed;
+  z-index: 320;
+  min-width: 214px;
+  padding: 6px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--hair);
+  box-shadow: var(--shadow-lg);
+  transform-origin: top left;
+  animation: kbMenuIn 170ms cubic-bezier(.22, 1, .36, 1);
+  max-height: min(70vh, 460px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@keyframes kbMenuIn {
+  from { opacity: 0; transform: translateY(-6px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.kb-menu.is-closing { animation: kbMenuOut 130ms ease forwards; }
+
+@keyframes kbMenuOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(-4px) scale(.98); }
+}
+
+.kb-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.kb-menu__item svg { width: 15px; height: 15px; color: var(--text-faint); flex: 0 0 auto; }
+.kb-menu__item:hover { background: var(--bg-card-soft); }
+.kb-menu__item:hover svg { color: var(--text-primary); }
+.kb-menu__item:focus-visible { outline: none; background: var(--bg-card-soft); box-shadow: 0 0 0 2px var(--kb-focus-ring) inset; }
+
+.kb-menu__item--danger { color: var(--error); }
+.kb-menu__item--danger svg { color: var(--error); }
+.kb-menu__item--danger:hover { background: var(--error-soft); }
+
+.kb-menu__sep { height: 1px; margin: 5px 6px; background: var(--hair); }
+
+.kb-menu__label {
+  padding: 8px 10px 4px;
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ── Selector de color ─────────────────────────────────────────────── */
+.kb-swatches {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 7px;
+  padding: 4px 10px 10px;
+}
+
+.kb-swatch {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  background: var(--kb-c);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.kb-swatch:hover { transform: scale(1.09); }
+.kb-swatch.is-on { box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-primary); }
+.kb-swatch:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg-card), 0 0 0 4px var(--text-secondary); }
+
+.kb-swatch--none {
+  background:
+    linear-gradient(45deg, transparent 46%, var(--error) 46%, var(--error) 54%, transparent 54%),
+    var(--bg-3);
+}
+
+/* ─────────────────────────── Modal de detalle ─────────────────────── */
+/* Reutiliza .space-modal (backdrop, animaciones y cierre) y solo cambia
+   el ancho y el layout interno. */
+.kb-modal .space-modal__dialog { width: min(920px, 100%); max-height: min(90vh, 880px); }
+
+.kb-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 236px;
+  gap: var(--space-lg);
+  align-items: start;
+}
+
+.kb-detail__main,
+.kb-detail__side { display: grid; gap: var(--space-lg); align-content: start; min-width: 0; }
+
+.kb-detail__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-medium);
+  width: 100%;
+  max-width: 100%;
+  color: var(--text-primary);
+  padding: 5px 8px;
+  margin-left: -8px;
+}
+
+.kb-detail__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 6px;
+}
+
+.kb-section { display: grid; gap: 9px; }
+
+.kb-section > h5 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.kb-section > h5 svg { width: 14px; height: 14px; }
+
+.kb-field {
+  width: 100%;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+  padding: 9px 11px;
+  border-color: var(--hair-2);
+}
+
+textarea.kb-field { min-height: 42px; line-height: 1.55; }
+
+.kb-side-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--hair);
+  cursor: pointer;
+  text-align: left;
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.kb-side-btn svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--text-faint); }
+.kb-side-btn:hover { color: var(--text-primary); border-color: var(--hair-2); background: var(--bg-card-soft); }
+.kb-side-btn:hover svg { color: var(--text-primary); }
+.kb-side-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
+.kb-side-btn--danger { color: var(--error); }
+.kb-side-btn--danger svg { color: var(--error); }
+.kb-side-btn--danger:hover { background: var(--error-soft); color: var(--error); border-color: transparent; }
+
+.kb-side-group { display: grid; gap: 6px; }
+
+/* ── Checklists ────────────────────────────────────────────────────── */
+.kb-checklist { display: grid; gap: 7px; }
+
+.kb-checklist__head { display: flex; align-items: center; gap: 8px; }
+
+.kb-checklist__title {
+  flex: 0 1 auto;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.kb-checklist__pct {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.kb-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 5px 7px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+}
+
+.kb-check-item:hover { background: var(--bg-card-soft); }
+
+.kb-check-item input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  margin-top: 3px;
+  accent-color: var(--text-primary);
+  padding: 0;
+}
+
+.kb-check-item__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  padding: 1px 5px;
+  margin-left: 0;
+  overflow-wrap: anywhere;
+}
+
+.kb-check-item.is-done .kb-check-item__text { text-decoration: line-through; color: var(--text-muted); }
+
+.kb-check-item__actions { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity var(--transition-fast); }
+.kb-check-item:hover .kb-check-item__actions,
+.kb-check-item:focus-within .kb-check-item__actions { opacity: 1; }
+
+/* ── Comentarios ───────────────────────────────────────────────────── */
+.kb-comment {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 0;
+}
+
+.kb-comment--reply { margin-left: 34px; }
+
+.kb-comment__avatar {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--text-primary) 8%, transparent);
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.kb-comment__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.kb-comment__author { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
+.kb-comment__time { font-size: 10.5px; color: var(--text-faint); }
+
+.kb-comment__body {
+  margin-top: 4px;
+  padding: 9px 11px;
+  border-radius: var(--radius-md);
+  background: var(--bg-card-soft);
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Las menciones @usuario se resaltan sin insertar HTML del usuario. */
+.kb-mention {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.kb-comment__actions { display: flex; gap: 10px; margin-top: 5px; }
+
+.kb-link-btn {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.kb-link-btn:hover { color: var(--text-primary); }
+.kb-link-btn--danger:hover { color: var(--error); }
+
+/* ── Adjuntos y enlaces ────────────────────────────────────────────── */
+.kb-attachments { display: grid; grid-template-columns: repeat(auto-fill, minmax(94px, 1fr)); gap: 8px; }
+
+.kb-attachment {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 7px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hair);
+  font-size: 10.5px;
+  color: var(--text-muted);
+  transition: border-color var(--transition-fast);
+}
+
+.kb-attachment:hover { border-color: var(--hair-2); }
+
+.kb-attachment img {
+  width: 100%;
+  height: 62px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--bg-3);
+}
+
+.kb-attachment__file {
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--bg-3);
+  color: var(--text-faint);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.kb-attachment__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary); }
+
+.kb-attachment__del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--bg) 78%, transparent);
+  color: var(--error);
+  border: 1px solid var(--hair);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.kb-attachment:hover .kb-attachment__del,
+.kb-attachment:focus-within .kb-attachment__del { opacity: 1; }
+
+.kb-linkrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card-soft);
+  font-size: var(--font-size-sm);
+}
+
+.kb-linkrow svg { width: 15px; height: 15px; color: var(--text-faint); flex: 0 0 auto; }
+.kb-linkrow a { color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.kb-linkrow a:hover { text-decoration: underline; }
+
+/* ── Historial ─────────────────────────────────────────────────────── */
+.kb-activity { display: grid; gap: 0; max-height: 240px; overflow-y: auto; overscroll-behavior: contain; }
+
+.kb-activity__row {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hair);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.kb-activity__row:last-child { border-bottom: 0; }
+.kb-activity__dot { width: 5px; height: 5px; border-radius: var(--radius-pill); background: var(--text-faint); }
+.kb-activity__time { font-size: 10.5px; color: var(--text-faint); white-space: nowrap; }
+
+/* ── Selector de miembros / etiquetas dentro del modal ─────────────── */
+.kb-picker { display: grid; gap: 4px; padding: 2px 4px; }
+
+.kb-picker__row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  background: transparent;
+  border: 1px solid transparent;
+  text-align: left;
+  width: 100%;
+  transition: background var(--transition-fast);
+}
+
+.kb-picker__row:hover { background: var(--bg-card-soft); }
+.kb-picker__row.is-on { background: var(--bg-card-soft); border-color: var(--hair-2); }
+.kb-picker__row .kb-avatar { border-color: transparent; }
+
+.kb-picker__swatch { width: 26px; height: 14px; border-radius: var(--radius-xs); background: var(--kb-c); flex: 0 0 auto; }
+.kb-picker__check { margin-left: auto; color: var(--text-primary); font-weight: var(--font-weight-bold); }
+
+/* ─────────────────────────── Panel "Completadas" ──────────────────── */
+.kb-done {
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--hair);
+}
+
+.kb-done__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.kb-done__head h4 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+.kb-done__list { display: grid; gap: 6px; }
+
+.kb-done__row {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hair);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.kb-done__row:hover { border-color: var(--hair-2); }
+
+.kb-done__summary {
+  display: grid;
+  grid-template-columns: minmax(96px, 1.1fr) minmax(0, 2.4fr) minmax(96px, 1fr) auto auto;
+  gap: var(--space-sm);
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.kb-done__summary:hover { background: var(--bg-card-soft); }
+.kb-done__summary:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--kb-focus-ring) inset; }
+
+.kb-done__name { font-weight: var(--font-weight-medium); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* La descripción se corta con puntos suspensivos y se ve completa al
+   expandir la fila (igual que en la referencia). */
+.kb-done__excerpt {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.kb-done__who { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-done__when { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.kb-done__chevron { width: 15px; height: 15px; color: var(--text-faint); transition: transform var(--transition-normal); }
+.kb-done__row.is-open .kb-done__chevron { transform: rotate(180deg); }
+
+/* Despliegue animado por altura (grid-template-rows 0fr → 1fr). */
+.kb-done__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-normal);
+}
+
+.kb-done__row.is-open .kb-done__panel { grid-template-rows: 1fr; }
+
+.kb-done__panel > div { overflow: hidden; }
+
+.kb-done__body {
+  display: grid;
+  gap: var(--space-sm);
+  padding: 2px 12px 12px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.kb-done__images { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.kb-done__images img {
+  width: 118px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--hair);
+  transition: transform var(--transition-fast);
+}
+
+.kb-done__images a:hover img { transform: scale(1.03); }
+
+.kb-done__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ─────────────────────────── Estados de carga / error / red ───────── */
+.kb-skeleton { display: flex; gap: var(--kb-col-gap); padding: var(--space-md); width: 100%; }
+
+.kb-skeleton__col {
+  flex: 0 0 var(--kb-col-w);
+  height: 190px;
+  border-radius: var(--kb-col-radius);
+  background: linear-gradient(90deg,
+    color-mix(in oklab, var(--text-primary) 5%, transparent) 25%,
+    color-mix(in oklab, var(--text-primary) 9%, transparent) 37%,
+    color-mix(in oklab, var(--text-primary) 5%, transparent) 63%);
+  background-size: 400% 100%;
+  animation: kbShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes kbShimmer {
+  from { background-position: 100% 50%; }
+  to   { background-position: 0 50%; }
+}
+
+.kb-state {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--text-muted);
+  margin: auto;
+}
+
+.kb-state p { font-size: var(--font-size-sm); max-width: 44ch; }
+
+/* Indicador breve de guardado, junto a la búsqueda. */
+.kb-saving {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.kb-saving.is-on { opacity: 1; }
+
+.kb-saving::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--text-faint);
+  border-top-color: transparent;
+  animation: kbSpin 700ms linear infinite;
+}
+
+.kb-saving.is-saved::before {
+  border-color: var(--success);
+  border-top-color: var(--success);
+  animation: none;
+}
+
+@keyframes kbSpin { to { transform: rotate(360deg); } }
+
+/* Aviso de conexión perdida / recuperada. */
+.kb-offline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: var(--radius-md);
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: var(--font-size-sm);
+  animation: kbReveal 240ms ease;
+}
+
+.kb-offline[hidden] { display: none; }
+.kb-offline.is-back { background: var(--success-soft); color: var(--success); }
+
+/* ─────────────────────────── Responsive ───────────────────────────── */
+@media (max-width: 900px) {
+  .kb { padding: var(--space-md); }
+  .kb__toolbar { justify-content: flex-start; }
+  .kb-detail { grid-template-columns: minmax(0, 1fr); }
+  .kb-detail__side { order: -1; }
+  .kb-done__summary { grid-template-columns: minmax(0, 1fr) auto auto; }
+  .kb-done__excerpt,
+  .kb-done__who { display: none; }
+}
+
+@media (max-width: 640px) {
+  :root { --kb-col-w: min(82vw, 300px); }
+
+  .kb__board {
+    /* Una columna por vez, pero manteniendo el scroll horizontal. */
+    scroll-snap-type: x mandatory;
+    padding: var(--space-sm);
+  }
+
+  .kb-col,
+  .kb-add-col { scroll-snap-align: center; }
+
+  .kb-col { max-height: none; }
+
+  /* Áreas táctiles mínimas de 44px en los controles principales. */
+  .kb-icon-btn { width: 44px; height: 44px; }
+  .kb-check-item__actions .kb-icon-btn { width: 40px; height: 40px; }
+  .kb-tool { padding: 11px 15px; min-height: 44px; }
+  .kb-tool--icon { width: 44px; padding: 11px; }
+  .kb-add { min-height: 44px; }
+  .kb-side-btn { min-height: 44px; }
+  .kb-menu { min-width: min(280px, calc(100vw - 24px)); }
+  .kb-modal .space-modal__dialog { max-height: 94vh; }
+  .kb-search { flex: 1 1 100%; }
+  .kb-search input { width: 100%; }
+}
+
+/* ─────────────────────────── Movimiento reducido ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .kb-col,
+  .kb-filters,
+  .kb-menu,
+  .kb-compose,
+  .kb-placeholder,
+  .kb-offline,
+  .kb-skeleton__col,
+  .kb-saving::before { animation: none; }
+
+  .kb-drag-ghost.is-dropping,
+  .kb-done__panel,
+  .kb-done__chevron,
+  .kb-progress i { transition-duration: 1ms; }
+}
