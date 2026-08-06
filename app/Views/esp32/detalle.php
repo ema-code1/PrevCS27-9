@@ -7,8 +7,8 @@
 <link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
 <link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=wifi_off" />
-<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260612-1">
-<link rel="stylesheet" href="<?= base_url('css/kanban.css') ?>?v=20260805-10">
+<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260806-1">
+<link rel="stylesheet" href="<?= base_url('css/kanban.css') ?>?v=20260806-1">
 <style>
 .esp32-qr{display:flex;flex-direction:column;gap:16px;align-items:center;margin:10px 0}
 .esp32-qr__code{background:#fff;padding:10px;border-radius:var(--radius-md);border:1px solid var(--hair);line-height:0}
@@ -314,9 +314,9 @@
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260612-2" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260806-1" defer></script>
 <script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260612-1" defer></script>
-<script src="<?= base_url('js/kanban.js') ?>?v=20260805-10" defer></script>
+<script src="<?= base_url('js/kanban.js') ?>?v=20260806-1" defer></script>
 <script src="<?= base_url('js/qrcode.min.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {

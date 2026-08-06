@@ -115,6 +115,10 @@
 
     function syncBody() {
       var open = !!document.querySelector('[data-space-modal]:not([hidden])');
+      // El bloqueo del scroll vive en <html> (ver space-modal.css): en el
+      // body rompería el sticky de la topbar. La clase también se deja en
+      // el body para lo que quiera reaccionar a "hay un modal abierto".
+      document.documentElement.classList.toggle('has-modal-open', open);
       document.body.classList.toggle('has-modal-open', open);
       // Lenis scrollea con transforms e ignora overflow:hidden: hay que frenarlo.
       if (window.PCSSmoothScroll) {

@@ -83,13 +83,16 @@ body[data-theme="dark"] {
 /* ─────────────────────────── Encabezado ───────────────────────────── */
 .kb__head {
   display: flex;
-  align-items: center;
+  /* Arriba y no al medio: el título puede ocupar varias líneas y la fila
+     de botones tiene que quedar a la altura de la primera. */
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-md);
   flex-wrap: wrap;
 }
 
-.kb__heading { min-width: 0; display: flex; align-items: center; }
+/* Se lleva el espacio sobrante para que el título tenga dónde envolver. */
+.kb__heading { min-width: 0; flex: 1 1 clamp(200px, 32vw, 420px); display: flex; }
 
 /* ─────────────── Campos de texto del tablero ───────────────────────
    Un solo look para todo: sin brillo de color al enfocar, sin manija
@@ -128,24 +131,49 @@ body[data-theme="dark"] {
   border: 1px solid transparent;
   background: transparent;
   border-radius: var(--radius-sm);
-  padding: 3px 7px;
-  margin-left: -7px;
+  padding: 2px 5px;
+  margin-left: -5px;
   cursor: default;
   text-overflow: ellipsis;
   transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
-.kb-inline:read-only:hover { background: var(--bg-card-soft); }
-.kb-inline:not(:read-only) { cursor: text; background: var(--input-bg); border-color: var(--hair-2); }
+/* En modo lectura el campo es TEXTO, y el texto no tiene caja: ni al pasar
+   por encima ni al hacer clic (un clic simple lo enfoca, pero no abre la
+   edición, así que dibujar el foco solo confundía). El único borde aparece
+   con el doble clic, que es lo que realmente empieza a editar. */
+.kb-inline:read-only,
+.kb-inline:read-only:hover,
+.kb-inline:read-only:focus,
+.kb-inline:read-only:focus-visible {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Edición: un borde fino y nada más. Sin halo de foco encima. */
+.kb-inline:not(:read-only),
+.kb-inline:not(:read-only):focus,
+.kb-inline:not(:read-only):focus-visible {
+  cursor: text;
+  background: var(--input-bg);
+  border-color: var(--hair-2);
+  box-shadow: none;
+}
 
 /* Dentro del encabezado de la columna el título en modo lectura es parte
    de la zona de arrastre, así que muestra la manito de agarrar. */
 .kb-col__head .kb-inline:read-only { cursor: inherit; }
 
+/* Es un textarea de una fila que crece con el contenido: un nombre largo
+   se ve entero envolviendo en varias líneas, en vez de recortarse. */
 .kb__title {
+  width: 100%;
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-medium);
   letter-spacing: var(--letter-spacing-tight);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 
 /* ─────────────────────────── Barra de herramientas ────────────────── */
@@ -180,9 +208,16 @@ body[data-theme="dark"] {
   border-radius: var(--radius-pill);
   border-color: var(--hair);
   background: var(--bg-card-soft);
+  transition: width var(--transition-normal), border-color var(--transition-fast),
+              background var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .kb-search input:hover:not(:focus) { border-color: var(--hair-2); }
+
+/* Se ensancha al escribir: gana lugar justo cuando hace falta. */
+.kb-search input:focus { width: clamp(200px, 28vw, 320px); }
+.kb-search svg { transition: color var(--transition-fast); }
+.kb-search:focus-within svg { color: var(--text-secondary); }
 
 /* Botón chico y neutro para todos los controles de la toolbar. */
 .kb-tool {
@@ -198,15 +233,20 @@ body[data-theme="dark"] {
   border-radius: var(--radius-pill);
   cursor: pointer;
   white-space: nowrap;
-  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+  transition: color var(--transition-fast), background var(--transition-fast),
+              border-color var(--transition-fast), transform var(--transition-fast);
 }
 
-.kb-tool svg { width: 15px; height: 15px; }
+.kb-tool svg { width: 15px; height: 15px; transition: transform var(--transition-normal); }
 
 .kb-tool:hover {
   color: var(--text-primary);
   background: var(--bg-card-soft);
 }
+
+/* El icono acompaña al hover y el botón se hunde al apretarlo. */
+.kb-tool:hover svg { transform: translateY(-1px); }
+.kb-tool:active { transform: scale(.96); }
 
 .kb-tool.is-on {
   background: var(--text-primary);
@@ -299,7 +339,9 @@ body[data-theme="dark"] {
     color-mix(in oklab, var(--kb-c) 6%, transparent)
   );
   scroll-behavior: smooth;
-  min-height: 200px;
+  /* Lo justo para que el tablero vacío siga siendo una superficie válida
+     donde soltar: la altura real la ponen las columnas. */
+  min-height: 96px;
   transition: background-color var(--transition-slow);
   overscroll-behavior-x: contain;
 }
@@ -326,23 +368,29 @@ body[data-theme="dark"] .kb__board {
   border: 1px solid var(--hair);
   box-shadow: var(--shadow-sm);
   animation: kbColIn 380ms cubic-bezier(.2, .7, .2, 1) both;
-  transition: box-shadow var(--transition-normal), opacity var(--transition-fast);
+  transition: box-shadow var(--transition-normal), opacity var(--transition-fast),
+              border-color var(--transition-normal);
 }
+
+.kb-col:hover { box-shadow: var(--shadow); border-color: var(--hair-2); }
 
 @keyframes kbColIn {
   from { opacity: 0; transform: translateY(10px) scale(.985); }
   to   { opacity: 1; transform: none; }
 }
 
-/* El original queda oculto mientras su clon flota siguiendo el puntero. */
+/* El original desaparece de la maqueta mientras su clon flota siguiendo el
+   puntero. Tiene que ser display:none y no opacity:0: con opacity el hueco
+   viejo seguía ocupando lugar y quedaba sumado al hueco reservado, así que
+   el tablero se comportaba como si la tarjeta estuviera en dos lados. */
 .kb-col.is-ghosted,
-.kb-card.is-ghosted { opacity: 0; pointer-events: none; }
+.kb-card.is-ghosted { display: none; }
 
 .kb-col__head {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px var(--kb-col-pad) 8px;
+  padding: 10px var(--kb-col-pad) 6px;
   cursor: grab;
   touch-action: none;
 }
@@ -400,7 +448,8 @@ body[data-theme="dark"] .kb__board {
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: color var(--transition-fast), background var(--transition-fast);
+  transition: color var(--transition-fast), background var(--transition-fast),
+              transform var(--transition-fast);
 }
 
 .kb-icon-btn svg { width: 15px; height: 15px; }
@@ -409,6 +458,8 @@ body[data-theme="dark"] .kb__board {
   color: var(--text-primary);
   background: var(--bg-card-soft);
 }
+
+.kb-icon-btn:active { transform: scale(.9); }
 
 .kb-icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
 
@@ -421,13 +472,15 @@ body[data-theme="dark"] .kb__board {
   overflow-y: auto;
   overflow-x: hidden;
   flex: 1 1 auto;
-  /* La columna vacía no muestra ningún texto, pero necesita alto real
-     para ser un blanco cómodo al soltar una tarjeta encima. */
-  min-height: 56px;
+  /* Una columna vacía no reserva alto: sería puro hueco. El blanco cómodo
+     para soltar aparece solo mientras hay algo en la mano (ver más abajo,
+     en el bloque de drag and drop). */
+  min-height: 0;
   overscroll-behavior: contain;
+  transition: min-height var(--transition-normal);
 }
 
-.kb-col__foot { padding: 6px var(--kb-col-pad) var(--kb-col-pad); }
+.kb-col__foot { padding: 4px var(--kb-col-pad) 9px; }
 
 /* ── Estado vacío del tablero ──────────────────────────────────────── */
 .kb-board-empty {
@@ -464,8 +517,14 @@ body[data-theme="dark"] .kb__board {
   cursor: pointer;
   touch-action: none;
   user-select: none;
+  animation: kbCardIn 300ms cubic-bezier(.2, .7, .2, 1) both;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast),
               border-color var(--transition-fast), opacity var(--transition-fast);
+}
+
+@keyframes kbCardIn {
+  from { opacity: 0; transform: translateY(6px) scale(.99); }
+  to   { opacity: 1; transform: none; }
 }
 
 /* Franja lateral de color cuando la tarea tiene uno asignado. */
@@ -476,6 +535,9 @@ body[data-theme="dark"] .kb__board {
   box-shadow: var(--shadow);
   border-color: var(--hair-2);
 }
+
+/* Se hunde apenas al apretarla: confirma el clic antes de que abra nada. */
+.kb-card:active { transform: translateY(0) scale(.985); }
 
 .kb-card:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
 
@@ -611,7 +673,7 @@ body[data-theme="dark"] .kb__board {
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 9px 10px;
+  padding: 8px 10px;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   font-size: 13px;
@@ -621,12 +683,15 @@ body[data-theme="dark"] .kb__board {
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.kb-add svg { width: 14px; height: 14px; }
+.kb-add svg { width: 14px; height: 14px; transition: transform var(--transition-normal); }
 
 .kb-add:hover {
   background: var(--bg-card-soft);
   color: var(--text-primary);
 }
+
+/* El "+" gira un cuarto de vuelta al pasar por encima. */
+.kb-add:hover svg { transform: rotate(90deg); }
 
 .kb-add:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
 
@@ -651,7 +716,8 @@ body[data-theme="dark"] .kb__board {
 .kb-compose__row { display: flex; align-items: center; gap: 7px; }
 .kb-compose__hint { font-size: 11px; color: var(--text-faint); margin-left: auto; }
 
-/* Columna fantasma para agregar una nueva. */
+/* Columna fantasma para agregar una nueva. Línea continua (no punteada),
+   del mismo espesor y color que el resto de los bordes del tablero. */
 .kb-add-col {
   flex: 0 0 var(--kb-col-w);
   width: var(--kb-col-w);
@@ -659,20 +725,26 @@ body[data-theme="dark"] .kb__board {
   gap: 8px;
   padding: var(--kb-col-pad);
   border-radius: var(--kb-col-radius);
-  border: 1px dashed var(--hair-2);
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  border: 1px solid var(--hair-2);
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+              transform var(--transition-fast);
 }
 
 .kb-add-col:hover { border-color: var(--text-faint); background: var(--bg-card); }
+.kb-add-col:has(.kb-add:active) { transform: scale(.99); }
 
 /* ─────────────────────────── Drag and drop ────────────────────────── */
 
-/* Hueco reservado durante el arrastre. */
+/* Mientras hay algo en la mano, la lista vacía se agranda para ser un
+   blanco cómodo. Fuera del arrastre no reserva nada (ver .kb-col__list). */
+body.kb-dragging .kb-col__list { min-height: 54px; }
+
+/* Hueco reservado durante el arrastre: solo una sombra del tamaño justo,
+   sin borde que ensucie la columna. */
 .kb-placeholder {
   flex: 0 0 auto;
   border-radius: var(--kb-card-radius);
-  border: 1px dashed var(--hair-2);
-  background: color-mix(in oklab, var(--text-primary) 4%, transparent);
+  background: color-mix(in oklab, var(--text-primary) 6%, transparent);
   animation: kbPlaceholderIn 180ms ease;
 }
 
@@ -706,8 +778,9 @@ body[data-theme="dark"] .kb__board {
   transition: transform 200ms cubic-bezier(.2, .7, .2, 1), opacity 200ms ease;
 }
 
-/* Columna que puede recibir la tarjeta arrastrada. */
-.kb-col.is-drop-target { box-shadow: 0 0 0 2px var(--kb-focus-border); }
+/* La columna que va a recibir la tarjeta no se marca con ningún borde:
+   el hueco reservado ya dice dónde va a caer, y el anillo alrededor de la
+   columna resultaba ruidoso. */
 
 /* Mientras se arrastra, no queremos selección de texto en toda la página. */
 body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
@@ -754,12 +827,14 @@ body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbin
   border: 0;
   text-align: left;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast),
+              transform var(--transition-fast);
 }
 
 .kb-menu__item svg { width: 15px; height: 15px; color: var(--text-faint); flex: 0 0 auto; }
-.kb-menu__item:hover { background: var(--bg-card-soft); }
+.kb-menu__item:hover { background: var(--bg-card-soft); transform: translateX(2px); }
 .kb-menu__item:hover svg { color: var(--text-primary); }
+.kb-menu__item:active { transform: translateX(2px) scale(.985); }
 .kb-menu__item:focus-visible { outline: none; background: var(--bg-card-soft); box-shadow: 0 0 0 2px var(--kb-focus-ring) inset; }
 
 .kb-menu__item--danger { color: var(--error); }
@@ -817,6 +892,46 @@ body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbin
 
 .kb-detail__main,
 .kb-detail__side { display: grid; gap: var(--space-lg); align-content: start; min-width: 0; }
+
+/* Los bloques del detalle entran escalonados de arriba hacia abajo en vez
+   de aparecer todos de golpe: la ventana se siente armada, no volcada. */
+.kb-detail__main > *,
+.kb-detail__side > * { animation: kbSectionIn 300ms cubic-bezier(.2, .7, .2, 1) both; }
+
+.kb-detail__main > :nth-child(1), .kb-detail__side > :nth-child(1) { animation-delay: 20ms; }
+.kb-detail__main > :nth-child(2), .kb-detail__side > :nth-child(2) { animation-delay: 55ms; }
+.kb-detail__main > :nth-child(3), .kb-detail__side > :nth-child(3) { animation-delay: 90ms; }
+.kb-detail__main > :nth-child(4), .kb-detail__side > :nth-child(4) { animation-delay: 125ms; }
+.kb-detail__main > :nth-child(5), .kb-detail__side > :nth-child(5) { animation-delay: 160ms; }
+.kb-detail__main > :nth-child(n + 6), .kb-detail__side > :nth-child(n + 6) { animation-delay: 190ms; }
+
+@keyframes kbSectionIn {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Arrastrar un archivo encima del detalle (o pegarlo con Ctrl+V). */
+.kb-modal.is-file-over .space-modal__dialog {
+  box-shadow: 0 0 0 2px var(--kb-focus-border), var(--shadow-lg);
+}
+
+.kb-dropnote {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border-top: 1px solid var(--hair);
+  animation: kbReveal 200ms cubic-bezier(.22, 1, .36, 1);
+  pointer-events: none;
+}
+
+.kb-dropnote svg { width: 15px; height: 15px; }
 
 .kb-detail__title {
   font-size: var(--font-size-lg);
@@ -876,12 +991,14 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   border: 1px solid var(--hair);
   cursor: pointer;
   text-align: left;
-  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+              background var(--transition-fast), transform var(--transition-fast);
 }
 
-.kb-side-btn svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--text-faint); }
+.kb-side-btn svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--text-faint); transition: transform var(--transition-normal); }
 .kb-side-btn:hover { color: var(--text-primary); border-color: var(--hair-2); background: var(--bg-card-soft); }
-.kb-side-btn:hover svg { color: var(--text-primary); }
+.kb-side-btn:hover svg { color: var(--text-primary); transform: scale(1.12); }
+.kb-side-btn:active { transform: scale(.985); }
 .kb-side-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
 .kb-side-btn--danger { color: var(--error); }
 .kb-side-btn--danger svg { color: var(--error); }
@@ -1014,10 +1131,15 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   border: 1px solid var(--hair);
   font-size: 10.5px;
   color: var(--text-muted);
-  transition: border-color var(--transition-fast);
+  transition: border-color var(--transition-fast), transform var(--transition-fast),
+              box-shadow var(--transition-fast);
 }
 
-.kb-attachment:hover { border-color: var(--hair-2); }
+.kb-attachment:hover {
+  border-color: var(--hair-2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
 
 .kb-attachment img {
   width: 100%;
@@ -1347,16 +1469,36 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
 /* ─────────────────────────── Movimiento reducido ──────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .kb-col,
+  .kb-card,
   .kb-filters,
   .kb-menu,
   .kb-compose,
   .kb-placeholder,
   .kb-offline,
+  .kb-dropnote,
+  .kb-detail__main > *,
+  .kb-detail__side > *,
   .kb-skeleton__col,
   .kb-saving::before { animation: none; }
 
   .kb-drag-ghost.is-dropping,
   .kb-done__panel,
   .kb-done__chevron,
+  .kb-col__list,
+  .kb-search input,
   .kb-progress i { transition-duration: 1ms; }
+
+  /* Nada de micro-movimientos en hover/press. */
+  .kb-card:hover,
+  .kb-card:active,
+  .kb-tool:hover svg,
+  .kb-tool:active,
+  .kb-add:hover svg,
+  .kb-icon-btn:active,
+  .kb-side-btn:hover svg,
+  .kb-side-btn:active,
+  .kb-menu__item:hover,
+  .kb-menu__item:active,
+  .kb-attachment:hover,
+  .kb-add-col:has(.kb-add:active) { transform: none; }
 }

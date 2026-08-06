@@ -136,7 +136,7 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260612-2" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260806-1" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const spaceSelect = document.querySelector('[data-space-select]');

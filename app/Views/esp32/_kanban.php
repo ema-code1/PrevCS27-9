@@ -25,8 +25,11 @@
 
     <header class="kb__head">
         <div class="kb__heading">
-            <input type="text" class="kb__title kb-inline" data-kb-title maxlength="150"
-                aria-label="Nombre del tablero" placeholder="Nombre del tablero">
+            <!-- textarea y no input: un nombre largo tiene que verse entero
+                 envolviendo en varias líneas. js/kanban.js le ajusta el alto
+                 al contenido y Enter confirma en vez de meter un salto. -->
+            <textarea class="kb__title kb-inline" data-kb-title maxlength="150" rows="1"
+                aria-label="Nombre del tablero" placeholder="Nombre del tablero"></textarea>
         </div>
 
         <div class="kb__toolbar" data-kb-toolbar role="toolbar" aria-label="Herramientas del tablero">

@@ -25,19 +25,20 @@
      ═══════════════════════════════════════════════════════════════════ */
 
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
+// Crea un nodo con tag, clase y texto. Devuelve el nodo creado.
   function el(tag, className, text) {
     var node = document.createElement(tag);
     if (className) node.className = className;
     if (text !== undefined && text !== null) node.textContent = text;
     return node;
   }
-
+// Limpia un nodo de todos sus hijos. Devuelve el mismo nodo para encadenar.
   function clear(node) {
     while (node.firstChild) node.removeChild(node.firstChild);
     return node;
   }
 
+  // Debounce: devuelve una función que espera a que deje de llamarse durante wait ms para ejecutar fn. Útil para input events que disparan render.
   function debounce(fn, wait) {
     var timer = null;
     return function () {
@@ -46,6 +47,8 @@
       timer = window.setTimeout(function () { fn.apply(self, args); }, wait);
     };
   }
+
+  // Clona un objeto o array profundo. JSON no soporta Date ni RegExp, pero ninguno de los dos se usa en el payload del servidor.
 
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
@@ -58,6 +61,8 @@
   var measureCanvas = null;
   var MAX_FIELD_WIDTH = 560;
 
+
+  // Devuelve el ancho en píxeles que ocupa el texto del campo, incluyendo el padding y el borde. Se usa para ajustar el ancho de los input.
   function textWidth(field) {
     if (!measureCanvas) measureCanvas = document.createElement('canvas');
     var ctx = measureCanvas.getContext('2d');
@@ -68,6 +73,11 @@
 
     return ctx.measureText(value).width + spacing * value.length;
   }
+
+// Ajusta el ancho de un input o el alto de un textarea al contenido. 
+// Se llama al input event y al focus para que el campo crezca mientras 
+// el usuario escribe. Se llama al load del documento para que los campos 
+// ya renderizados se ajusten al valor inicial.  
 
   function autoSize(field) {
     if (!field) return;
@@ -93,7 +103,9 @@
     var chrome = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
       + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
 
-    field.style.width = Math.min(MAX_FIELD_WIDTH, Math.max(52, Math.ceil(textWidth(field)) + chrome + 6)) + 'px';
+    // El margen extra es solo el que necesita el cursor para no quedar
+    // pegado al borde: de más, deja un hueco vacío detrás del texto.
+    field.style.width = Math.min(MAX_FIELD_WIDTH, Math.max(44, Math.ceil(textWidth(field)) + chrome + 2)) + 'px';
   }
 
   /* Agenda trabajo de pintado. requestAnimationFrame no dispara cuando la
@@ -108,6 +120,76 @@
     };
     window.requestAnimationFrame(run);
     window.setTimeout(run, 40);
+  }
+
+  /* ── Scroll suave dentro de una caja ────────────────────────────────
+     Lenis maneja el scroll de la página, pero no llega al modal: la caja
+     lleva data-lenis-prevent y además Lenis se frena entero mientras hay
+     una ventana abierta, así que adentro quedaba el scroll nativo a los
+     saltos. Esto le devuelve la misma inercia sin tocar a Lenis: la rueda
+     mueve un objetivo y un rAF lo persigue interpolando.
+
+     Devuelve una función para reamarrar el objetivo cuando el contenido
+     de la caja cambia (si no, apunta a un alto que ya no existe).
+     ──────────────────────────────────────────────────────────────────── */
+  function bindSmoothScroll(node) {
+    if (!node || reduceMotion.matches) return function () {};
+
+    var target = 0;
+    var raf = 0;
+    var EASE = 0.16;
+
+    function step() {
+      var delta = target - node.scrollTop;
+      if (Math.abs(delta) < 0.5) {
+        node.scrollTop = target;
+        raf = 0;
+        return;
+      }
+      node.scrollTop += delta * EASE;
+      raf = window.requestAnimationFrame(step);
+    }
+
+    /* Una lista con scroll propio adentro (el historial de la tarea, por
+       ejemplo) se queda con la rueda mientras le quede recorrido. */
+    function ownsWheel(from, deltaY) {
+      var current = from;
+      while (current && current !== node) {
+        if (current.scrollHeight > current.clientHeight + 1) {
+          var overflow = window.getComputedStyle(current).overflowY;
+          if (overflow === 'auto' || overflow === 'scroll') {
+            var room = deltaY > 0
+              ? current.scrollHeight - current.clientHeight - current.scrollTop
+              : current.scrollTop;
+            if (room > 1) return true;
+          }
+        }
+        current = current.parentElement;
+      }
+      return false;
+    }
+
+    node.addEventListener('wheel', function (event) {
+      if (event.ctrlKey || !event.deltaY) return;
+
+      var limit = Math.max(0, node.scrollHeight - node.clientHeight);
+      if (limit <= 0) return;
+      if (ownsWheel(event.target, event.deltaY)) return;
+
+      // deltaMode 1 son líneas y 2 son páginas: se pasan a píxeles.
+      var amount = event.deltaY;
+      if (event.deltaMode === 1) amount *= 18;
+      else if (event.deltaMode === 2) amount *= node.clientHeight;
+
+      event.preventDefault();
+      target = Math.max(0, Math.min(limit, (raf ? target : node.scrollTop) + amount));
+      if (!raf) raf = window.requestAnimationFrame(step);
+    }, { passive: false });
+
+    return function resync() {
+      if (raf) { window.cancelAnimationFrame(raf); raf = 0; }
+      target = node.scrollTop;
+    };
   }
 
   /* Iconos inline. Markup fijo del propio archivo: nunca lleva datos del
@@ -1210,11 +1292,14 @@
        ═════════════════════════════════════════════════════════════════ */
 
     var openMenu = null;
+    var openMenuAnchor = null;
+    var openMenuAt = 0;
 
     function closeMenu() {
       if (!openMenu) return;
       var node = openMenu;
       openMenu = null;
+      openMenuAnchor = null;
       node.classList.add('is-closing');
       window.setTimeout(function () { node.remove(); }, reduceMotion.matches ? 0 : 140);
     }
@@ -1222,6 +1307,9 @@
     /* Coloca el menú junto al disparador y lo mantiene dentro de la
        pantalla (importante en móvil). */
     function showMenu(anchor, build) {
+      // Segundo clic sobre el mismo disparador: cierra, no reabre.
+      if (openMenu && openMenuAnchor === anchor) { closeMenu(); return null; }
+
       closeMenu();
 
       var menu = el('div', 'kb-menu');
@@ -1232,6 +1320,10 @@
       build(menu);
       document.body.appendChild(menu);
       openMenu = menu;
+      openMenuAnchor = anchor;
+      // Marca de tiempo del alta: el cierre por clic afuera descarta con
+      // esto el mismísimo clic que abrió el menú (ver más abajo).
+      openMenuAt = window.performance ? window.performance.now() : Date.now();
 
       // Se usa el viewport de layout (clientWidth/Height) y no innerWidth:
       // con zoom o en móvil no coinciden y el menú se saldría de pantalla.
@@ -1496,8 +1588,18 @@
       });
     }
 
+    /* Cierre por clic afuera.
+
+       El menú se cuelga de <body>, así que el clic del propio disparador
+       sigue burbujeando hasta acá con un target que NO está dentro del
+       menú recién creado: sin la guarda de tiempo, el mismo clic que abría
+       "Ordenar" (o "Apariencia") lo cerraba en el acto y parecía que el
+       desplegable parpadeaba. Los eventos anteriores a la apertura se
+       descartan; los siguientes sí cierran. */
     document.addEventListener('click', function (event) {
-      if (openMenu && !openMenu.contains(event.target)) closeMenu();
+      if (!openMenu || openMenu.contains(event.target)) return;
+      if (event.timeStamp && event.timeStamp <= openMenuAt) return;
+      closeMenu();
     });
     document.addEventListener('keydown', function (event) {
       if (event.key === 'Escape' && openMenu) { closeMenu(); }
@@ -1689,10 +1791,6 @@
       }
       if (!list) return;
 
-      dom.board.querySelectorAll('.kb-col').forEach(function (column) {
-        column.classList.toggle('is-drop-target', column.contains(list));
-      });
-
       var cards = Array.prototype.filter.call(list.children, function (child) {
         return child.classList.contains('kb-card') && !child.classList.contains('is-ghosted');
       });
@@ -1764,9 +1862,6 @@
         node.classList.remove('is-ghosted');
         document.body.classList.remove('kb-dragging');
         dom.board.classList.remove('is-dragging');
-        dom.board.querySelectorAll('.is-drop-target').forEach(function (column) {
-          column.classList.remove('is-drop-target');
-        });
 
         var wasActive = dnd.active;
         dnd.active = false;
@@ -1955,6 +2050,8 @@
       ui.openTaskId = taskId;
       ui.detail = null;
       clear(dom.modalBody);
+      dom.modalBody.scrollTop = 0;
+      resyncModalScroll();
 
       var loading = el('div', 'kb-state');
       loading.appendChild(el('p', null, 'Cargando la tarea…'));
@@ -1989,6 +2086,138 @@
 
     dom.modal.querySelectorAll('[data-kb-dismiss]').forEach(function (node) {
       node.addEventListener('click', closeTask);
+    });
+
+    /* Inercia en el scroll de las dos ventanas, igual que en la página. */
+    var resyncModalScroll = bindSmoothScroll(dom.modalBody);
+    bindSmoothScroll(dom.confirm.querySelector('.space-modal__body'));
+
+    /* ═════════════════════════════════════════════════════════════════
+       Adjuntos: selector de archivos, Ctrl+V y arrastrar sobre la ventana
+       ═════════════════════════════════════════════════════════════════ */
+
+    var MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+    /* Una imagen pegada del portapapeles llega sin nombre útil, y el
+       servidor valida por extensión: se le arma uno a partir del tipo. */
+    function attachmentName(file) {
+      if (file.name && /\.[a-z0-9]{2,5}$/i.test(file.name)) return file.name;
+      var byType = {
+        'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp',
+        'image/gif': 'gif', 'image/svg+xml': 'svg'
+      };
+      return 'captura-' + Date.now() + '.' + (byType[file.type] || 'png');
+    }
+
+    /**
+     * Sube archivos a una tarea. Lo comparten el botón "Adjuntar archivo",
+     * el pegado y el arrastre. Van de a uno porque cada POST renueva el
+     * CSRF y dos en paralelo se pisarían.
+     */
+    function uploadFiles(taskId, files) {
+      var queue = Array.prototype.filter.call(files || [], function (file) {
+        if (file.size > MAX_UPLOAD_BYTES) {
+          toast('«' + (file.name || 'el archivo') + '» supera los 5 MB.', 'error');
+          return false;
+        }
+        return file.size > 0;
+      });
+      if (!queue.length) return;
+
+      queue.reduce(function (chain, file) {
+        return chain.then(function () {
+          var form = new FormData();
+          form.append('file', file, attachmentName(file));
+          return request('POST', '/tareas/' + taskId + '/adjuntos', form, true).then(function (data) {
+            applyPayload(data);
+            if (ui.openTaskId === taskId) {
+              ui.detail = data.task;
+              renderDetail();
+            }
+            render();
+          });
+        });
+      }, Promise.resolve()).then(function () {
+        toast(queue.length === 1 ? 'Archivo adjuntado' : queue.length + ' archivos adjuntados', 'success');
+      }).catch(function (error) {
+        toast(error.message || 'No se pudo subir el archivo.', 'error');
+      });
+    }
+
+    /* Ctrl+V con una captura en el portapapeles la adjunta a la tarea
+       abierta. Si además viene texto y el foco está en un campo, gana el
+       texto: ahí el pegado tiene que seguir siendo el de siempre. */
+    dom.modal.addEventListener('paste', function (event) {
+      if (!ui.openTaskId || dom.modal.hidden) return;
+
+      var data = event.clipboardData;
+      if (!data) return;
+
+      var files = Array.prototype.slice.call(data.files || []);
+      if (!files.length && data.items) {
+        Array.prototype.forEach.call(data.items, function (item) {
+          if (item.kind !== 'file') return;
+          var file = item.getAsFile();
+          if (file) files.push(file);
+        });
+      }
+      if (!files.length) return;
+
+      var editing = document.activeElement;
+      var typing = editing && (editing.tagName === 'INPUT' || editing.tagName === 'TEXTAREA');
+      if (typing && String(data.getData('text/plain') || '').trim()) return;
+
+      event.preventDefault();
+      uploadFiles(ui.openTaskId, files);
+    });
+
+    /* Arrastrar archivos desde el escritorio hasta la ventana de la tarea. */
+    var dropHint = null;
+    var dragDepth = 0;
+
+    function carriesFiles(event) {
+      var types = event.dataTransfer && event.dataTransfer.types;
+      return !!types && Array.prototype.indexOf.call(types, 'Files') !== -1;
+    }
+
+    function showDropHint(on) {
+      dom.modal.classList.toggle('is-file-over', on);
+      if (on && !dropHint) {
+        dropHint = el('div', 'kb-dropnote');
+        dropHint.appendChild(icon('clip'));
+        dropHint.appendChild(el('span', null, 'Soltá para adjuntar a esta tarea'));
+        dom.modal.querySelector('.space-modal__dialog').appendChild(dropHint);
+      } else if (!on && dropHint) {
+        dropHint.remove();
+        dropHint = null;
+      }
+    }
+
+    dom.modal.addEventListener('dragenter', function (event) {
+      if (!ui.openTaskId || !carriesFiles(event)) return;
+      event.preventDefault();
+      dragDepth++;
+      showDropHint(true);
+    });
+
+    dom.modal.addEventListener('dragover', function (event) {
+      if (!ui.openTaskId || !carriesFiles(event)) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+    });
+
+    dom.modal.addEventListener('dragleave', function () {
+      if (--dragDepth > 0) return;
+      dragDepth = 0;
+      showDropHint(false);
+    });
+
+    dom.modal.addEventListener('drop', function (event) {
+      if (!ui.openTaskId || !carriesFiles(event)) return;
+      event.preventDefault();
+      dragDepth = 0;
+      showDropHint(false);
+      uploadFiles(ui.openTaskId, event.dataTransfer.files);
     });
 
     // prevcs-ui.js también cierra el modal con Escape; acá solo hace falta
@@ -2141,6 +2370,9 @@
       layout.appendChild(main);
       layout.appendChild(side);
       dom.modalBody.appendChild(layout);
+      // El alto de la caja acaba de cambiar: el scroll suave tiene que
+      // volver a tomar la posición real antes del próximo movimiento.
+      resyncModalScroll();
     }
 
     function sectionHeading(text, iconName) {
@@ -2371,6 +2603,7 @@
       var input = el('input');
       input.type = 'file';
       input.hidden = true;
+      input.multiple = true;
       input.accept = '.jpg,.jpeg,.png,.webp,.gif,.svg,.pdf,.txt,.csv,.doc,.docx,.xls,.xlsx';
 
       var add = el('button', 'kb-link-btn', '+ Adjuntar archivo');
@@ -2378,26 +2611,9 @@
       add.addEventListener('click', function () { input.click(); });
 
       input.addEventListener('change', function () {
-        var file = input.files && input.files[0];
-        if (!file) return;
-        if (file.size > 5 * 1024 * 1024) {
-          toast('El archivo supera los 5 MB.', 'error');
-          input.value = '';
-          return;
-        }
-        var form = new FormData();
-        form.append('file', file);
+        var files = Array.prototype.slice.call(input.files || []);
         input.value = '';
-
-        request('POST', '/tareas/' + task.id + '/adjuntos', form, true).then(function (data) {
-          applyPayload(data);
-          ui.detail = data.task;
-          render();
-          renderDetail();
-          toast('Archivo adjuntado', 'success');
-        }).catch(function (error) {
-          toast(error.message || 'No se pudo subir el archivo.', 'error');
-        });
+        uploadFiles(task.id, files);
       });
 
       heading.appendChild(add);
@@ -2405,7 +2621,8 @@
       section.appendChild(input);
 
       if (!task.attachments_list.length) {
-        section.appendChild(el('p', 'kb-empty', 'Sin archivos adjuntos'));
+        section.appendChild(el('p', 'kb-empty',
+          'Sin archivos adjuntos · pegá una imagen con Ctrl+V o arrastrala hasta acá'));
         return section;
       }
 
@@ -3240,6 +3457,15 @@
     bindInlineEdit(dom.title, function () { return state.board ? state.board.name : ''; }, function (value) {
       return mutate('POST', '/tablero', { name: value }, function () { state.board.name = value; }, {});
     }, 'El tablero necesita un nombre.');
+
+    // Es un textarea para que el nombre largo envuelva y se vea entero,
+    // pero Enter confirma en vez de meter un salto de línea.
+    dom.title.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' && !dom.title.readOnly) {
+        event.preventDefault();
+        dom.title.blur();
+      }
+    });
 
 
     /* ═════════════════════════════════════════════════════════════════

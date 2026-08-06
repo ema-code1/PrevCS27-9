@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260612-2">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
-<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260612-1">
+<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260806-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -96,7 +96,7 @@
                                                     <strong><?= esc($device['name']) ?></strong>
                                                     <code><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : 'Sin vincular' ?></code>
                                                 </span>
-                                                <span class="iot-acc__esp-meta mono"><?= esc($device['last_seen_at'] ?? '‚') ?></span>
+                                                <span class="iot-acc__esp-meta mono"><?= esc($device['last_seen_at'] ?? 'ÔøΩ') ?></span>
                                                 <svg class="iot-acc__esp-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                             </a>
                                         <?php endforeach; ?>
@@ -246,7 +246,7 @@
                                         <button type="submit" class="btn btn--primary">Desbloquear</button>
                                     </form>
                                 <?php else: ?>
-                                    <p class="space-modal__unlocked">‚ Desbloqueado por 5 minutos. Tokens visibles y sensores borrables.</p>
+                                    <p class="space-modal__unlocked">ÔøΩ Desbloqueado por 5 minutos. Tokens visibles y sensores borrables.</p>
 
                                     <div class="space-modal__group">
                                         <strong>Tokens de las ESP</strong>
@@ -317,7 +317,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260612-2" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260806-1" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Si la p√°gina volvi√≥ con ?config=<id> (desbloqueo / borrado), dejar

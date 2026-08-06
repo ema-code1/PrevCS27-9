@@ -197,8 +197,16 @@
   text-align: right;
 }
 
-/* Evita el scroll de fondo cuando hay un modal abierto. */
-body.has-modal-open { overflow: hidden; }
+/* Evita el scroll de fondo cuando hay un modal abierto.
+
+   Va en <html> y NO en <body> a propósito: con overflow:hidden en el body,
+   el body pasa a ser el contenedor de scroll y todo lo que está pegado con
+   position:sticky se reancla a ese scrollport, que arranca en cero. La
+   topbar quedaba entonces dibujada en su posición estática —arriba de todo
+   el documento— y desaparecía de pantalla apenas se abría una ventana.
+   En <html> el overflow se propaga al viewport: se conserva la posición de
+   scroll y la topbar sigue fija donde estaba. */
+html.has-modal-open { overflow: hidden; }
 
 @media (max-width: 480px) {
   .space-modal__unlock { flex-direction: column; }
