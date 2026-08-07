@@ -81,7 +81,7 @@
   background: var(--accent-soft);
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 12.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -101,13 +101,13 @@
 /* ─── Cabecera del plan ───────────────────────────────── */
 .price-head { display: flex; flex-direction: column; gap: 6px; }
 .price-plan-name {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 .price-plan-desc {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--text-muted);
   line-height: 1.5;
 }
@@ -135,7 +135,7 @@
 }
 .price-period {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--text-muted);
 }
 
@@ -159,7 +159,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  font-size: 15px;
+  font-size: 16.5px;
   color: var(--text-primary);
   line-height: 1.4;
 }
@@ -173,7 +173,7 @@
   background: var(--accent-soft);
   color: var(--accent);
 }
-.price-check svg { width: 13px; height: 13px; }
+.price-check svg { width: 15px; height: 15px; }
 
 /* ─── CTA ─────────────────────────────────────────────── */
 .price-cta {
@@ -183,7 +183,7 @@
 }
 .price-note {
   text-align: center;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text-muted);
   font-family: var(--font-mono);
 }

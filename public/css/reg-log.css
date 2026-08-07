@@ -116,7 +116,7 @@
   z-index: 1;
   padding: 8px 18px;
   border-radius: var(--radius-pill);
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: var(--font-weight-medium);
   color: var(--text-muted);
   cursor: pointer;
@@ -140,7 +140,7 @@
 .auth-alert {
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  font-size: 13px;
+  font-size: 14.5px;
   margin-bottom: 14px;
   display: flex;
   align-items: center;
@@ -178,7 +178,7 @@
 .auth-pane__header { margin-bottom: 22px; }
 .auth-pane__eyebrow {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -196,7 +196,7 @@
 .auth-pane__eyebrow { color: var(--accent); }
 .auth-pane__header p {
   color: var(--text-muted);
-  font-size: 14.5px;
+  font-size: 16px;
   max-width: 38ch;
 }
 
@@ -206,7 +206,7 @@
 .auth-field { display: flex; flex-direction: column; gap: 6px; }
 .auth-field__label {
   font-family: var(--font-mono);
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -223,7 +223,7 @@
   top: 50%;
   transform: translateY(-50%);
   font-family: var(--font-mono);
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--text-muted);
   pointer-events: none;
   letter-spacing: 0;
@@ -233,7 +233,7 @@
   background: var(--bg-card-soft);
   border: 1px solid var(--hair-2);
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 15.5px;
   width: 100%;
   transition:
     border-color var(--transition-normal),
@@ -249,7 +249,7 @@
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 14%, transparent);
 }
 .auth-field__error {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--error);
   padding-left: 2px;
 }
@@ -257,7 +257,7 @@
 .auth-actions {
   display: flex;
   justify-content: flex-end;
-  font-size: 13px;
+  font-size: 14.5px;
 }
 .auth-link {
   color: var(--accent);
@@ -274,7 +274,7 @@
   background: var(--accent);
   color: #fff;
   border-radius: var(--radius-pill);
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
@@ -292,7 +292,7 @@
 .auth-foot {
   text-align: center;
   color: var(--text-muted);
-  font-size: 12.5px;
+  font-size: 14px;
   margin-top: 8px;
 }
 .auth-foot a { color: var(--text-primary); text-decoration: underline; text-underline-offset: 3px; }

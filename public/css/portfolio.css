@@ -48,9 +48,9 @@ html.pf-anim [data-reveal].is-revealed { opacity: 1; transform: none; }
 /* ── Inline line-icons ────────────────────────────────────────────────
    Stroke icons inheriting currentColor. Small ones sit inline inside
    eyebrows/labels; vertical-align keeps them centred against the caps. */
-.pf-ico { width: 20px; height: 20px; flex: none; stroke: currentColor; }
-.pf-ico--sm { width: 14px; height: 14px; vertical-align: -0.16em; }
-.pf-ico--head { width: 26px; height: 26px; color: var(--accent); vertical-align: -0.18em; }
+.pf-ico { width: 22px; height: 22px; flex: none; stroke: currentColor; }
+.pf-ico--sm { width: 16px; height: 16px; vertical-align: -0.16em; }
+.pf-ico--head { width: 29px; height: 29px; color: var(--accent); vertical-align: -0.18em; }
 
 /* ── 01 hero — texto limpio, sin imágenes ────────────────────────────── */
 .pf-hero-layout {
@@ -65,11 +65,11 @@ html.pf-anim [data-reveal].is-revealed { opacity: 1; transform: none; }
 }
 .pf-hero-aside-label {
   display: inline-flex; align-items: center; gap: 8px;
-  font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.03em;
+  font-size: 12.5px; color: var(--text-muted); letter-spacing: 0.03em;
 }
 .pf-hero-scroll {
   display: inline-flex; align-items: center; gap: 8px;
-  font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase;
   color: var(--text-muted);
 }
 .pf-hero-scroll:hover { color: var(--accent); }
@@ -96,7 +96,7 @@ html.pf-anim [data-reveal].is-revealed { opacity: 1; transform: none; }
 .pf-sub-eyebrow {
   display: inline-flex; align-items: center; gap: 7px;
   align-self: flex-start;
-  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--accent);
 }
 .pf-sub-eyebrow--sustain { color: var(--success); }
@@ -143,13 +143,13 @@ html.pf-anim [data-reveal].is-revealed { opacity: 1; transform: none; }
 .pf-feature-list { display: flex; flex-direction: column; gap: 12px; margin-top: 2px; }
 .pf-feature-list li {
   display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start;
-  font-size: 14.5px; line-height: 1.5; color: var(--text-secondary);
+  font-size: 16px; line-height: 1.5; color: var(--text-secondary);
 }
 .pf-feature-list li .pf-ico { color: var(--accent); margin-top: 1px; }
 .pf-feature-list li b { color: var(--text-primary); font-weight: var(--font-weight-medium); }
 .pf-feature-list--2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 32px; }
 .pf-feature-list--3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 28px; }
-.pf-reflexion-card .pf-feature-list li { font-size: 13px; }
+.pf-reflexion-card .pf-feature-list li { font-size: 14.5px; }
 
 /* ── Centered editorial close (6.8) — compound selector beats .pf-editorial margin ── */
 .pf-editorial.pf-editorial--center {
@@ -224,7 +224,7 @@ body:has(.pf-main) {
 }
 .pf-section-eyebrow {
   display: inline-block;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -263,7 +263,7 @@ body:has(.pf-main) {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 6px 12px;
   border-radius: var(--radius-pill);
-  font-size: 12px;
+  font-size: 13px;
   font-family: var(--font-mono);
   align-self: flex-start;
   margin-top: 4px;
@@ -289,7 +289,7 @@ body:has(.pf-main) {
 .pf-placeholder { opacity: .72; }
 .pf-placeholder em { font-style: italic; color: var(--text-faint); }
 .pf-placeholder-text { color: var(--text-muted); font-style: italic; }
-.pf-note { color: var(--text-faint); font-size: 12px; margin-top: 8px; }
+.pf-note { color: var(--text-faint); font-size: 13px; margin-top: 8px; }
 
 /* ============================================================
    01 · PAGINA PRINCIPAL (hero)
@@ -329,7 +329,7 @@ body:has(.pf-main) {
   border: 1px solid var(--hair);
   background: var(--bg-card);
   border-radius: var(--radius-pill);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
   letter-spacing: 0.02em;
 }
@@ -378,13 +378,13 @@ body:has(.pf-main) {
 }
 .pf-hero-meta > div { display: flex; flex-direction: column; gap: 4px; }
 .pf-meta-key {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
 .pf-meta-val {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--text-primary);
   font-weight: var(--font-weight-medium);
 }
@@ -414,18 +414,18 @@ body:has(.pf-main) {
 .pf-plan-card--wide { grid-column: span 2; }
 .pf-plan-num {
   position: absolute; top: 16px; right: 18px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-faint);
   letter-spacing: 0.05em;
 }
 .pf-plan-card h3 {
-  font-size: 18px;
+  font-size: 20px;
   letter-spacing: -0.018em;
   color: var(--text-primary);
 }
 .pf-bullet-list { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
 .pf-bullet-list li {
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text-secondary);
   line-height: 1.45;
   padding-left: 14px;
@@ -438,7 +438,7 @@ body:has(.pf-main) {
 .pf-timeline { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
 .pf-timeline li {
   display: flex; align-items: center; gap: 10px;
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text-secondary);
 }
 .pf-tl-dot {
@@ -457,7 +457,7 @@ body:has(.pf-main) {
   grid-template-columns: 60px 1fr;
   gap: 12px;
   align-items: center;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
@@ -482,7 +482,7 @@ body:has(.pf-main) {
   display: flex; justify-content: space-between;
   margin-top: 8px;
   margin-left: 72px;
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: var(--text-faint);
   letter-spacing: 0.05em;
 }
@@ -508,13 +508,13 @@ body:has(.pf-main) {
 .pf-brand-card--voice { grid-column: span 3; }
 .pf-brand-card--apps { grid-column: span 6; }
 .pf-brand-label {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
 .pf-brand-card h4 {
-  font-size: 18px;
+  font-size: 20px;
   letter-spacing: -0.018em;
   color: var(--text-primary);
 }
@@ -537,7 +537,7 @@ body:has(.pf-main) {
   margin-top: 6px;
 }
 .pf-brand-variant {
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-family: var(--font-mono);
   letter-spacing: 0.05em;
   padding: 4px 10px;
@@ -569,8 +569,8 @@ body:has(.pf-main) {
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08);
 }
 .pf-swatch-label { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.pf-swatch-label b { font-size: 13px; color: var(--text-primary); letter-spacing: -0.01em; }
-.pf-swatch-label span { font-size: 10.5px; color: var(--text-muted); }
+.pf-swatch-label b { font-size: 14.5px; color: var(--text-primary); letter-spacing: -0.01em; }
+.pf-swatch-label span { font-size: 11.5px; color: var(--text-muted); }
 
 .pf-type-stack { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
 .pf-type-row {
@@ -580,7 +580,7 @@ body:has(.pf-main) {
   border-radius: var(--radius-md);
   background: var(--bg-2);
 }
-.pf-type-row span { font-size: 10.5px; color: var(--text-muted); letter-spacing: 0.05em; }
+.pf-type-row span { font-size: 11.5px; color: var(--text-muted); letter-spacing: 0.05em; }
 
 .pf-apps-row {
   display: grid;
@@ -596,7 +596,7 @@ body:has(.pf-main) {
   border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--bg-2), var(--bg-3));
   color: var(--text-faint);
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.05em;
 }
 
@@ -648,7 +648,7 @@ body:has(.pf-main) {
 .pf-member-photo-tag {
   position: absolute;
   bottom: 10px; left: 10px;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   padding: 3px 8px;
@@ -662,18 +662,18 @@ body:has(.pf-main) {
   display: flex; flex-direction: column; gap: 6px;
 }
 .pf-member-role {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
 .pf-member-name {
-  font-size: 18px;
+  font-size: 20px;
   letter-spacing: -0.018em;
   color: var(--text-primary);
 }
 .pf-member-desc {
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -682,7 +682,7 @@ body:has(.pf-main) {
   margin-top: 6px;
 }
 .pf-member-tags li {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.04em;
   padding: 3px 8px;
   border-radius: 999px;
@@ -695,7 +695,7 @@ body:has(.pf-main) {
   display: flex; flex-wrap: wrap; gap: 6px;
   justify-content: center;
   color: var(--text-faint);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.05em;
 }
 
@@ -718,15 +718,15 @@ body:has(.pf-main) {
 .pf-about-card--lead { grid-column: span 6; background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 6%, var(--bg-card)), var(--bg-card)); }
 .pf-about-card--stats { grid-column: span 6; }
 .pf-about-tag {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
-.pf-about-card h3 { font-size: 22px; letter-spacing: -0.022em; line-height: 1.15; color: var(--text-primary); }
-.pf-about-card h4 { font-size: 17px; letter-spacing: -0.018em; color: var(--text-primary); }
+.pf-about-card h3 { font-size: 24px; letter-spacing: -0.022em; line-height: 1.15; color: var(--text-primary); }
+.pf-about-card h4 { font-size: 18.5px; letter-spacing: -0.018em; color: var(--text-primary); }
 .pf-about-card p {
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--text-secondary);
   line-height: 1.55;
 }
@@ -749,7 +749,7 @@ body:has(.pf-main) {
   color: var(--accent);
 }
 .pf-stat-grid span {
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--text-muted);
   font-family: var(--font-mono);
   letter-spacing: 0.04em;
@@ -825,7 +825,7 @@ body:has(.pf-main) {
   quotes: "“" "”";
 }
 .pf-pullquote-meta {
-  font-size: 11.5px;
+  font-size: 12.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -852,7 +852,7 @@ body:has(.pf-main) {
 }
 .pf-numbered-block-num + span {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -866,7 +866,7 @@ body:has(.pf-main) {
   margin-bottom: 12px;
 }
 .pf-numbered-block p {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--text-secondary);
   line-height: 1.55;
   margin-bottom: 14px;
@@ -882,7 +882,7 @@ body:has(.pf-main) {
 }
 .pf-split > section { display: flex; flex-direction: column; gap: 12px; }
 .pf-split-eyebrow {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent);
@@ -893,7 +893,7 @@ body:has(.pf-main) {
   letter-spacing: -0.018em;
   color: var(--text-primary);
 }
-.pf-split p { font-size: 14.5px; color: var(--text-secondary); line-height: 1.55; }
+.pf-split p { font-size: 16px; color: var(--text-secondary); line-height: 1.55; }
 
 /* Sustain callout — full-bleed within section, tinted band. */
 .pf-sustain-callout {
@@ -914,7 +914,7 @@ body:has(.pf-main) {
   align-items: start;
 }
 .pf-sustain-callout-eyebrow {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--success);
@@ -928,7 +928,7 @@ body:has(.pf-main) {
   line-height: 1.15;
 }
 .pf-sustain-callout p {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--text-secondary);
   line-height: 1.55;
   margin-top: 14px;
@@ -977,7 +977,7 @@ body:has(.pf-main) {
   gap: 8px;
   margin: 0 0 10px;
   padding: 6px 12px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -987,13 +987,13 @@ body:has(.pf-main) {
   border: 1px solid var(--hair);
   width: max-content;
 }
-.pf-comp-hint svg { width: 14px; height: 14px; flex-shrink: 0; }
+.pf-comp-hint svg { width: 16px; height: 16px; flex-shrink: 0; }
 
 .pf-comp-table {
   width: 100%;
   min-width: 720px;
   border-collapse: collapse;
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .pf-comp-table th,
 .pf-comp-table td {
@@ -1005,7 +1005,7 @@ body:has(.pf-main) {
 }
 .pf-comp-table th {
   font-weight: var(--font-weight-medium);
-  font-size: 11.5px;
+  font-size: 12.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -1028,7 +1028,7 @@ body:has(.pf-main) {
 }
 .pf-comp-table tbody tr:last-child td { border-bottom: 0; }
 .pf-comp-table td b { color: var(--text-primary); }
-.pf-comp-table td .mono { font-size: 10.5px; color: var(--text-faint); letter-spacing: 0.05em; }
+.pf-comp-table td .mono { font-size: 11.5px; color: var(--text-faint); letter-spacing: 0.05em; }
 
 /* PrevCS column highlight (comparison layered by columns). */
 .pf-comp-table td.pf-comp-self-cell {
@@ -1078,7 +1078,7 @@ body:has(.pf-main) {
 .pf-adopt-card:nth-child(3) { z-index: 8; }
 .pf-adopt-num {
   align-self: flex-start;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: .12em;
   color: var(--text-faint);
 }
@@ -1090,7 +1090,7 @@ body:has(.pf-main) {
 }
 .pf-adopt-card p {
   max-width: 680px;
-  font-size: 14.5px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--text-secondary);
 }
@@ -1138,14 +1138,14 @@ body:has(.pf-main) {
   margin-top: 16px;
 }
 .pf-mk-tag {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
-.pf-mk-card h3 { font-size: 22px; letter-spacing: -0.022em; color: var(--text-primary); }
-.pf-mk-card h4 { font-size: 17px; letter-spacing: -0.018em; color: var(--text-primary); }
-.pf-mk-card p { font-size: 14px; color: var(--text-secondary); line-height: 1.55; }
+.pf-mk-card h3 { font-size: 24px; letter-spacing: -0.022em; color: var(--text-primary); }
+.pf-mk-card h4 { font-size: 18.5px; letter-spacing: -0.018em; color: var(--text-primary); }
+.pf-mk-card p { font-size: 15.5px; color: var(--text-secondary); line-height: 1.55; }
 
 .pf-mk-row {
   display: grid;
@@ -1170,13 +1170,13 @@ body:has(.pf-main) {
   border: 1px solid var(--hair);
 }
 .pf-mk-mini-grid li span {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
 }
 .pf-mk-mini-grid li b {
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text-primary);
   font-weight: var(--font-weight-medium);
 }
@@ -1201,7 +1201,7 @@ body:has(.pf-main) {
 }
 .pf-form-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
-  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+  font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--text-muted);
 }
 .pf-formblock-title {
@@ -1209,16 +1209,16 @@ body:has(.pf-main) {
   letter-spacing: -0.02em; color: var(--text-primary);
   font-weight: var(--font-weight-medium);
 }
-.pf-formblock-desc { font-size: 14.5px; color: var(--text-muted); line-height: 1.6; }
+.pf-formblock-desc { font-size: 16px; color: var(--text-muted); line-height: 1.6; }
 .pf-formblock-feats { margin-top: 2px; }
-.pf-formblock-feats li { font-size: 13px; color: var(--text-secondary); }
+.pf-formblock-feats li { font-size: 14.5px; color: var(--text-secondary); }
 .pf-formblock-feats code {
   font-family: var(--font-mono); font-size: .88em;
   background: var(--bg-2); padding: 1px 5px; border-radius: 4px;
   border: 1px solid var(--hair); color: var(--text-primary);
 }
 .pf-form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
-.pf-form-actions .l-btn { padding: 9px 15px; font-size: 12.5px; }
+.pf-form-actions .l-btn { padding: 9px 15px; font-size: 14px; }
 
 /* La "ventana" que enmarca el formulario */
 .pf-form-device {
@@ -1233,7 +1233,7 @@ body:has(.pf-main) {
   padding: 11px 16px;
   background: var(--bg-2);
   border-bottom: 1px solid var(--hair);
-  font-size: 11.5px; letter-spacing: 0.03em; color: var(--text-muted);
+  font-size: 12.5px; letter-spacing: 0.03em; color: var(--text-muted);
 }
 .pf-form-dots { display: inline-flex; gap: 6px; flex: none; }
 .pf-form-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--hair-2); }
@@ -1271,13 +1271,13 @@ body[data-theme="dark"] .pf-form-frame {
   border: 1px solid color-mix(in oklab, var(--success) 22%, var(--hair));
 }
 .pf-sustain-points span {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--success);
 }
 .pf-sustain-points b {
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text-primary);
   line-height: 1.35;
 }
@@ -1296,19 +1296,19 @@ body[data-theme="dark"] .pf-form-frame {
   font-weight: var(--font-weight-semibold);
 }
 .pf-mk-date-month {
-  font-size: 16px;
+  font-size: 17.5px;
   letter-spacing: -0.014em;
   color: var(--text-primary);
   text-transform: capitalize;
 }
 .pf-mk-date-year {
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text-faint);
   letter-spacing: 0.05em;
 }
 .pf-mk-date-meta {
   margin-top: 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   letter-spacing: 0.04em;
 }
@@ -1327,7 +1327,7 @@ body[data-theme="dark"] .pf-form-frame {
   background: var(--bg-2);
   border: 1px solid var(--hair);
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 .pf-charts-meta [data-charts-total] {
   color: var(--accent);
@@ -1360,9 +1360,9 @@ body[data-theme="dark"] .pf-form-frame {
 }
 .pf-chart-card--sustain header strong { color: var(--success); }
 .pf-chart-card header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.pf-chart-card header span { font-size: 10.5px; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; background: var(--bg-card); border: 1px solid var(--hair); color: var(--text-muted); text-transform: uppercase; }
-.pf-chart-card header strong { font-size: 14px; color: var(--text-primary); letter-spacing: -0.012em; line-height: 1.25; }
-.pf-chart-card footer { font-size: 10.5px; color: var(--text-faint); letter-spacing: 0.05em; }
+.pf-chart-card header span { font-size: 11.5px; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 999px; background: var(--bg-card); border: 1px solid var(--hair); color: var(--text-muted); text-transform: uppercase; }
+.pf-chart-card header strong { font-size: 15.5px; color: var(--text-primary); letter-spacing: -0.012em; line-height: 1.25; }
+.pf-chart-card footer { font-size: 11.5px; color: var(--text-faint); letter-spacing: 0.05em; }
 .pf-chart-canvas-wrap {
   position: relative;
   height: 240px;
@@ -1383,7 +1383,7 @@ body[data-theme="dark"] .pf-form-frame {
   display: flex; flex-direction: column; gap: 14px;
 }
 .pf-results-eyebrow {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent);
@@ -1391,13 +1391,13 @@ body[data-theme="dark"] .pf-form-frame {
 }
 .pf-results-title {
   margin: 2px 0 6px;
-  font-size: 18px;
+  font-size: 20px;
   letter-spacing: -0.018em;
   color: var(--text-primary);
   font-weight: var(--font-weight-medium);
 }
 .pf-results-analysis p {
-  font-size: 14px;
+  font-size: 15.5px;
   line-height: 1.6;
   color: var(--text-secondary);
 }
@@ -1458,7 +1458,7 @@ body[data-theme="dark"] .pf-form-frame {
 .pf-stack-num {
   display: inline-flex;
   margin-bottom: 10px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--accent);
   letter-spacing: .12em;
 }
@@ -1544,7 +1544,7 @@ body[data-theme="dark"] .pf-form-frame {
   align-items: center;
   gap: 8px;
   color: var(--success);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: .12em;
   text-transform: uppercase;
   margin-bottom: 12px;
@@ -1556,7 +1556,7 @@ body[data-theme="dark"] .pf-form-frame {
   margin-bottom: 10px;
 }
 .pf-eje-card p {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -1571,13 +1571,13 @@ body[data-theme="dark"] .pf-form-frame {
 }
 .pf-integration-tag {
   display: inline-block;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--warning);
   margin-bottom: 6px;
 }
-.pf-integration-note p { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+.pf-integration-note p { font-size: 14.5px; color: var(--text-secondary); line-height: 1.55; }
 .pf-integration-note p code,
 .pf-integration-list code {
   font-family: var(--font-mono);
@@ -1591,7 +1591,7 @@ body[data-theme="dark"] .pf-form-frame {
 .pf-integration-list { margin-top: 8px; }
 .pf-integration-list li {
   padding-left: 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 .pf-integration-list li::before { display: none; }
@@ -1606,7 +1606,7 @@ body[data-theme="dark"] .pf-form-frame {
 .pf-tabulation {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12.5px;
+  font-size: 14px;
   min-width: 720px;
 }
 .pf-tabulation th,
@@ -1618,7 +1618,7 @@ body[data-theme="dark"] .pf-form-frame {
 }
 .pf-tabulation th {
   font-weight: var(--font-weight-medium);
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -1642,13 +1642,13 @@ body[data-theme="dark"] .pf-form-frame {
 }
 .pf-analysis-block span {
   display: block;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
   margin-bottom: 4px;
 }
-.pf-analysis-block p { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+.pf-analysis-block p { font-size: 14.5px; color: var(--text-secondary); line-height: 1.55; }
 
 /* Reflexion */
 .pf-reflexion-grid {
@@ -1665,18 +1665,18 @@ body[data-theme="dark"] .pf-form-frame {
   display: flex; flex-direction: column; gap: 6px;
 }
 .pf-reflexion-card span {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--success);
 }
 .pf-reflexion-card h5 {
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--text-primary);
   letter-spacing: -0.012em;
 }
 .pf-reflexion-card p {
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -1760,7 +1760,7 @@ body[data-theme="dark"] .pf-form-frame {
   color: var(--text-primary);
   font-weight: var(--font-weight-medium);
 }
-.pf-step-body p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+.pf-step-body p { font-size: 15.5px; color: var(--text-muted); line-height: 1.6; }
 
 /* Gantt inside a step */
 .pf-step-body .pf-gantt { margin-top: 4px; }
@@ -1818,7 +1818,7 @@ body[data-theme="dark"] .pf-form-frame {
 }
 .pf-about-item--full { grid-column: span 2; }
 .pf-about-item .pf-about-tag {
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--accent);
@@ -1830,7 +1830,7 @@ body[data-theme="dark"] .pf-form-frame {
   font-weight: var(--font-weight-medium);
 }
 .pf-about-item p {
-  font-size: 14px;
+  font-size: 15.5px;
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -1858,7 +1858,7 @@ body[data-theme="dark"] .pf-form-frame {
   font-family: var(--font-mono);
 }
 .pf-about-stat span {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -1972,6 +1972,6 @@ body[data-theme="dark"] .pf-form-frame {
 
   /* Show "swipe to see" hint on small screens only. */
   .pf-comp-hint { display: inline-flex; }
-  .pf-comp-table { font-size: 12.5px; }
+  .pf-comp-table { font-size: 14px; }
   .pf-comp-table th, .pf-comp-table td { padding: 10px 12px; }
 }

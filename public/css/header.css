@@ -69,11 +69,11 @@
   line-height: 1;
   gap: 1px;
 }
-.brand__text span:first-child { font-size: 16px; }
+.brand__text span:first-child { font-size: 17.5px; }
 .brand__text span:nth-child(2),
 .brand__text span:nth-child(3) {
   font-family: var(--font-mono);
-  font-size: 9.5px;
+  font-size: 10.5px;
   color: var(--text-muted);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -94,7 +94,7 @@
 .topbar__nav a {
   padding: 7px 14px;
   border-radius: var(--radius-pill);
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--text-secondary);
   transition: background var(--transition-fast), color var(--transition-fast);
 }
@@ -110,7 +110,7 @@
 .topbar-login {
   padding: 9px 14px;
   border-radius: var(--radius-pill);
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .topbar-gear {
   list-style: none;
@@ -133,7 +133,7 @@
      at the left. Tighten brand text so it shares space gracefully. */
   body:has([data-sidebar]) .brand__text span:nth-child(2),
   body:has([data-sidebar]) .brand__text span:nth-child(3) { display: none; }
-  body:has([data-sidebar]) .brand__text span:first-child { font-size: 15px; }
+  body:has([data-sidebar]) .brand__text span:first-child { font-size: 16.5px; }
 }
 
 /* ─── Topbar burger (opens mobile sidebar drawer) ─────────── */
@@ -195,11 +195,11 @@
   place-items: center;
   position: relative;
   overflow: hidden;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: -0.01em;
 }
-.user-chip__icon svg { width: 16px; height: 16px; }
+.user-chip__icon svg { width: 18px; height: 18px; }
 .user-chip__icon img {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; border-radius: 50%;
@@ -211,7 +211,7 @@
   width: 100%; height: 100%;
 }
 .user-chip__label {
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
 }
@@ -377,7 +377,7 @@ body[data-theme="dark"] .theme-switch__moon,
   left: 50%;
   transform: translateX(-50%);
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   background: var(--text-primary);
   color: var(--bg);
   padding: 4px 8px;

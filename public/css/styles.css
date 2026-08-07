@@ -17,11 +17,11 @@ body[data-theme="light"] {
   --font-mono:  "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
 
-  --font-size-xs:  0.72rem;
-  --font-size-sm:  0.82rem;
-  --font-size-md:  0.94rem;
-  --font-size-lg:  1.06rem;
-  --font-size-xl:  1.36rem;
+  --font-size-xs:  0.8rem;
+  --font-size-sm:  0.9rem;
+  --font-size-md:  1.03rem;
+  --font-size-lg:  1.16rem;
+  --font-size-xl:  1.48rem;
   --font-size-2xl: 1.72rem;
   --font-size-3xl: 2.4rem;
 
@@ -51,8 +51,8 @@ body[data-theme="light"] {
   --border-thin: 1px;
 
   /* motion */
-  --transition-fast:   140ms cubic-bezier(.2,.7,.2,1);
-  --transition-normal: 220ms cubic-bezier(.2,.7,.2,1);
+  --transition-fast:   190ms cubic-bezier(.2,.7,.2,1);
+  --transition-normal: 250ms cubic-bezier(.2,.7,.2,1);
   --transition-slow:   360ms cubic-bezier(.2,.7,.2,1);
 
   /* layout */
@@ -216,7 +216,7 @@ body[data-theme="dark"] {
 
 /* ─────────────────────────────── BASE ─────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-html { font-size: 16px; height: 100%; scroll-behavior: smooth; }
+html { font-size: 17.5px; height: 100%; scroll-behavior: smooth; }
 
 /* ── Lenis smooth scroll (global preset; driven by js/smooth-scroll.js) ── */
 html.lenis, html.lenis body { height: auto; }
@@ -350,7 +350,7 @@ img, svg { display: block; max-width: 100%; }
   gap: 8px;
   padding: 10px 16px;
   border-radius: var(--radius-pill);
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: var(--font-weight-medium);
   letter-spacing: -0.005em;
   transition: transform var(--transition-fast), background var(--transition-fast), color var(--transition-fast),
@@ -360,7 +360,7 @@ img, svg { display: block; max-width: 100%; }
   text-decoration: none;
   color: var(--text-primary);
 }
-.btn svg { width: 14px; height: 14px; }
+.btn svg { width: 16px; height: 16px; }
 
 .btn--primary,
 .btn-primary {
@@ -399,8 +399,8 @@ img, svg { display: block; max-width: 100%; }
 }
 .btn--danger:hover { transform: translateY(-1px); color: #fff; filter: brightness(.96); }
 
-.btn--lg { padding: 14px 22px; font-size: 15.5px; }
-.btn--sm { padding: 6px 12px; font-size: 13px; }
+.btn--lg { padding: 14px 22px; font-size: 17px; }
+.btn--sm { padding: 6px 12px; font-size: 14.5px; }
 .btn--block { width: 100%; }
 
 /* ─────────────────────────────── BADGES / CHIPS / DOTS ─────── */
@@ -410,7 +410,7 @@ img, svg { display: block; max-width: 100%; }
   gap: 6px;
   padding: 4px 10px;
   border-radius: var(--radius-pill);
-  font-size: 11.5px;
+  font-size: 12.5px;
   font-family: var(--font-mono);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -428,7 +428,7 @@ img, svg { display: block; max-width: 100%; }
   align-items: center;
   gap: 6px;
   padding: 6px 11px;
-  font-size: 12.5px;
+  font-size: 14px;
   border: 1px solid var(--hair);
   border-radius: var(--radius-pill);
   background: var(--bg-card-soft);
@@ -500,7 +500,7 @@ input:focus, select:focus, textarea:focus {
 }
 .dashboard-head__eyebrow {
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: 12.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -514,7 +514,7 @@ input:focus, select:focus, textarea:focus {
 .dashboard-head__text {
   margin-top: 8px;
   color: var(--text-muted);
-  font-size: 14.5px;
+  font-size: 16px;
   max-width: 60ch;
 }
 
@@ -544,7 +544,7 @@ input:focus, select:focus, textarea:focus {
 .kpi-card:hover::before { transform: scaleY(1); }
 .kpi-card p {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -575,7 +575,7 @@ input:focus, select:focus, textarea:focus {
 .section-switch__name {
   display: inline-block;
   padding: 8px 16px;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: var(--font-weight-medium);
   color: var(--text-muted);
   border-radius: var(--radius-pill);
@@ -651,7 +651,7 @@ input:focus, select:focus, textarea:focus {
   display: flex; justify-content: space-between; align-items: center;
   gap: 10px;
 }
-.panel__header h3 { font-size: 16px; font-weight: var(--font-weight-medium); }
+.panel__header h3 { font-size: 17.5px; font-weight: var(--font-weight-medium); }
 
 /* event-list (urgencias / actividad) */
 .event-list { display: flex; flex-direction: column; gap: 4px; }
@@ -662,22 +662,22 @@ input:focus, select:focus, textarea:focus {
   align-items: center;
   padding: 10px 0;
   border-bottom: 1px dashed var(--hair);
-  font-size: 13.5px;
+  font-size: 15px;
 }
 .event-item:last-child { border-bottom: 0; }
 .event-item strong { font-weight: var(--font-weight-medium); }
-.event-item small { color: var(--text-muted); font-size: 11.5px; font-family: var(--font-mono); }
+.event-item small { color: var(--text-muted); font-size: 12.5px; font-family: var(--font-mono); }
 
 /* bar group (gasto por categoria) */
 .bar-group { display: flex; flex-direction: column; gap: 10px; }
-.bar-row { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; font-size: 13px; }
+.bar-row { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; font-size: 14.5px; }
 .bar { background: var(--bg-card-soft); height: 8px; border-radius: var(--radius-pill); overflow: hidden; }
 .bar i { display: block; height: 100%; background: var(--accent); border-radius: inherit; }
 
 /* summary grid */
 .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-.summary-item strong { font-size: 14px; font-weight: var(--font-weight-medium); display: block; margin-bottom: 4px; }
-.summary-item p { font-size: 13px; color: var(--text-muted); }
+.summary-item strong { font-size: 15.5px; font-weight: var(--font-weight-medium); display: block; margin-bottom: 4px; }
+.summary-item p { font-size: 14.5px; color: var(--text-muted); }
 
 /* ─────────────────────────────── REVEAL UTILITY ───────────── */
 [data-reveal] { opacity: 0; transform: translateY(18px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.7,.2,1); }
@@ -860,7 +860,7 @@ main.auth-page > * {
   height: 1.15rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.18);
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   line-height: 1;
 }
 
@@ -1047,7 +1047,7 @@ main.auth-page > * {
   justify-content: center;
   border-radius: 999px;
   font-weight: var(--font-weight-bold);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   line-height: 1;
 }
 
@@ -1099,7 +1099,7 @@ main.auth-page > * {
   background: transparent;
   border: 0;
   color: var(--text-muted);
-  font-size: 1.1rem;
+  font-size: 1.21rem;
   line-height: 1;
   cursor: pointer;
   padding: 0 0.1rem;

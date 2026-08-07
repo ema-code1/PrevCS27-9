@@ -225,7 +225,7 @@ body[data-theme="dark"] {
   align-items: center;
   gap: 7px;
   padding: 9px 14px;
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
   background: transparent;
@@ -237,7 +237,7 @@ body[data-theme="dark"] {
               border-color var(--transition-fast), transform var(--transition-fast);
 }
 
-.kb-tool svg { width: 15px; height: 15px; transition: transform var(--transition-normal); }
+.kb-tool svg { width: 17px; height: 17px; transition: transform var(--transition-normal); }
 
 .kb-tool:hover {
   color: var(--text-primary);
@@ -266,7 +266,7 @@ body[data-theme="dark"] {
   border-radius: var(--radius-pill);
   background: color-mix(in oklab, var(--text-primary) 10%, transparent);
   color: var(--text-secondary);
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -296,7 +296,7 @@ body[data-theme="dark"] {
 .kb-filters__group { display: grid; gap: 7px; align-content: start; }
 
 .kb-filters__group > strong {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.02em;
   color: var(--text-muted);
   font-weight: var(--font-weight-medium);
@@ -409,7 +409,7 @@ body[data-theme="dark"] .kb__board {
 .kb-col__title {
   min-width: 0;
   flex: 0 1 auto;
-  font-size: 14px;
+  font-size: 15.5px;
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   letter-spacing: -0.01em;
@@ -419,7 +419,7 @@ body[data-theme="dark"] .kb__board {
 .kb-col__count {
   flex: 0 0 auto;
   color: var(--text-faint);
-  font-size: 13px;
+  font-size: 14.5px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -452,7 +452,7 @@ body[data-theme="dark"] .kb__board {
               transform var(--transition-fast);
 }
 
-.kb-icon-btn svg { width: 15px; height: 15px; }
+.kb-icon-btn svg { width: 17px; height: 17px; }
 
 .kb-icon-btn:hover {
   color: var(--text-primary);
@@ -557,14 +557,14 @@ body[data-theme="dark"] .kb__board {
   border-radius: var(--radius-sm);
   background: color-mix(in oklab, var(--kb-c) 14%, transparent);
   color: var(--kb-c);
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: var(--font-weight-medium);
   line-height: 1.5;
   white-space: nowrap;
 }
 
 .kb-card__title {
-  font-size: 13.5px;
+  font-size: 15px;
   line-height: 1.4;
   color: var(--text-primary);
   overflow-wrap: anywhere;
@@ -576,7 +576,7 @@ body[data-theme="dark"] .kb__board {
 }
 
 .kb-card__desc {
-  font-size: 11.5px;
+  font-size: 12.5px;
   line-height: 1.45;
   color: var(--text-muted);
   display: -webkit-box;
@@ -600,12 +600,12 @@ body[data-theme="dark"] .kb__board {
   border-radius: var(--radius-sm);
   background: var(--bg-card-soft);
   color: var(--text-muted);
-  font-size: 10.5px;
+  font-size: 11.5px;
   line-height: 1.6;
   white-space: nowrap;
 }
 
-.kb-badge svg { width: 11px; height: 11px; }
+.kb-badge svg { width: 12px; height: 12px; }
 
 /* Prioridad: glifo + texto, nunca solo color (requisito de accesibilidad). */
 .kb-badge--prio {
@@ -638,7 +638,7 @@ body[data-theme="dark"] .kb__board {
   background: color-mix(in oklab, var(--text-primary) 8%, transparent);
   color: var(--text-secondary);
   border: 1.5px solid var(--card-bg);
-  font-size: 9.5px;
+  font-size: 10.5px;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0;
 }
@@ -676,14 +676,14 @@ body[data-theme="dark"] .kb__board {
   padding: 8px 10px;
   border-radius: var(--radius-sm);
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 14.5px;
   background: transparent;
   border: 1px solid transparent;
   cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.kb-add svg { width: 14px; height: 14px; transition: transform var(--transition-normal); }
+.kb-add svg { width: 16px; height: 16px; transition: transform var(--transition-normal); }
 
 .kb-add:hover {
   background: var(--bg-card-soft);
@@ -704,7 +704,7 @@ body[data-theme="dark"] .kb__board {
 /* El campo arranca en una línea y crece con el texto. */
 .kb-compose textarea,
 .kb-compose input {
-  font-size: 13px;
+  font-size: 14.5px;
   padding: 9px 11px;
   border-radius: var(--kb-card-radius);
   border-color: var(--hair-2);
@@ -714,7 +714,7 @@ body[data-theme="dark"] .kb__board {
 .kb-compose textarea { min-height: 0; }
 
 .kb-compose__row { display: flex; align-items: center; gap: 7px; }
-.kb-compose__hint { font-size: 11px; color: var(--text-faint); margin-left: auto; }
+.kb-compose__hint { font-size: 12px; color: var(--text-faint); margin-left: auto; }
 
 /* Columna fantasma para agregar una nueva. Línea continua (no punteada),
    del mismo espesor y color que el resto de los bordes del tablero. */
@@ -821,7 +821,7 @@ body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbin
   width: 100%;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--text-primary);
   background: transparent;
   border: 0;
@@ -831,7 +831,7 @@ body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbin
               transform var(--transition-fast);
 }
 
-.kb-menu__item svg { width: 15px; height: 15px; color: var(--text-faint); flex: 0 0 auto; }
+.kb-menu__item svg { width: 17px; height: 17px; color: var(--text-faint); flex: 0 0 auto; }
 .kb-menu__item:hover { background: var(--bg-card-soft); transform: translateX(2px); }
 .kb-menu__item:hover svg { color: var(--text-primary); }
 .kb-menu__item:active { transform: translateX(2px) scale(.985); }
@@ -845,7 +845,7 @@ body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbin
 
 .kb-menu__label {
   padding: 8px 10px 4px;
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-faint);
@@ -931,7 +931,7 @@ body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbin
   pointer-events: none;
 }
 
-.kb-dropnote svg { width: 15px; height: 15px; }
+.kb-dropnote svg { width: 17px; height: 17px; }
 
 .kb-detail__title {
   font-size: var(--font-size-lg);
@@ -958,14 +958,14 @@ body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbin
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   color: var(--text-muted);
   font-weight: var(--font-weight-medium);
 }
 
-.kb-section > h5 svg { width: 14px; height: 14px; }
+.kb-section > h5 svg { width: 16px; height: 16px; }
 
 .kb-field {
   width: 100%;
@@ -985,7 +985,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   width: 100%;
   padding: 9px 11px;
   border-radius: var(--radius-sm);
-  font-size: 13px;
+  font-size: 14.5px;
   color: var(--text-secondary);
   background: transparent;
   border: 1px solid var(--hair);
@@ -995,7 +995,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
               background var(--transition-fast), transform var(--transition-fast);
 }
 
-.kb-side-btn svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--text-faint); transition: transform var(--transition-normal); }
+.kb-side-btn svg { width: 17px; height: 17px; flex: 0 0 auto; color: var(--text-faint); transition: transform var(--transition-normal); }
 .kb-side-btn:hover { color: var(--text-primary); border-color: var(--hair-2); background: var(--bg-card-soft); }
 .kb-side-btn:hover svg { color: var(--text-primary); transform: scale(1.12); }
 .kb-side-btn:active { transform: scale(.985); }
@@ -1020,7 +1020,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
 
 .kb-checklist__pct {
   margin-left: auto;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -1079,13 +1079,13 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   border-radius: var(--radius-pill);
   background: color-mix(in oklab, var(--text-primary) 8%, transparent);
   color: var(--text-secondary);
-  font-size: 10.5px;
+  font-size: 11.5px;
   font-weight: var(--font-weight-semibold);
 }
 
 .kb-comment__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .kb-comment__author { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
-.kb-comment__time { font-size: 10.5px; color: var(--text-faint); }
+.kb-comment__time { font-size: 11.5px; color: var(--text-faint); }
 
 .kb-comment__body {
   margin-top: 4px;
@@ -1107,7 +1107,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
 .kb-comment__actions { display: flex; gap: 10px; margin-top: 5px; }
 
 .kb-link-btn {
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--text-muted);
   background: none;
   border: 0;
@@ -1129,7 +1129,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   padding: 7px;
   border-radius: var(--radius-md);
   border: 1px solid var(--hair);
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: var(--text-muted);
   transition: border-color var(--transition-fast), transform var(--transition-fast),
               box-shadow var(--transition-fast);
@@ -1156,7 +1156,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   border-radius: var(--radius-sm);
   background: var(--bg-3);
   color: var(--text-faint);
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
 }
 
@@ -1192,7 +1192,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   font-size: var(--font-size-sm);
 }
 
-.kb-linkrow svg { width: 15px; height: 15px; color: var(--text-faint); flex: 0 0 auto; }
+.kb-linkrow svg { width: 17px; height: 17px; color: var(--text-faint); flex: 0 0 auto; }
 .kb-linkrow a { color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .kb-linkrow a:hover { text-decoration: underline; }
 
@@ -1206,13 +1206,13 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   align-items: center;
   padding: 8px 0;
   border-bottom: 1px solid var(--hair);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
 .kb-activity__row:last-child { border-bottom: 0; }
 .kb-activity__dot { width: 5px; height: 5px; border-radius: var(--radius-pill); background: var(--text-faint); }
-.kb-activity__time { font-size: 10.5px; color: var(--text-faint); white-space: nowrap; }
+.kb-activity__time { font-size: 11.5px; color: var(--text-faint); white-space: nowrap; }
 
 /* ── Selector de miembros / etiquetas dentro del modal ─────────────── */
 .kb-picker { display: grid; gap: 4px; padding: 2px 4px; }
@@ -1224,7 +1224,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   padding: 7px 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14.5px;
   background: transparent;
   border: 1px solid transparent;
   text-align: left;
@@ -1307,7 +1307,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
 }
 
 .kb-done__who { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.kb-done__when { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kb-done__when { font-size: 12.5px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 .kb-done__chevron { width: 15px; height: 15px; color: var(--text-faint); transition: transform var(--transition-normal); }
 .kb-done__row.is-open .kb-done__chevron { transform: rotate(180deg); }
@@ -1386,7 +1386,7 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: var(--text-muted);
   opacity: 0;
   transition: opacity var(--transition-fast);

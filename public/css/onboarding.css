@@ -41,7 +41,7 @@
     margin-bottom: var(--space-xs);
 }
 
-.onboarding-check svg { width: 36px; height: 36px; }
+.onboarding-check svg { width: 40px; height: 40px; }
 
 .onboarding-cta {
     display: inline-flex;
@@ -115,7 +115,7 @@
     background: var(--bg-3);
     color: var(--text-muted);
     font-weight: var(--font-weight-semibold);
-    font-size: 0.82rem;
+    font-size: 0.9rem;
     transition: all var(--transition-fast);
 }
 
@@ -235,7 +235,7 @@
 
 .metric-option__name { font-size: var(--font-size-md); font-weight: var(--font-weight-medium); color: var(--text-primary); }
 .metric-option__unit {
-    font-size: 0.86rem;
+    font-size: 0.95rem;
     letter-spacing: var(--letter-spacing-wide);
     color: var(--text-muted);
     font-family: var(--font-mono);

@@ -94,7 +94,7 @@
 .event-list--activity .event-item {
   grid-template-columns: 10px 1fr auto;
 }
-.event-item .chip { font-size: 11px; padding: 3px 8px; }
+.event-item .chip { font-size: 12px; padding: 3px 8px; }
 
 /* ─── Analytics grid (Tendencia / Distribucion) ──────────────── */
 .analytics-grid {
@@ -187,12 +187,12 @@
   padding: 10px 12px;
   border-radius: var(--radius-md);
   background: var(--bg-card-soft);
-  font-size: 13.5px;
+  font-size: 15px;
   transition: background var(--transition-fast), transform var(--transition-fast);
 }
 .list-row:hover { background: var(--hair); transform: translateX(2px); }
 .list-row:active { transform: translateX(1px) scale(.997); }
-.list-row span:not(.list-row__status) { color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; }
+.list-row span:not(.list-row__status) { color: var(--text-muted); font-family: var(--font-mono); font-size: 13px; }
 .list-row__status {
   width: 8px; height: 8px;
   border-radius: 999px;

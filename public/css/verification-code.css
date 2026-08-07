@@ -20,8 +20,8 @@
 }
 
 .verification-icon svg {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
 }
 
 .verification-head h1,
@@ -92,7 +92,7 @@
   gap: 6px;
   flex-wrap: wrap;
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 14.5px;
 }
 
 .verification-resend form {
@@ -117,7 +117,7 @@
 .verification-resend__timer {
   width: 100%;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-faint);
 }
 
@@ -142,13 +142,13 @@
 }
 
 .account-created__icon svg {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
 }
 
 .account-created p {
   color: #a7a9ae;
-  font-size: 16px;
+  font-size: 17.5px;
 }
 
 .account-created__button {
@@ -166,7 +166,7 @@
 
 .account-created > span {
   color: #8a8c92;
-  font-size: 13px;
+  font-size: 14.5px;
 }
 
 @media (max-width: 540px) {
@@ -180,6 +180,6 @@
 
   .verification-inputs input {
     height: 50px;
-    font-size: 20px;
+    font-size: 22px;
   }
 }
