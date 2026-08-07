@@ -2,7 +2,7 @@
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260612-2">
+<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260807-1">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
 <link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260806-1">
