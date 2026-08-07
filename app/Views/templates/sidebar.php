@@ -78,8 +78,22 @@ $activeStockId = (int) ($activeStockIndustryId ?? 0);
 
     <div class="sidebar__user-slot" data-sidebar-user-slot></div>
 
-    <div class="sidebar__foot" aria-hidden="true">
-        <span class="dot"></span>
-        <span>IoT</span>
-    </div>
+    <!-- Accesos que antes vivían en el dropdown del header. Van bajo la línea
+         divisoria para no competir con la navegación principal. -->
+    <nav class="sidebar__foot" aria-label="Menu secundario">
+        <?php // La ruta admin-account la sirve Account::index ('cuenta'); AdminAccount usa 'admin-account'. ?>
+        <a href="<?= base_url('admin-account') ?>" class="menu-link<?= in_array($activeMenu, ['cuenta', 'admin-account'], true) ? ' is-active' : '' ?>">
+            <span class="menu-link__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c1.6-4 5-6 8-6s6.4 2 8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </span>
+            <span class="menu-link__label">Administrar cuenta</span>
+        </a>
+
+        <a href="<?= base_url('ayuda') ?>" class="menu-link" target="_blank" rel="noopener">
+            <span class="menu-link__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.6V14M12 17h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            </span>
+            <span class="menu-link__label">Ayuda</span>
+        </a>
+    </nav>
 </aside>

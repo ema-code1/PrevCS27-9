@@ -275,56 +275,19 @@ body[data-theme="dark"] .sidebar {
   .menu-sub, .menu-link__chevron { transition: none; }
 }
 
-/* footer slot */
+/* footer slot — menu secundario (Administrar cuenta / Ayuda).
+   La línea divisoria respira lo mismo arriba que abajo (10px). */
 .sidebar__foot {
-  margin-top: auto;
-  padding: 14px 12px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: color-mix(in oklab, var(--text-on-sidebar) 50%, transparent);
+  /* Simetrico: la separacion sobre la linea es la misma que debajo. */
+  margin-top: 10px;
+  padding: 10px 0 0;
   border-top: 1px solid color-mix(in oklab, var(--text-on-sidebar) 12%, transparent);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
   position: relative;
 }
-.sidebar__foot > span:last-child {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: opacity var(--transition-fast), max-width var(--transition-slow);
-  max-width: 200px;
-}
-.sidebar.is-collapsed .sidebar__foot {
-  justify-content: center;
-  padding: 10px 0;
-}
-/* When collapsed, the footer label becomes a tooltip on hover.
-   We pull the label out of layout (max-width:0) and re-render it absolutely
-   on hover/focus so it doesn't crowd the dot. */
-.sidebar.is-collapsed .sidebar__foot > span:last-child {
-  position: absolute;
-  left: calc(100% + 10px);
-  top: 50%;
-  transform: translate(-4px, -50%);
-  max-width: none;
-  padding: 6px 10px;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  border: 1px solid var(--hair);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
-  z-index: 50;
-}
-.sidebar.is-collapsed .sidebar__foot:hover > span:last-child,
-.sidebar.is-collapsed .sidebar__foot:focus-within > span:last-child {
-  opacity: 1;
-  transform: translate(0, -50%);
-}
+.sidebar.is-collapsed .sidebar__foot { padding: 10px 0 0; }
 
 /* ─── Mobile backdrop (default: not rendered) ─────────────── */
 .sidebar-backdrop {

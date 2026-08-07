@@ -65,19 +65,8 @@ $menuDisplay  = session('user_name') ?? 'Usuario';
                         </label>
                     </div>
 
-                    <a class="user-menu__item" href="<?= base_url('admin-account') ?>">
-                        <span class="user-menu__item-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c1.6-4 5-6 8-6s6.4 2 8 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                        </span>
-                        <span>Administrar cuenta</span>
-                    </a>
-
-                    <a class="user-menu__item" href="<?= base_url('/#como-funciona') ?>">
-                        <span class="user-menu__item-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.9-1.1 1.6V14M12 17h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-                        </span>
-                        <span>Ayuda</span>
-                    </a>
+                    <!-- "Administrar cuenta" y "Ayuda" viven ahora en el pie del
+                         menú de navegación (templates/sidebar.php). -->
 
                     <a class="user-menu__item user-menu__item--danger" href="<?= base_url('logout') ?>">
                         <span class="user-menu__item-icon" aria-hidden="true">
