@@ -63,6 +63,9 @@ $routes->post('espacios/(:num)/sensores/(:num)/eliminar', 'SensorController::del
 // Stock por espacio (una lista independiente por cada espacio)
 $routes->get('espacios/(:num)/stock', 'StockController::index/$1');
 
+// Centro de ayuda (publico, se abre en pestaña nueva desde el sidebar)
+$routes->get('ayuda', 'AyudaController::index');
+
 // ESP32 (rutas especificas antes de la parametrica)
 $routes->get('esp32', 'Esp32Controller::index');
 $routes->get('esp32/agregar', 'Esp32Controller::createForm');

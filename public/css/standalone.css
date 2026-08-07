@@ -102,3 +102,166 @@
   font-size: var(--font-size-sm);
   line-height: var(--line-height-normal);
 }
+
+/* =====================================================================
+   Ayuda · navegacion interna + acordeon de preguntas frecuentes
+   ===================================================================== */
+.help {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding-block: var(--space-md);
+}
+
+.help__head { text-align: center; }
+.help__head .standalone__head { align-items: center; }
+.help__head p { margin-inline: auto; }
+
+/* Menu de navegacion simple (items demo, href="#") */
+.help__nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+}
+.help__nav a {
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.help__nav a:hover {
+  color: var(--text-primary);
+  background: color-mix(in oklab, var(--text-primary) 7%, transparent);
+}
+.help__nav a:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.help__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  scroll-margin-top: calc(var(--header-height) + var(--space-md));
+}
+.help__section-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Acordeon: <details> nativo, animado con grid-template-rows 0fr -> 1fr */
+.help__accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.faq {
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.faq:hover { border-color: var(--hair-2); }
+.faq[open] {
+  border-color: var(--hair-2);
+  box-shadow: var(--card-shadow);
+}
+
+.faq__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  transition: background var(--transition-fast);
+}
+.faq__summary::-webkit-details-marker { display: none; }
+.faq__summary:hover { background: color-mix(in oklab, var(--text-primary) 4%, transparent); }
+.faq__summary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring) inset;
+}
+
+.faq__icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: transform 280ms cubic-bezier(.22, 1, .36, 1), color var(--transition-fast);
+}
+.faq__icon svg { width: 20px; height: 20px; }
+.faq[open] .faq__icon {
+  transform: rotate(180deg);
+  color: var(--text-primary);
+}
+
+.faq__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 300ms cubic-bezier(.22, 1, .36, 1);
+}
+.faq[open] .faq__panel { grid-template-rows: 1fr; }
+
+/* Con JS el acordeon retiene [open] durante el cierre para poder animarlo:
+   mientras no tenga .is-open el panel vuelve a 0fr y el icono a 0deg.
+   Sin JS mandan las reglas de arriba y el <details> abre/cierra igual. */
+.help__accordion.is-enhanced .faq[open]:not(.is-open) .faq__panel { grid-template-rows: 0fr; }
+.help__accordion.is-enhanced .faq[open]:not(.is-open) .faq__icon {
+  transform: none;
+  color: var(--text-muted);
+}
+.help__accordion.is-enhanced .faq[open]:not(.is-open) { box-shadow: none; }
+.faq__panel-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+.faq__panel p {
+  margin: 0;
+  padding: 0 16px 16px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}
+
+@media (max-width: 560px) {
+  .help__nav {
+    border-radius: var(--radius-lg);
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .help__nav::-webkit-scrollbar { display: none; }
+  .faq__summary { padding: 12px 14px; font-size: var(--font-size-sm); }
+  .faq__panel p { padding: 0 14px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faq__panel,
+  .faq__icon { transition-duration: 1ms; }
+}
