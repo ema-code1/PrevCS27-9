@@ -62,6 +62,12 @@
                                 <p class="text-muted mono"><?= (int) $ind['device_count'] ?> ESP32 - <?= esc($ind['industry_uid']) ?></p>
                             </div>
                             <div class="iot-space-card__top-actions">
+                                <a class="iot-stock-btn" href="<?= base_url('espacios/' . $ind['id'] . '/stock') ?>"
+                                   aria-label="Ver el stock de <?= esc($ind['space_name']) ?>">
+                                    <!-- Heroicons outline · cube -->
+                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 7.5 12 12m0 0L3 7.5M12 12v9.75M21 7.5v9l-9 5.25L3 16.5v-9L12 2.25 21 7.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    <span>Stock</span>
+                                </a>
                                 <span class="badge <?= $isAdmin ? 'badge--success' : 'badge--info' ?>">
                                     <?= $isAdmin ? 'Admin' : 'Supervisor' ?>
                                 </span>

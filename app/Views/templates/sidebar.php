@@ -1,5 +1,17 @@
 <?php
 $activeMenu = $activeMenu ?? 'panel';
+
+// Espacios del usuario para el desplegable de Stock. Se resuelve acá (y no en
+// cada controller) porque el sidebar se incluye desde muchas vistas; si algún
+// controller ya lo pasó, se respeta.
+$sidebarSpaces = $sidebarSpaces ?? null;
+if ($sidebarSpaces === null) {
+    $sidebarUserId = (int) session('user_id');
+    $sidebarSpaces = $sidebarUserId > 0
+        ? (new \App\Models\IndustryUserModel())->industriesForUser($sidebarUserId)
+        : [];
+}
+$activeStockId = (int) ($activeStockIndustryId ?? 0);
 ?>
 <div class="sidebar-backdrop" data-sidebar-backdrop aria-hidden="true"></div>
 <aside class="sidebar" data-sidebar>
@@ -30,6 +42,38 @@ $activeMenu = $activeMenu ?? 'panel';
             </span>
             <span class="menu-link__label">Mis espacios</span>
         </a>
+
+        <?php // Stock no navega: despliega la lista de espacios accesibles. ?>
+        <button type="button"
+                class="menu-link menu-link--toggle<?= $activeMenu === 'stock' ? ' is-open' : '' ?>"
+                data-stock-toggle
+                aria-expanded="<?= $activeMenu === 'stock' ? 'true' : 'false' ?>"
+                aria-controls="sidebar-stock-panel">
+            <span class="menu-link__icon" aria-hidden="true">
+                <!-- Heroicons outline · cube -->
+                <svg viewBox="0 0 24 24" fill="none"><path d="M21 7.5 12 12m0 0L3 7.5M12 12v9.75M21 7.5v9l-9 5.25L3 16.5v-9L12 2.25 21 7.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="menu-link__label">Stock</span>
+            <span class="menu-link__chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+        </button>
+
+        <div class="menu-sub<?= $activeMenu === 'stock' ? ' is-open' : '' ?>" id="sidebar-stock-panel" data-stock-panel>
+            <div class="menu-sub__inner">
+                <?php if ($sidebarSpaces === []): ?>
+                    <p class="menu-sub__empty">Todavía no tenés espacios.</p>
+                <?php else: ?>
+                    <?php foreach ($sidebarSpaces as $space): ?>
+                        <a class="menu-sub__link<?= $activeStockId === (int) $space['id'] ? ' is-active' : '' ?>"
+                           href="<?= base_url('espacios/' . $space['id'] . '/stock') ?>">
+                            <span class="menu-sub__dot" aria-hidden="true"></span>
+                            <span class="menu-sub__label"><?= esc($space['company_name'] ?: $space['space_name']) ?></span>
+                        </a>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
     </nav>
 
     <div class="sidebar__user-slot" data-sidebar-user-slot></div>

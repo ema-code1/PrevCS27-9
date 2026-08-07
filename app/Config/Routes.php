@@ -60,6 +60,9 @@ $routes->post('espacios/(:num)/miembros/(:num)/permiso', 'IndustryController::up
 $routes->post('espacios/(:num)/tokens', 'IndustryController::revealTokens/$1');
 $routes->post('espacios/(:num)/sensores/(:num)/eliminar', 'SensorController::deleteFromSpace/$1/$2');
 
+// Stock por espacio (una lista independiente por cada espacio)
+$routes->get('espacios/(:num)/stock', 'StockController::index/$1');
+
 // ESP32 (rutas especificas antes de la parametrica)
 $routes->get('esp32', 'Esp32Controller::index');
 $routes->get('esp32/agregar', 'Esp32Controller::createForm');

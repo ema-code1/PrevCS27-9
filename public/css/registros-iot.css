@@ -14,6 +14,43 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Acceso al stock del espacio. Vive dentro de la cabecera del acordeon, por
+   eso es un <a>: prevcs-ui ignora los clicks sobre links y no pliega el card. */
+.iot-stock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  height: 32px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card-soft);
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  transition: color var(--transition-fast), border-color var(--transition-fast),
+              background var(--transition-fast), box-shadow var(--transition-fast);
+}
+.iot-stock-btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
+.iot-stock-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--hair-2);
+  background: var(--bg-card);
+}
+.iot-stock-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* En pantallas chicas el boton se reduce al icono para no romper la fila. */
+@media (max-width: 560px) {
+  .iot-stock-btn { padding: 6px 9px; }
+  .iot-stock-btn span { display: none; }
 }
 
 .iot-kebab {

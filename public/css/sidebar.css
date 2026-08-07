@@ -180,6 +180,101 @@ body[data-theme="dark"] .sidebar {
   gap: 0;
 }
 
+/* ─── Stock: botón desplegable + sublista de espacios ─────────────── */
+.menu-link--toggle {
+  grid-template-columns: 22px 1fr auto;
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15.5px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.menu-link__chevron {
+  display: inline-grid;
+  place-items: center;
+  width: 16px; height: 16px;
+  color: color-mix(in oklab, var(--text-on-sidebar) 45%, transparent);
+  transition: transform var(--transition-normal), opacity var(--transition-fast);
+}
+.menu-link__chevron svg { width: 16px; height: 16px; }
+.menu-link--toggle.is-open .menu-link__chevron { transform: rotate(180deg); }
+.sidebar.is-collapsed .menu-link--toggle { grid-template-columns: 22px 0fr; }
+.sidebar.is-collapsed .menu-link__chevron { display: none; }
+
+/* El alto se anima con grid-template-rows 0fr→1fr: no necesita medir el
+   contenido y no rompe si cambia la cantidad de espacios. */
+.menu-sub {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--transition-slow), opacity var(--transition-fast);
+  opacity: 0;
+}
+.menu-sub > .menu-sub__inner {
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 17px;
+  /* Guía vertical tenue, al estilo de los árboles de navegación limpios. */
+  margin-left: 17px;
+  border-left: 1px solid color-mix(in oklab, var(--text-on-sidebar) 12%, transparent);
+}
+.menu-sub.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.menu-sub.is-open > .menu-sub__inner { padding-top: 2px; padding-bottom: 2px; }
+.sidebar.is-collapsed .menu-sub { grid-template-rows: 0fr; opacity: 0; }
+
+.menu-sub__link {
+  display: grid;
+  grid-template-columns: 6px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14.5px;
+  color: color-mix(in oklab, var(--text-on-sidebar) 68%, transparent);
+  transition: background var(--transition-fast), color var(--transition-fast);
+  min-width: 0;
+}
+.menu-sub__link:hover {
+  background: color-mix(in oklab, var(--text-on-sidebar) 6%, transparent);
+  color: var(--text-on-sidebar);
+}
+.menu-sub__link.is-active {
+  background: color-mix(in oklab, var(--text-on-sidebar) 9%, transparent);
+  color: var(--text-on-sidebar);
+  font-weight: var(--font-weight-medium);
+}
+.menu-sub__dot {
+  width: 5px; height: 5px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .45;
+}
+.menu-sub__link.is-active .menu-sub__dot { opacity: .8; }
+.menu-sub__label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.menu-sub__empty {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  color: color-mix(in oklab, var(--text-on-sidebar) 50%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-sub, .menu-link__chevron { transition: none; }
+}
+
 /* footer slot */
 .sidebar__foot {
   margin-top: auto;
@@ -278,6 +373,9 @@ body[data-theme="dark"] .sidebar {
   .sidebar.is-collapsed .sidebar__title,
   .sidebar.is-collapsed .menu-link__label { opacity: 1; max-width: none; pointer-events: auto; }
   .sidebar.is-collapsed .menu-link { grid-template-columns: 22px 1fr; gap: 12px; padding: 10px 12px; justify-content: start; }
+  .sidebar.is-collapsed .menu-link--toggle { grid-template-columns: 22px 1fr auto; }
+  .sidebar.is-collapsed .menu-link__chevron { display: inline-grid; }
+  .sidebar.is-collapsed .menu-sub.is-open { grid-template-rows: 1fr; opacity: 1; }
   .sidebar.is-collapsed .sidebar__head { justify-content: space-between; padding: 0 6px; gap: 8px; }
 
   .sidebar.is-drawer-open {

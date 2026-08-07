@@ -1,0 +1,104 @@
+/* =====================================================================
+   PrevCS · Paginas "standalone" (solo header, sin sidebar)
+   Usadas por Stock (stock/index.php) y Ayuda (ayuda/index.php).
+   Toman los tokens de styles.css, asi que siguen el modo claro/oscuro.
+   ===================================================================== */
+
+.standalone {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--content-gap);
+  padding-bottom: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+  min-height: calc(100vh - var(--header-height));
+}
+
+/* Variante embebida: la pagina de Stock vive dentro del shell con sidebar
+   (.page > .content-area), asi que el ancho, el padding y el alto minimo los
+   maneja la grilla — aca solo queda la tipografia y el estado vacio. */
+.standalone--embedded {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+}
+
+/* Barra superior con el boton Volver */
+.standalone__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* Hereda .btn .btn--secondary: mismos estilos que el resto de la app. */
+.standalone__back svg {
+  width: 17px;
+  height: 17px;
+}
+
+.standalone__head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.standalone__eyebrow {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.standalone__head h1 {
+  margin: 0;
+  font-size: clamp(1.6rem, 1.2rem + 1.6vw, var(--font-size-3xl));
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
+}
+.standalone__head p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-md);
+  max-width: 62ch;
+}
+
+/* Estado vacio centrado (Stock todavia no tiene contenido) */
+.standalone__empty {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: clamp(var(--space-xl), 8vh, 5rem) var(--space-md);
+}
+.standalone__empty-inner {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-xs);
+  max-width: 46ch;
+}
+.standalone__empty-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-xs);
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.standalone__empty-icon svg { width: 29px; height: 29px; }
+.standalone__empty h2 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  letter-spacing: var(--letter-spacing-tight);
+}
+.standalone__empty p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+}

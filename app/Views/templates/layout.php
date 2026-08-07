@@ -131,6 +131,44 @@
         });
     })();
 
+    /* ─── Stock: despliegue de espacios en el sidebar ─────────────────── */
+    (function () {
+        const toggle = document.querySelector('[data-stock-toggle]');
+        const panel = document.querySelector('[data-stock-panel]');
+        if (!toggle || !panel) return;
+        const KEY = 'pcs-stock-open';
+        const sidebar = document.querySelector('[data-sidebar]');
+
+        function setOpen(open) {
+            toggle.classList.toggle('is-open', open);
+            panel.classList.toggle('is-open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        // El estado inicial lo marca el server (página de stock activa); si no,
+        // se recuerda la última elección del usuario.
+        if (!panel.classList.contains('is-open')) {
+            setOpen(localStorage.getItem(KEY) === '1');
+        }
+
+        toggle.addEventListener('click', function () {
+            // Con el sidebar colapsado (desktop) primero hay que expandirlo,
+            // si no la sublista queda oculta por CSS.
+            const collapsed = sidebar && sidebar.classList.contains('is-collapsed')
+                && !window.matchMedia('(max-width: 900px)').matches;
+            if (collapsed) {
+                const collapseToggle = document.querySelector('[data-sidebar-toggle]');
+                if (collapseToggle) {
+                    collapseToggle.checked = false;
+                    collapseToggle.dispatchEvent(new Event('change'));
+                }
+            }
+            const next = collapsed ? true : !panel.classList.contains('is-open');
+            setOpen(next);
+            localStorage.setItem(KEY, next ? '1' : '0');
+        });
+    })();
+
     /* ─── User menu placement: topbar (desktop) ↔ sidebar foot (mobile) ─ */
     (function () {
         const userMenu = document.querySelector('.topbar .user-menu, .sidebar [data-sidebar-user-slot] .user-menu');
@@ -181,7 +219,8 @@
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && sidebar.classList.contains('is-drawer-open')) setOpen(false);
         });
-        sidebar.querySelectorAll('.menu-link').forEach(function (link) {
+        // El toggle de Stock no navega: no debe cerrar el drawer.
+        sidebar.querySelectorAll('.menu-link:not([data-stock-toggle]), .menu-sub__link').forEach(function (link) {
             link.addEventListener('click', function () { setOpen(false); });
         });
         // Snap back to a clean state when crossing the desktop breakpoint.
