@@ -78,6 +78,59 @@
         });
     })();
 
+    /* ─── Highlight de hover que se desliza entre items ───────────────────
+       Mismo efecto en el menú lateral y en el dropdown del header. */
+    (function () {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        const containers = document.querySelectorAll('.sidebar__nav, .sidebar__foot, .user-menu__panel');
+
+        containers.forEach(function (container) {
+            const hl = document.createElement('span');
+            hl.className = 'nav-hl';
+            hl.setAttribute('aria-hidden', 'true');
+            container.appendChild(hl);
+            container.classList.add('has-hl');
+
+            const selector = '.menu-link, .menu-sub__link, .user-menu__item';
+            let visible = false;
+
+            function moveTo(target) {
+                const box = target.getBoundingClientRect();
+                const base = container.getBoundingClientRect();
+                // Al aparecer, colocar sin transición para que no viaje desde
+                // la esquina superior izquierda del contenedor.
+                if (!visible) {
+                    hl.classList.add('is-placing');
+                }
+                hl.style.width = box.width + 'px';
+                hl.style.height = box.height + 'px';
+                hl.style.transform = 'translate3d(' + (box.left - base.left) + 'px,' + (box.top - base.top) + 'px,0)';
+                hl.style.borderRadius = getComputedStyle(target).borderRadius;
+                if (!visible) {
+                    void hl.offsetWidth; // reflow: fija la posición sin animar
+                    hl.classList.remove('is-placing');
+                    visible = true;
+                }
+                hl.classList.add('is-visible');
+            }
+
+            function hide() {
+                visible = false;
+                hl.classList.remove('is-visible');
+            }
+
+            container.addEventListener('mouseover', function (e) {
+                const target = e.target.closest(selector);
+                if (target && container.contains(target)) moveTo(target);
+            });
+            container.addEventListener('mouseleave', hide);
+            // Un item que se oculta (sublista colapsada) no debe dejar el
+            // highlight flotando sobre la nada.
+            container.addEventListener('focusout', function () { if (!container.matches(':hover')) hide(); });
+            window.addEventListener('resize', hide);
+        });
+    })();
+
     /* ─── User menu placement: topbar (desktop) ↔ sidebar foot (mobile) ─ */
     (function () {
         const userMenu = document.querySelector('.topbar .user-menu, .sidebar [data-sidebar-user-slot] .user-menu');

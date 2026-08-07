@@ -248,27 +248,34 @@
 }
 .user-menu.is-closing .user-menu__panel { opacity: 0; transform: translateY(-4px); }
 
+/* Mismas medidas que los .menu-link del sidebar: 22px de caja de icono,
+   svg de 20px, 12px de gap, 15.5px de texto y la misma escala de tinta. */
 .user-menu__item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
+  gap: 12px;
+  padding: 10px 12px;
   border-radius: var(--radius-md);
-  font-size: 13.5px;
-  color: var(--text-primary);
+  font-size: 15.5px;
+  color: color-mix(in oklab, var(--text-primary) 80%, transparent);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
-.user-menu__item:hover { background: var(--hair); }
+.user-menu__item:hover {
+  background: color-mix(in oklab, var(--text-primary) 6%, transparent);
+  color: var(--text-primary);
+}
 .user-menu__item-icon {
   width: 22px; height: 22px;
   display: inline-grid; place-items: center;
-  color: var(--text-muted);
-  font-size: 14px;
+  color: color-mix(in oklab, currentColor 65%, transparent);
 }
-.user-menu__item-icon svg { width: 16px; height: 16px; }
+.user-menu__item-icon svg { width: 20px; height: 20px; }
 .user-menu__item--danger { color: var(--error); }
-.user-menu__item--danger:hover { background: var(--error-soft); }
+.user-menu__item--danger:hover {
+  background: color-mix(in oklab, var(--error) 8%, transparent);
+  color: var(--error);
+}
 .user-menu__item--theme { gap: 10px; }
 .user-menu__item--theme > span:nth-child(2) { flex: 1; }
 

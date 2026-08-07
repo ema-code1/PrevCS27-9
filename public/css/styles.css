@@ -752,8 +752,7 @@ input, select, textarea {
 button:active:not(:disabled),
 .btn:active,
 .chip:active,
-a.btn:active,
-.menu-link:active {
+a.btn:active {
   transform: scale(.985);
   transition-duration: 90ms;
 }
@@ -807,17 +806,45 @@ main.auth-page > * {
   border-color: var(--hair-2);
 }
 
-/* Sidebar links: ripple sutil al pasar */
-.menu-link { position: relative; overflow: hidden; }
-.menu-link::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.12) 0%, transparent 40%);
+/* ─────────────────────────────── HOVER DESLIZANTE (.nav-hl) ────
+   Una sola superficie de color plano que se mueve y se redimensiona entre
+   items al pasar el mouse. Lo usan el sidebar y el dropdown del header.
+   El JS (templates/layout.php) le da la geometria; sin JS mandan los
+   :hover propios de cada componente.
+   El color sale de currentColor del contenedor, asi que se adapta solo al
+   tema y a la superficie (panel claro / sidebar oscuro). */
+.menu-link { position: relative; }
+
+.nav-hl {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, currentColor 7%, transparent);
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--transition-normal);
+  z-index: 0;
+  transition:
+    transform 280ms cubic-bezier(.22, 1, .36, 1),
+    width     280ms cubic-bezier(.22, 1, .36, 1),
+    height    280ms cubic-bezier(.22, 1, .36, 1),
+    opacity   150ms linear;
 }
-.menu-link:hover::after { opacity: 1; }
+.nav-hl.is-visible { opacity: 1; }
+/* Al aparecer no debe viajar desde la esquina: el primer posicionamiento
+   se hace sin transicion. */
+.nav-hl.is-placing { transition: none; }
+
+.has-hl .menu-link,
+.has-hl .menu-sub__link,
+.has-hl .user-menu__item { position: relative; z-index: 1; }
+/* Con el highlight activo los fondos de hover propios sobran: se sumarian
+   y el color dejaria de ser uniforme. El item activo conserva el suyo. */
+.has-hl .menu-link:not(.is-active):hover,
+.has-hl .menu-sub__link:not(.is-active):hover,
+.has-hl .user-menu__item:hover { background: transparent; }
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }

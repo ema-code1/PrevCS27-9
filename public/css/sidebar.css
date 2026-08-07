@@ -125,7 +125,11 @@ body[data-theme="dark"] .sidebar {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  position: relative;
 }
+
+/* El highlight deslizante (.nav-hl) vive en styles.css: lo comparten el
+   sidebar y el dropdown del header. */
 .menu-link {
   display: grid;
   grid-template-columns: 22px 1fr;
@@ -133,25 +137,29 @@ body[data-theme="dark"] .sidebar {
   gap: 12px;
   padding: 10px 12px;
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 15.5px;
   color: color-mix(in oklab, var(--text-on-sidebar) 80%, transparent);
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 .menu-link:hover {
-  background: color-mix(in oklab, var(--text-on-sidebar) 8%, transparent);
+  background: color-mix(in oklab, var(--text-on-sidebar) 6%, transparent);
   color: var(--text-on-sidebar);
 }
+/* Activo neutro (no acento): una superficie gris apenas más oscura que el
+   panel, con la tinta a full. Funciona igual en claro y oscuro porque el
+   mix se hace contra --text-on-sidebar, que ya invierte por tema. */
 .menu-link.is-active {
-  background: var(--accent);
-  color: #fff;
+  background: color-mix(in oklab, var(--text-on-sidebar) 9%, transparent);
+  color: var(--text-on-sidebar);
+  font-weight: var(--font-weight-medium);
 }
-.menu-link.is-active .menu-link__icon { color: #fff; }
+.menu-link.is-active .menu-link__icon { color: var(--text-on-sidebar); }
 .menu-link__icon {
   display: inline-grid; place-items: center;
   width: 22px; height: 22px;
   color: color-mix(in oklab, var(--text-on-sidebar) 65%, transparent);
 }
-.menu-link__icon svg { width: 18px; height: 18px; }
+.menu-link__icon svg { width: 20px; height: 20px; }
 .menu-link__label {
   white-space: nowrap;
   overflow: hidden;
