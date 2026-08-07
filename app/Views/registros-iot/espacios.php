@@ -54,10 +54,10 @@
                         <div class="iot-acc__head" data-acc-toggle role="button" tabindex="0" aria-label="Desplegar <?= esc($ind['space_name']) ?>">
                             <div class="iot-acc__info">
                                 <div class="esp32-card__head">
-                                    <h3><?= esc($ind['space_name']) ?></h3>
+                                    <h3><?= esc($ind['company_name']) ?></h3>
                                 </div>
                                 <p class="esp32-card__sub">
-                                    <?= esc($ind['company_name']) ?><?= ! empty($ind['sector']) ? ' - ' . esc($ind['sector']) : '' ?>
+                                    <?= esc($ind['space_name']) ?><?= ! empty($ind['sector']) ? ' - ' . esc($ind['sector']) : '' ?>
                                 </p>
                                 <p class="text-muted mono"><?= (int) $ind['device_count'] ?> ESP32 - <?= esc($ind['industry_uid']) ?></p>
                             </div>
