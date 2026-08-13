@@ -41,7 +41,6 @@ $trendIcon = static function (string $direction): string {
       <a href="<?= base_url() ?>#plantillas" data-nav-section="plantillas">Plantillas</a>
       <a href="<?= base_url() ?>#casos" data-nav-section="casos">Casos de uso</a>
       <a href="<?= base_url() ?>#precio" data-nav-section="precio">Precio</a>
-      <a href="<?= base_url('showuser/') ?>">Mostrar usuario</a>
 
       <div class="hd-portfolio" data-portfolio-menu>
         <a class="hd-portfolio-trigger" href="<?= base_url('portfolio') ?>" aria-haspopup="true" aria-expanded="false">

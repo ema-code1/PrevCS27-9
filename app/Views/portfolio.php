@@ -436,15 +436,15 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 
         <article class="pf-member-card pf-member-card--placeholder" data-reveal>
           <div class="pf-member-photo" aria-hidden="true">
-            <span class="pf-member-initials">??</span>
+            <span class="pf-member-initials">ER</span>
             <span class="pf-member-photo-tag mono">foto</span>
           </div>
           <div class="pf-member-body">
             <span class="mono pf-member-role">integrante 02</span>
-            <h3 class="pf-member-name">Compañero/a de tesina</h3>
-            <p class="pf-member-desc pf-placeholder-text">Espacio reservado para nombre, rol y breve presentación del compañero de tesina.</p>
+            <h3 class="pf-member-name">Emanuel Risso Patron</h3>
+            <p class="pf-member-desc pf-placeholder-text">Ideador del proyecto. Gestiona la implementación técnica y logística de PrevCS.</p>
             <ul class="pf-member-tags mono">
-              <li>rol</li><li>area</li><li>aporte</li>
+              <li>Socio</li><li>Logistica</li><li>Funcionalidades</li>
             </ul>
           </div>
         </article>
