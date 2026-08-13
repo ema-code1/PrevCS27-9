@@ -1,0 +1,504 @@
+/* =====================================================================
+   PrevCS · Stock (stock/index.php)
+   Card blanco con el contenedor de tablas (una tabla por empresa) y la
+   seccion de importacion drag & drop, que solo acepta planillas de Excel.
+   Toma los tokens de styles.css, asi que sigue el modo claro/oscuro.
+   ===================================================================== */
+
+.stock-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+}
+
+/* ─────────────────────────── Card blanco ─────────────────────────────
+   Hereda .card (borde, radio, sombra) pero fuerza el blanco puro: en el
+   fondo crema de la app la lista tiene que leerse como una hoja. En modo
+   oscuro vuelve al gris de tarjeta, donde el blanco encandilaria. */
+.stock-card {
+  padding: 0;
+  overflow: hidden;
+  background: #FFFFFF;
+}
+body[data-theme="dark"] .stock-card { background: var(--bg-card); }
+
+.stock-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  padding: var(--space-lg) var(--space-lg) var(--space-md);
+  border-bottom: 1px solid var(--hair);
+}
+.stock-card__head h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  letter-spacing: var(--letter-spacing-tight);
+}
+.stock-card__head p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  max-width: 62ch;
+}
+
+.stock-card__badge {
+  flex: 0 0 auto;
+  padding: 5px 11px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card-soft);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-mono);
+  white-space: nowrap;
+}
+
+/* Contenedor de tablas: hoy trae una (la de la empresa del espacio), pero
+   admite varias apiladas sin tocar nada mas. */
+.stock-tables {
+  display: flex;
+  flex-direction: column;
+}
+.stock-tables > * + * { border-top: 1px solid var(--hair); }
+
+.stock-table-block__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md) var(--space-lg) var(--space-xs);
+}
+.stock-table-block__icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.stock-table-block__icon svg { width: 17px; height: 17px; }
+.stock-table-block__head h3 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-tight);
+}
+.stock-table-block__meta {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+/* La tabla scrollea sola en pantallas chicas: el card nunca desborda. */
+.stock-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.stock-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+.stock-table th,
+.stock-table td {
+  padding: 11px var(--space-md);
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--hair);
+}
+.stock-table th:first-child,
+.stock-table td:first-child { padding-left: var(--space-lg); }
+.stock-table th:last-child,
+.stock-table td:last-child { padding-right: var(--space-lg); }
+
+.stock-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: inherit;
+  color: var(--text-muted);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-normal);
+}
+.stock-table__th {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.stock-table__th svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: var(--text-faint);
+}
+
+.stock-table tbody tr { transition: background var(--transition-fast); }
+.stock-table tbody tr:hover { background: color-mix(in oklab, var(--text-primary) 3%, transparent); }
+.stock-table tbody td:first-child {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+.stock-table tbody td { color: var(--text-secondary); }
+.stock-table__td--num { font-family: var(--font-mono); }
+
+/* Chip de estado (stock bajo, sin stock, ok...) */
+.stock-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: var(--bg-card-soft);
+  color: var(--text-secondary);
+}
+.stock-chip--ok      { background: var(--success-soft); color: var(--success); }
+.stock-chip--warning { background: var(--warning-soft); color: var(--warning); }
+.stock-chip--error   { background: var(--error-soft);   color: var(--error); }
+
+/* Fila de estado vacio: vive dentro del <tbody> para no romper la grilla. */
+.stock-table__empty td {
+  padding: var(--space-xl) var(--space-lg);
+  white-space: normal;
+  text-align: center;
+}
+.stock-table__empty-inner {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  max-width: 44ch;
+  margin: 0 auto;
+}
+.stock-table__empty-inner strong {
+  color: var(--text-primary);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+.stock-table__empty-inner span {
+  color: var(--text-muted);
+  line-height: var(--line-height-normal);
+}
+
+/* Fila final para sumar un item, al estilo del "+ New page" de la referencia */
+.stock-table__new {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px var(--space-lg);
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.stock-table__new svg { width: 16px; height: 16px; }
+.stock-table__new:hover {
+  color: var(--text-primary);
+  background: color-mix(in oklab, var(--text-primary) 4%, transparent);
+}
+.stock-table__new:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring) inset;
+}
+
+/* ══════════════════ Importar planilla (drag & drop) ══════════════════ */
+.stock-upload {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+}
+
+.stock-upload__head h2 {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  letter-spacing: var(--letter-spacing-tight);
+}
+.stock-upload__head p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  max-width: 62ch;
+}
+
+.dropzone {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-xs);
+  padding: clamp(var(--space-lg), 5vh, var(--space-xl)) var(--space-md);
+  border: 1.5px dashed var(--hair-2);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card-soft);
+  text-align: center;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+.dropzone.is-dragging {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 4px var(--accent-ring);
+}
+/* Rechazo en vivo: el puntero trae algo que no es una planilla. */
+.dropzone.is-invalid {
+  border-color: var(--error);
+  background: var(--error-soft);
+  box-shadow: 0 0 0 4px var(--error-soft);
+}
+
+.dropzone__title {
+  margin: var(--space-2xs) 0 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+.dropzone__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+.dropzone__pick {
+  color: var(--accent);
+  font-weight: var(--font-weight-medium);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.dropzone__formats {
+  margin: 2px 0 0;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  letter-spacing: var(--letter-spacing-mono);
+}
+
+/* Archivo aceptado */
+.dropzone__file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px 12px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+}
+.dropzone__file[hidden] { display: none; }
+.dropzone__file-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm);
+  background: var(--success-soft);
+  color: var(--success);
+}
+.dropzone__file-icon svg { width: 18px; height: 18px; }
+.dropzone__file-name {
+  min-width: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dropzone__file-size {
+  margin-left: auto;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+.dropzone__file-remove {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+.dropzone__file-remove svg { width: 15px; height: 15px; }
+.dropzone__file-remove:hover { color: var(--text-primary); border-color: var(--hair-2); }
+.dropzone__file-remove:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-ring); }
+
+.dropzone__error {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: var(--error);
+  font-size: var(--font-size-sm);
+}
+.dropzone__error[hidden] { display: none; }
+.dropzone__error svg { width: 16px; height: 16px; flex: 0 0 auto; }
+
+/* ─────────────── Boton carpeta (uiverse.io · MIT) ───────────────────
+   Adaptado de "happy-baboon-60" de simontheonlyone (uiverse.io, MIT):
+   mismas medidas y animaciones, con las clases prefijadas y el fondo
+   atado a los tokens para que no choque con el resto de la app.
+   -------------------------------------------------------------------- */
+.folder-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 5.3em;
+  height: 5.3em;
+  border: none;
+  cursor: pointer;
+  border-radius: 0.4em;
+  background: rgba(235, 252, 254, 0.8);
+}
+body[data-theme="dark"] .folder-btn { background: rgba(235, 252, 254, 0.1); }
+.folder-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--accent-ring); }
+
+.folder-btn__box {
+  position: relative;
+  width: 3.5em;
+  height: 3.1em;
+  background: none;
+  overflow: hidden;
+}
+
+.folder-btn__part { position: absolute; }
+
+/* Cuerpo de la carpeta */
+.folder-btn__part--body {
+  bottom: 0;
+  width: 100%;
+  height: 88%;
+  border-radius: 3px;
+  border-top: 2px solid rgb(206, 167, 39);
+  background: linear-gradient(-35deg, rgb(238, 194, 47) 5%, rgb(255, 223, 118));
+}
+
+/* Pestaña superior + su punta triangular */
+.folder-btn__part--tab {
+  top: 5%;
+  width: 38%;
+  height: 19%;
+  border-top-left-radius: 3px;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+  background-color: rgb(206, 167, 39);
+  box-shadow: 0 1px 5px -2px rgba(0, 0, 0, 0.5);
+}
+.folder-btn__part--tab::before {
+  content: "";
+  position: absolute;
+  display: inline;
+  left: 88%;
+  width: 0;
+  height: 0;
+  border-left: 7px solid rgb(206, 167, 39);
+  border-top: 0.3em solid transparent;
+  border-bottom: 0.3em solid transparent;
+}
+
+/* Hoja que asoma dentro de la carpeta */
+.folder-btn__part--sheet {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  left: 0.5em;
+  bottom: 0;
+  width: 2.5em;
+  height: 0.9em;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(-35deg, rgb(25, 102, 218), rgb(109, 165, 249));
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+}
+.folder-btn__part--line {
+  left: 1em;
+  bottom: 0.3em;
+  width: 1.5em;
+  height: 0.18em;
+  border-radius: 1em;
+  background-color: rgb(20, 77, 163);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Barra inferior: se estira al hacer click, al enfocar y mientras se
+   arrastra un archivo sobre la zona (.is-active la pone el JS). */
+.folder-btn__bar {
+  position: absolute;
+  bottom: 0;
+  width: 0.9em;
+  height: 0.4em;
+  background-color: #999;
+  border: none;
+  border-radius: 1em;
+  transition: all 0.15s linear;
+}
+.folder-btn:active .folder-btn__bar,
+.folder-btn:focus .folder-btn__bar,
+.folder-btn.is-active .folder-btn__bar {
+  width: 2.3em;
+  background-color: rgb(41, 126, 255);
+}
+
+.folder-btn:focus .folder-btn__box,
+.folder-btn.is-active .folder-btn__box { animation: folderWow 1s forwards; }
+
+@keyframes folderWow {
+  20%  { scale: 0.8; }
+  30%  { scale: 1; transform: translateY(0); }
+  50%  { transform: translateY(-6px); }
+  65%  { transform: translateY(4px); }
+  80%  { transform: translateY(0); }
+  100% { scale: 1; }
+}
+
+/* Tooltip del componente original */
+.folder-btn__tip {
+  position: absolute;
+  top: -4.5em;
+  width: 7.7em;
+  height: 2.6em;
+  background-color: #666;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  border-radius: 5px;
+  font-size: var(--font-size-sm);
+  text-shadow: 0 0 10px rgb(0, 0, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.25s linear;
+}
+.folder-btn:hover .folder-btn__tip { opacity: 1; }
+
+@media (max-width: 620px) {
+  .stock-card__head,
+  .stock-table-block__head { padding-inline: var(--space-md); }
+  .stock-table th:first-child,
+  .stock-table td:first-child { padding-left: var(--space-md); }
+  .stock-table th:last-child,
+  .stock-table td:last-child { padding-right: var(--space-md); }
+  .stock-table__new { padding-inline: var(--space-md); }
+  .stock-upload { padding: var(--space-md); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .folder-btn:focus .folder-btn__box,
+  .folder-btn.is-active .folder-btn__box { animation: none; }
+  .folder-btn__bar,
+  .folder-btn__tip { transition-duration: 1ms; }
+}

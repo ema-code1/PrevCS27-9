@@ -1,7 +1,7 @@
 <?= $this->extend('templates/layout') ?>
 
 <?= $this->section('pageStyles') ?>
-<link rel="stylesheet" href="<?= base_url('css/standalone.css') ?>?v=20260807-1">
+<link rel="stylesheet" href="<?= base_url('css/standalone.css') ?>?v=20260807-3">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>

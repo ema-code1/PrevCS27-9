@@ -31,9 +31,27 @@ class StockController extends BaseController
                 ->with('error', 'El espacio ya no existe.');
         }
 
+        // El contenedor de la vista acepta varias tablas, pero la unidad es la
+        // empresa: una sola tabla junta todo el stock de la empresa del
+        // espacio. Cuando existan los items en base, 'rows' se llena acá.
+        $tables = [[
+            'id'      => 'empresa-' . $industryId,
+            'title'   => $industry['company_name'] ?: $industry['space_name'],
+            'columns' => [
+                ['label' => 'Item',       'icon' => 'text'],
+                ['label' => 'Categoría',  'icon' => 'tag'],
+                ['label' => 'Cantidad',   'icon' => 'number'],
+                ['label' => 'Unidad',     'icon' => 'text'],
+                ['label' => 'Estado',     'icon' => 'chip'],
+                ['label' => 'Actualizado','icon' => 'date'],
+            ],
+            'rows'    => [],
+        ]];
+
         return view('stock/index', [
             'title'                 => 'Stock · ' . esc($industry['space_name']) . ' | PrevCS',
             'industry'              => $industry,
+            'tables'                => $tables,
             // El sidebar marca "Stock" abierto y resalta el espacio actual.
             'activeMenu'            => 'stock',
             'activeStockIndustryId' => $industryId,

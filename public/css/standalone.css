@@ -66,43 +66,6 @@
   max-width: 62ch;
 }
 
-/* Estado vacio centrado (Stock todavia no tiene contenido) */
-.standalone__empty {
-  flex: 1 1 auto;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  padding: clamp(var(--space-xl), 8vh, 5rem) var(--space-md);
-}
-.standalone__empty-inner {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-xs);
-  max-width: 46ch;
-}
-.standalone__empty-icon {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  margin-bottom: var(--space-xs);
-  border-radius: var(--radius-pill);
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-.standalone__empty-icon svg { width: 29px; height: 29px; }
-.standalone__empty h2 {
-  margin: 0;
-  font-size: var(--font-size-xl);
-  letter-spacing: var(--letter-spacing-tight);
-}
-.standalone__empty p {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-normal);
-}
-
 /* =====================================================================
    Ayuda · navegacion interna + acordeon de preguntas frecuentes
    ===================================================================== */
