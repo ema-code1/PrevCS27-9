@@ -316,15 +316,14 @@ body[data-theme="dark"] {
 }
 
 /* ─────────────────────────── Superficie del tablero ───────────────── */
+/* La caja gris no scrollea: es solo la superficie y el marco de
+   posicionamiento del panel de completadas. El scroll horizontal vive en
+   .kb__board-scroll, así el panel queda quieto mientras se corren las
+   columnas. */
 .kb__board {
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: var(--kb-col-gap);
-  padding: var(--space-md);
   border-radius: var(--radius-xl);
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   /* Tinte apenas perceptible del color elegido sobre la superficie del
      tema: da identidad sin competir con las tarjetas.
 
@@ -338,13 +337,33 @@ body[data-theme="dark"] {
     color-mix(in oklab, var(--kb-c) 6%, transparent),
     color-mix(in oklab, var(--kb-c) 6%, transparent)
   );
+  transition: background-color var(--transition-slow);
+}
+
+/* Carril de columnas: lo único que se corre en horizontal. El
+   padding-bottom reserva el alto real del panel de completadas
+   (--kb-done-h lo mide js/kanban.js) para que el panel anclado no tape
+   el pie de las columnas. */
+.kb__board-scroll {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--kb-col-gap);
+  padding: var(--space-md);
+  padding-bottom: calc(var(--space-md) + var(--space-sm) + var(--kb-done-h, 0px));
+  overflow-x: auto;
+  overflow-y: hidden;
   scroll-behavior: smooth;
   /* Lo justo para que el tablero vacío siga siendo una superficie válida
      donde soltar: la altura real la ponen las columnas. */
   min-height: 96px;
-  transition: background-color var(--transition-slow);
   overscroll-behavior-x: contain;
+  /* Sin barra a la vista: el tablero se recorre arrastrando, con la rueda
+     o con el auto-scroll del drag. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
+.kb__board-scroll::-webkit-scrollbar { width: 0; height: 0; }
 
 body[data-theme="dark"] .kb__board {
   background-image: linear-gradient(
@@ -354,7 +373,7 @@ body[data-theme="dark"] .kb__board {
 }
 
 /* Mientras se arrastra, el scroll suave pelea con el arrastre. */
-.kb__board.is-dragging { scroll-behavior: auto; cursor: grabbing; }
+.kb__board-scroll.is-dragging { scroll-behavior: auto; cursor: grabbing; }
 
 /* ─────────────────────────── Columna ──────────────────────────────── */
 .kb-col {
@@ -368,11 +387,8 @@ body[data-theme="dark"] .kb__board {
   border: 1px solid var(--hair);
   box-shadow: var(--shadow-sm);
   animation: kbColIn 380ms cubic-bezier(.2, .7, .2, 1) both;
-  transition: box-shadow var(--transition-normal), opacity var(--transition-fast),
-              border-color var(--transition-normal);
+  transition: opacity var(--transition-fast);
 }
-
-.kb-col:hover { box-shadow: var(--shadow); border-color: var(--hair-2); }
 
 @keyframes kbColIn {
   from { opacity: 0; transform: translateY(10px) scale(.985); }
@@ -755,7 +771,18 @@ body.kb-dragging .kb-col__list { min-height: 54px; }
   to   { opacity: 1; transform: none; }
 }
 
-/* Clon que sigue al puntero. */
+/* Clon que sigue al puntero.
+
+   animation: none es obligatorio, no cosmético: el clon arrastra la
+   animación de entrada de .kb-col / .kb-card, y como esas corren con
+   fill-mode "both" su fotograma final (transform: none) le gana en la
+   cascada al transform en línea con el que lo seguimos moviendo. Sin
+   esto el clon queda clavado en el 0,0 del viewport. Vale también para el
+   contenido clonado: si no, las tarjetas de adentro de una columna
+   arrastrada vuelven a reproducir su entrada. */
+.kb-drag-ghost,
+.kb-drag-ghost * { animation: none !important; }
+
 .kb-drag-ghost {
   position: fixed;
   top: 0;
@@ -1240,13 +1267,36 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
 .kb-picker__check { margin-left: auto; color: var(--text-primary); font-weight: var(--font-weight-bold); }
 
 /* ─────────────────────────── Panel "Completadas" ──────────────────── */
+/* Card flotante anclado al pie de la superficie gris: se separa de los
+   tres bordes por --kb-done-gap para que el gris se siga viendo alrededor,
+   y el carril de columnas se corre por debajo sin moverlo. */
 .kb-done {
+  --kb-done-gap: var(--space-sm);
+
+  position: absolute;
+  left: var(--kb-done-gap);
+  right: var(--kb-done-gap);
+  bottom: var(--kb-done-gap);
+  z-index: 2;
   display: grid;
   gap: var(--space-sm);
   padding: var(--space-md);
-  border-radius: var(--radius-lg);
   border: 1px solid var(--hair);
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  /* Tope en px y no en %: el alto del panel se le devuelve al carril como
+     padding, así que un % se realimentaría con la altura del tablero. Si
+     hay muchas completadas, la lista scrollea adentro del panel. */
+  max-height: 320px;
+  overflow: hidden;
+  grid-template-rows: auto minmax(0, 1fr);
 }
+
+/* En oscuro la sombra no separa, ensucia: alcanza con el borde. */
+body[data-theme="dark"] .kb-done { box-shadow: none; }
+
+.kb-done .kb-done__list { overflow-y: auto; }
 
 .kb-done__head {
   display: flex;
@@ -1442,10 +1492,11 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
 @media (max-width: 640px) {
   :root { --kb-col-w: min(82vw, 300px); }
 
-  .kb__board {
+  .kb__board-scroll {
     /* Una columna por vez, pero manteniendo el scroll horizontal. */
     scroll-snap-type: x mandatory;
     padding: var(--space-sm);
+    padding-bottom: calc(var(--space-sm) * 2 + var(--kb-done-h, 0px));
   }
 
   .kb-col,

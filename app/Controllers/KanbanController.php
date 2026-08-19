@@ -93,6 +93,10 @@ class KanbanController extends BaseController
 
         if ($changes !== []) {
             (new KanbanBoardModel())->update((int) $this->board['id'], $changes);
+            // El payload de respuesta se arma con $this->board, que se leyó
+            // antes del update: sin esto la respuesta devuelve el nombre
+            // viejo y el cliente pisa lo que el usuario acaba de escribir.
+            $this->board = array_merge($this->board, $changes);
             $this->log(null, 'board_updated', 'actualizó el tablero');
         }
 

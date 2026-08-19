@@ -353,6 +353,7 @@
 
     /* ── Referencias del DOM del partial ───────────────────────────── */
     var dom = {
+      surface: root.querySelector('[data-kb-surface]'),
       board: root.querySelector('[data-kb-board]'),
       title: root.querySelector('[data-kb-title]'),
       toolbar: root.querySelector('[data-kb-toolbar]'),
@@ -634,6 +635,9 @@
       return map;
     }
 
+    var FLIP_MS = 240;
+    var FLIP_EASE = 'cubic-bezier(.2,.7,.2,1)';
+
     /* Anima desde la posición vieja hacia la nueva (First-Last-Invert-Play). */
     function playFlip(before) {
       if (!before) return;
@@ -641,12 +645,24 @@
         var previous = before.get(node);
         if (!previous || node.classList.contains('is-ghosted')) return;
         var current = node.getBoundingClientRect();
+
         var dx = previous.left - current.left, dy = previous.top - current.top;
-        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
-        node.animate(
-          [{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }],
-          { duration: 240, easing: 'cubic-bezier(.2,.7,.2,1)' }
-        );
+        if (Math.abs(dx) >= 1 || Math.abs(dy) >= 1) {
+          node.animate(
+            [{ transform: 'translate(' + dx + 'px,' + dy + 'px)' }, { transform: 'none' }],
+            { duration: FLIP_MS, easing: FLIP_EASE }
+          );
+        }
+
+        // La columna que recibe (o pierde) una tarjeta cambia de alto: sin
+        // esto el estirón es un salto, porque una altura automática no
+        // transiciona. Se anima entre las dos alturas medidas.
+        if (node.classList.contains('kb-col') && Math.abs(previous.height - current.height) >= 1) {
+          node.animate(
+            [{ height: previous.height + 'px' }, { height: current.height + 'px' }],
+            { duration: FLIP_MS, easing: FLIP_EASE }
+          );
+        }
       });
     }
 
@@ -669,9 +685,10 @@
       if (!state.board) return;
       var background = state.board.background_color || 'azul';
       root.setAttribute('data-kb-color', background);
-      // También en el contenedor: así --kb-c queda definida en el propio
-      // elemento que la usa para el tinte, y no depende de la herencia.
-      dom.board.setAttribute('data-kb-color', background);
+      // También en la superficie gris: así --kb-c queda definida en el
+      // propio elemento que la usa para el tinte, y no depende de la
+      // herencia.
+      dom.surface.setAttribute('data-kb-color', background);
       if (document.activeElement !== dom.title) {
         dom.title.value = state.board.name || '';
         autoSize(dom.title);
@@ -1909,7 +1926,7 @@
       var task = taskById(taskId);
 
       if (task && task.column_id === columnId && task.position === position) return;
-      moveTask(taskId, columnId, position, { success: 'Tarea movida' });
+      moveTask(taskId, columnId, position);
     }
 
     function cleanupListeners() {
@@ -1970,15 +1987,15 @@
       var index = siblings.findIndex(function (item) { return item.id === taskId; });
 
       if (event.key === 'ArrowUp' && index > 0) {
-        moveTask(taskId, task.column_id, index - 1, { success: 'Tarea movida' });
+        moveTask(taskId, task.column_id, index - 1);
       } else if (event.key === 'ArrowDown' && index < siblings.length - 1) {
-        moveTask(taskId, task.column_id, index + 1, { success: 'Tarea movida' });
+        moveTask(taskId, task.column_id, index + 1);
       } else if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         var columnIndex = state.columns.findIndex(function (column) { return column.id === task.column_id; });
         var nextIndex = columnIndex + (event.key === 'ArrowLeft' ? -1 : 1);
         if (nextIndex < 0 || nextIndex >= state.columns.length) return;
         var target = state.columns[nextIndex];
-        moveTask(taskId, target.id, tasksOfColumn(target.id).length, { success: 'Tarea movida a ' + target.name });
+        moveTask(taskId, target.id, tasksOfColumn(target.id).length);
       }
 
       // Devolvemos el foco a la tarjeta después del re-render.
@@ -3457,6 +3474,21 @@
     bindInlineEdit(dom.title, function () { return state.board ? state.board.name : ''; }, function (value) {
       return mutate('POST', '/tablero', { name: value }, function () { state.board.name = value; }, {});
     }, 'El tablero necesita un nombre.');
+
+    /* El panel de completadas está anclado al pie de la superficie, así
+       que se saca del flujo: hay que devolverle ese alto al carril de
+       columnas como padding para que no le tape el pie a la última
+       tarjeta. Se mide en vivo porque el panel crece al abrir filas. */
+    function syncDoneHeight() {
+      dom.surface.style.setProperty('--kb-done-h', dom.done.offsetHeight + 'px');
+    }
+
+    if (window.ResizeObserver) {
+      new ResizeObserver(syncDoneHeight).observe(dom.done);
+    } else {
+      window.addEventListener('resize', syncDoneHeight);
+    }
+    syncDoneHeight();
 
     // Es un textarea para que el nombre largo envuelva y se vea entero,
     // pero Enter confirma en vez de meter un salto de línea.

@@ -82,29 +82,36 @@
 
     <div class="kb-filters" id="kb-filters" data-kb-filters hidden></div>
 
-    <!-- Contenedor de columnas: lo llena y reconcilia js/kanban.js. -->
-    <div class="kb__board" data-kb-board data-kb-sort="manual" role="list"
-        aria-label="Columnas del tablero" aria-busy="true" data-lenis-prevent-touch></div>
+    <!-- Superficie gris del tablero. Adentro van dos cosas: el carril de
+         columnas (lo único que scrollea en horizontal) y el panel de
+         completadas, anclado abajo para que no se corra con ese scroll. -->
+    <div class="kb__board" data-kb-surface>
 
-    <!-- ── Panel de tareas completadas (buscador + filas expandibles) ── -->
-    <section class="kb-done" data-kb-done aria-label="Tareas completadas">
-        <header class="kb-done__head">
-            <h4>
-                Completadas
-                <!-- Sin número la burbuja se oculta sola (.kb-tool__badge:empty). -->
-                <span class="kb-tool__badge" data-kb-done-count></span>
-            </h4>
-            <label class="kb-search">
-                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"
-                    stroke-linecap="round" aria-hidden="true">
-                    <circle cx="9" cy="9" r="5.2"></circle><path d="m13 13 4 4"></path>
-                </svg>
-                <input type="search" data-kb-done-search placeholder="Buscar en completadas…"
-                    aria-label="Buscar entre las tareas completadas">
-            </label>
-        </header>
-        <div class="kb-done__list" data-kb-done-list></div>
-    </section>
+        <!-- Contenedor de columnas: lo llena y reconcilia js/kanban.js. -->
+        <div class="kb__board-scroll" data-kb-board data-kb-sort="manual" role="list"
+            aria-label="Columnas del tablero" aria-busy="true" data-lenis-prevent-touch></div>
+
+        <!-- ── Panel de tareas completadas (buscador + filas expandibles) ── -->
+        <section class="kb-done" data-kb-done aria-label="Tareas completadas">
+            <header class="kb-done__head">
+                <h4>
+                    Completadas
+                    <!-- Sin número la burbuja se oculta sola (.kb-tool__badge:empty). -->
+                    <span class="kb-tool__badge" data-kb-done-count></span>
+                </h4>
+                <label class="kb-search">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"
+                        stroke-linecap="round" aria-hidden="true">
+                        <circle cx="9" cy="9" r="5.2"></circle><path d="m13 13 4 4"></path>
+                    </svg>
+                    <input type="search" data-kb-done-search placeholder="Buscar en completadas…"
+                        aria-label="Buscar entre las tareas completadas">
+                </label>
+            </header>
+            <div class="kb-done__list" data-kb-done-list></div>
+        </section>
+
+    </div>
 </section>
 
 <!-- ── Modal de detalle de tarea ─────────────────────────────────────
