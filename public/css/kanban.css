@@ -102,6 +102,18 @@ body[data-theme="dark"] {
 .kb-modal textarea,
 .kb-menu textarea { resize: none; overflow: hidden; }
 
+/* Los campos no reaccionan al paso del mouse (ver styles.css): el único
+   estado que se dibuja es el foco, y siempre por transición. El acento
+   verde global no entra al tablero: acá el foco es neutro. */
+.kb input,
+.kb textarea,
+.kb-modal input,
+.kb-modal textarea,
+.kb-menu input {
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal),
+              background var(--transition-normal), color var(--transition-normal);
+}
+
 .kb input:focus,
 .kb textarea:focus,
 .kb-modal input:focus,
@@ -211,8 +223,6 @@ body[data-theme="dark"] {
   transition: width var(--transition-normal), border-color var(--transition-fast),
               background var(--transition-fast), box-shadow var(--transition-fast);
 }
-
-.kb-search input:hover:not(:focus) { border-color: var(--hair-2); }
 
 /* Se ensancha al escribir: gana lugar justo cuando hace falta. */
 .kb-search input:focus { width: clamp(200px, 28vw, 320px); }
@@ -494,7 +504,15 @@ body[data-theme="dark"] .kb__board {
   min-height: 0;
   overscroll-behavior: contain;
   transition: min-height var(--transition-normal);
+  /* Sin barra a la vista, igual que el carril de columnas: al agregar una
+     tarea la columna se reacomoda y durante ese instante el navegador
+     dibujaba una barra que después desaparecía sola. La lista se sigue
+     recorriendo con la rueda y con el auto-scroll del arrastre. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
+.kb-col__list::-webkit-scrollbar { width: 0; height: 0; }
 
 .kb-col__foot { padding: 4px var(--kb-col-pad) 9px; }
 
@@ -1005,6 +1023,132 @@ body.kb-dragging { user-select: none; -webkit-user-select: none; cursor: grabbin
 
 textarea.kb-field { min-height: 42px; line-height: 1.55; }
 
+/* ── Campo que se despliega ────────────────────────────────────────────
+   En la ventana de la tarea no hay campos abiertos de entrada: se ve un
+   botón y el campo baja desde él. El despliegue es una transición de
+   grid-template-rows (0fr → 1fr), que es lo único que anima un alto
+   automático sin medirlo a mano. */
+/* Sin gap entre el disparador y el panel: una separación de grilla ocupa
+   lugar aunque la fila mida cero, y dejaba un hueco con el cajón cerrado.
+   El aire lo pone el padding de la fila, que viaja con la animación. */
+.kb-drawer { display: grid; }
+
+.kb-add--drawer {
+  width: auto;
+  justify-self: start;
+  padding: 7px 11px 7px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hair);
+  font-size: 13.5px;
+}
+
+.kb-add--drawer:hover {
+  border-color: var(--hair-2);
+  background: var(--bg-card-soft);
+  color: var(--text-primary);
+}
+
+/* Con el campo abierto el disparador se retira: ya cumplió. */
+.kb-drawer.is-open > .kb-add--drawer {
+  display: none;
+}
+
+/* Texto ya cargado (descripción, notas): se lee como texto y se abre para
+   editarlo con un clic. */
+.kb-drawer__preview {
+  padding: 9px 11px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: var(--bg-card-soft);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: text;
+  transition: border-color var(--transition-fast), background var(--transition-fast),
+              box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.kb-drawer__preview:hover {
+  border-color: var(--hair-2);
+  box-shadow: 0 4px 12px -8px color-mix(in oklab, var(--text-primary) 60%, transparent);
+  transform: translateY(-1px);
+}
+
+.kb-drawer.is-open > .kb-drawer__preview { display: none; }
+
+/* El alto lo maneja el JS (mide el contenido, anima hasta ese número y
+   después lo suelta en auto). Se probó primero con grid-template-rows de
+   0fr a 1fr, que es más limpio, pero la interpolación de las pistas de
+   grilla no es confiable en todos los navegadores: la fila se quedaba
+   clavada en cero y el campo nunca aparecía. */
+.kb-drawer__panel {
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: height var(--transition-normal), opacity var(--transition-normal);
+}
+
+.kb-drawer.is-open > .kb-drawer__panel { opacity: 1; }
+
+/* Fila del campo: el campo se lleva todo el ancho y los dos botones
+   quedan pegados a la derecha, del mismo alto que el campo. */
+.kb-inputrow {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  /* El padding lateral deja lugar para el halo de foco; el de arriba es la
+     separación con el título, y viaja con el despliegue. */
+  padding: 6px 1px 1px;
+  transform: translateY(-4px);
+  transition: transform var(--transition-normal);
+}
+
+.kb-drawer.is-open .kb-inputrow { transform: none; }
+
+.kb-inputrow .kb-field { flex: 1 1 auto; min-width: 0; }
+
+.kb-inputrow__btn {
+  flex: 0 0 auto;
+  width: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hair-2);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+              color var(--transition-fast), transform var(--transition-fast),
+              box-shadow var(--transition-fast);
+}
+
+.kb-inputrow__btn svg { width: 18px; height: 18px; }
+
+.kb-inputrow__btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -8px color-mix(in oklab, var(--text-primary) 60%, transparent);
+}
+.kb-inputrow__btn:active { transform: scale(.94); }
+.kb-inputrow__btn:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--kb-focus-ring); }
+
+/* Confirmar: el tilde. Cancelar: la cruz, en rojo suave. */
+.kb-inputrow__btn--ok:hover {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.kb-inputrow__btn--cancel {
+  background: var(--error-soft);
+  border-color: transparent;
+  color: var(--error);
+}
+.kb-inputrow__btn--cancel:hover {
+  border-color: color-mix(in oklab, var(--error) 45%, transparent);
+  color: var(--error);
+}
+
 .kb-side-btn {
   display: flex;
   align-items: center;
@@ -1054,7 +1198,9 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
 
 .kb-check-item {
   display: flex;
-  align-items: flex-start;
+  /* Centrado con el texto: con flex-start la casilla quedaba montada
+     arriba de la primera línea y desalineada de su propia etiqueta. */
+  align-items: center;
   gap: 9px;
   padding: 5px 7px;
   border-radius: var(--radius-sm);
@@ -1063,26 +1209,96 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
 
 .kb-check-item:hover { background: var(--bg-card-soft); }
 
+/* Casilla dibujada a mano: la nativa no se puede animar. El tilde entra
+   con un rebote corto y la caja se hunde apenas al apretarla. */
 .kb-check-item input[type="checkbox"] {
-  width: 15px;
-  height: 15px;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 17px;
+  height: 17px;
   flex: 0 0 auto;
-  margin-top: 3px;
-  accent-color: var(--text-primary);
+  margin: 0;
   padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--hair-2);
+  border-radius: 5px;
+  background: var(--input-bg);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast),
+              transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+.kb-check-item input[type="checkbox"]::after {
+  content: "";
+  width: 9px;
+  height: 5px;
+  margin-top: -2px;
+  border-left: 2px solid var(--bg);
+  border-bottom: 2px solid var(--bg);
+  transform: rotate(-45deg) scale(.35);
+  opacity: 0;
+  transition: opacity 120ms ease, transform 240ms cubic-bezier(.2, 1.5, .4, 1);
+}
+
+.kb-check-item input[type="checkbox"]:hover {
+  border-color: var(--text-faint);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--text-primary) 6%, transparent);
+}
+.kb-check-item input[type="checkbox"]:active { transform: scale(.88); }
+
+.kb-check-item input[type="checkbox"]:checked {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+.kb-check-item input[type="checkbox"]:checked::after { opacity: 1; transform: rotate(-45deg) scale(1); }
+
+/* Envoltorio del texto: solo existe para dibujar el tachado, que un
+   <input> no puede llevar por sí mismo (no admite pseudoelementos). Se
+   ajusta al ancho del campo, así la línea no se estira hasta el final de
+   la fila. */
+.kb-check-item__field {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.kb-check-item__field::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  top: 50%;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--text-muted);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 300ms cubic-bezier(.3, .8, .3, 1);
+  pointer-events: none;
+}
+
+/* El tachado se dibuja creciendo de izquierda a derecha. */
+.kb-check-item.is-done .kb-check-item__field::after { transform: scaleX(1); }
+
 .kb-check-item__text {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   padding: 1px 5px;
   margin-left: 0;
   overflow-wrap: anywhere;
+  transition: color var(--transition-normal);
 }
 
-.kb-check-item.is-done .kb-check-item__text { text-decoration: line-through; color: var(--text-muted); }
+/* autoSize() le pone un ancho en píxeles al campo: el tope lo pone el
+   envoltorio para que un ítem largo no se salga de la ventana. */
+.kb-check-item__field .kb-check-item__text { max-width: 100%; }
+
+.kb-check-item.is-done .kb-check-item__text { color: var(--text-muted); }
 
 .kb-check-item__actions { display: flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity var(--transition-fast); }
 .kb-check-item:hover .kb-check-item__actions,
@@ -1265,6 +1481,110 @@ textarea.kb-field { min-height: 42px; line-height: 1.55; }
 
 .kb-picker__swatch { width: 26px; height: 14px; border-radius: var(--radius-xs); background: var(--kb-c); flex: 0 0 auto; }
 .kb-picker__check { margin-left: auto; color: var(--text-primary); font-weight: var(--font-weight-bold); }
+
+/* ─────────────────────────── Diálogos chicos ──────────────────────────
+   Archivados, enlace nuevo, etiquetas, ajustes de columna: todos comparten
+   el mismo modal, así que comparten también la caja de contenido. Antes el
+   contenido se soltaba suelto adentro del cuerpo del modal y quedaba sin
+   ritmo (y los iconos de los títulos, sin caja que los midiera, se dibujaban
+   enormes). */
+.kb-dialog { display: grid; gap: var(--space-md); }
+
+.kb-dialog__text {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* Fila de botones del diálogo: acción principal a la izquierda. */
+.kb-dialog__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kb-dialog__actions[hidden] { display: none; }
+
+.kb-dialog__field { display: grid; gap: 6px; }
+
+.kb-dialog__label {
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Contador al lado del título de cada grupo (2 columnas, 5 tareas…). */
+.kb-dialog__count {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--bg-3);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+.kb-dialog__list { display: grid; gap: 6px; }
+
+.kb-dialog__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hair);
+  background: var(--bg-card-soft);
+  font-size: var(--font-size-sm);
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.kb-dialog__row:hover { border-color: var(--hair-2); transform: translateX(2px); }
+
+/* El nombre se lleva el lugar sobrante y empuja el botón contra el borde. */
+.kb-dialog__row-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.kb-dialog__code {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.kb-dialog__row .btn { flex: 0 0 auto; }
+
+/* Estado vacío: el icono tiene que estar medido, si no ocupa la ventana. */
+.kb-dialog__empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: var(--space-lg) var(--space-md);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.kb-dialog__empty-icon {
+  width: 34px;
+  height: 34px;
+  color: var(--text-faint);
+}
+
+.kb-dialog__empty strong { color: var(--text-primary); font-weight: var(--font-weight-medium); }
+.kb-dialog__empty p { margin: 0; font-size: var(--font-size-sm); max-width: 40ch; }
 
 /* ─────────────────────────── Panel "Completadas" ──────────────────── */
 /* Card flotante anclado al pie de la superficie gris: se separa de los

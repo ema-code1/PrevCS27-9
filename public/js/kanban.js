@@ -122,74 +122,15 @@
     window.setTimeout(run, 40);
   }
 
-  /* ── Scroll suave dentro de una caja ────────────────────────────────
-     Lenis maneja el scroll de la página, pero no llega al modal: la caja
-     lleva data-lenis-prevent y además Lenis se frena entero mientras hay
-     una ventana abierta, así que adentro quedaba el scroll nativo a los
-     saltos. Esto le devuelve la misma inercia sin tocar a Lenis: la rueda
-     mueve un objetivo y un rAF lo persigue interpolando.
-
-     Devuelve una función para reamarrar el objetivo cuando el contenido
-     de la caja cambia (si no, apunta a un alto que ya no existe).
-     ──────────────────────────────────────────────────────────────────── */
+  /* Scroll con inercia adentro de una ventana. La implementación vive en
+     prevcs-ui.js para que la compartan todos los modales de la aplicación
+     y no solo los del tablero; acá solo se pide el enganche (es idempotente
+     y devuelve la función para reamarrar cuando cambia el contenido). */
   function bindSmoothScroll(node) {
-    if (!node || reduceMotion.matches) return function () {};
-
-    var target = 0;
-    var raf = 0;
-    var EASE = 0.16;
-
-    function step() {
-      var delta = target - node.scrollTop;
-      if (Math.abs(delta) < 0.5) {
-        node.scrollTop = target;
-        raf = 0;
-        return;
-      }
-      node.scrollTop += delta * EASE;
-      raf = window.requestAnimationFrame(step);
+    if (window.PrevcsScrollBox && window.PrevcsScrollBox.bind) {
+      return window.PrevcsScrollBox.bind(node);
     }
-
-    /* Una lista con scroll propio adentro (el historial de la tarea, por
-       ejemplo) se queda con la rueda mientras le quede recorrido. */
-    function ownsWheel(from, deltaY) {
-      var current = from;
-      while (current && current !== node) {
-        if (current.scrollHeight > current.clientHeight + 1) {
-          var overflow = window.getComputedStyle(current).overflowY;
-          if (overflow === 'auto' || overflow === 'scroll') {
-            var room = deltaY > 0
-              ? current.scrollHeight - current.clientHeight - current.scrollTop
-              : current.scrollTop;
-            if (room > 1) return true;
-          }
-        }
-        current = current.parentElement;
-      }
-      return false;
-    }
-
-    node.addEventListener('wheel', function (event) {
-      if (event.ctrlKey || !event.deltaY) return;
-
-      var limit = Math.max(0, node.scrollHeight - node.clientHeight);
-      if (limit <= 0) return;
-      if (ownsWheel(event.target, event.deltaY)) return;
-
-      // deltaMode 1 son líneas y 2 son páginas: se pasan a píxeles.
-      var amount = event.deltaY;
-      if (event.deltaMode === 1) amount *= 18;
-      else if (event.deltaMode === 2) amount *= node.clientHeight;
-
-      event.preventDefault();
-      target = Math.max(0, Math.min(limit, (raf ? target : node.scrollTop) + amount));
-      if (!raf) raf = window.requestAnimationFrame(step);
-    }, { passive: false });
-
-    return function resync() {
-      if (raf) { window.cancelAnimationFrame(raf); raf = 0; }
-      target = node.scrollTop;
-    };
+    return function () {};
   }
 
   /* Iconos inline. Markup fijo del propio archivo: nunca lleva datos del
@@ -221,7 +162,10 @@
     history: '<path d="M3.6 10a6.4 6.4 0 1 0 1.9-4.5M3.4 3.4v3.2h3.2M10 6.4V10l2.6 1.6"/>',
     collapse: '<path d="m12 5-5 5 5 5"/>',
     note: '<path d="M5 3.6h10a1 1 0 0 1 1 1v10.8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4.6a1 1 0 0 1 1-1z"/><path d="M7 7.4h6M7 10.4h6M7 13.4h3.5"/>',
-    broom: '<path d="M4 16.4h12M13 3.6 8.2 8.4M7 7.2l5.4 5.4-2 2a3.4 3.4 0 0 1-4.8 0l-.6-.6a3.4 3.4 0 0 1 0-4.8z"/>'
+    broom: '<path d="M4 16.4h12M13 3.6 8.2 8.4M7 7.2l5.4 5.4-2 2a3.4 3.4 0 0 1-4.8 0l-.6-.6a3.4 3.4 0 0 1 0-4.8z"/>',
+    /* Rayo: encabeza la columna de acciones de la tarea. La cruz de flechas
+       que había antes prometía "mover" y ahí ya no se mueve nada. */
+    bolt: '<path d="M11.2 2.8 4.8 11h4l-1 6.2 6.4-8.2h-4z"/>'
   };
 
   function icon(name, className) {
@@ -340,7 +284,7 @@
       selectedTaskId: null,
       openTaskId: null,
       detail: null,
-      detailPending: false,
+      detailPending: null,
       composingColumn: null,
       creatingColumn: false
     };
@@ -370,6 +314,7 @@
       modalTitle: modal.querySelector('[data-kb-modal-title]'),
       confirm: confirmModal,
       confirmText: confirmModal.querySelector('[data-kb-confirm-text]'),
+      confirmActions: confirmModal.querySelector('[data-kb-confirm-actions]'),
       confirmAccept: confirmModal.querySelector('[data-kb-confirm-accept]'),
       done: root.querySelector('[data-kb-done]'),
       doneList: root.querySelector('[data-kb-done-list]'),
@@ -496,6 +441,34 @@
       if (data.colors) state.colors = data.colors;
       if (data.user_id) state.user_id = data.user_id;
       if (data.today) state.today = data.today;
+      syncCompleted();
+    }
+
+    /* ── Panel de completadas: refresco automático ─────────────────────
+       El panel se pide aparte del tablero, así que no se entera solo de
+       que una tarea se completó (antes había que recargar la página para
+       verla aparecer). Se compara la firma de las tareas completadas en
+       cada payload y se vuelve a pedir la lista solo cuando cambió.
+       ──────────────────────────────────────────────────────────────── */
+    var completedKey = null;
+
+    function completedSignature() {
+      var marks = [];
+      state.tasks.forEach(function (task) {
+        if (task.is_completed) marks.push(task.id + ':' + task.updated_at);
+      });
+      return marks.sort().join('|');
+    }
+
+    function syncCompleted() {
+      var key = completedSignature();
+      if (key === completedKey) return;
+
+      // El primer payload solo deja la firma tomada: la carga inicial del
+      // panel la hace reload().
+      var first = completedKey === null;
+      completedKey = key;
+      if (!first) loadCompleted();
     }
 
     /* ═════════════════════════════════════════════════════════════════
@@ -1415,7 +1388,6 @@
 
         menuSeparator(menu);
         menuItem(menu, 'Descripción y ajustes', 'list', function () { openColumnSettings(columnId); });
-        menuItem(menu, 'Mover columna', 'move', function () { openColumnMoveMenu(anchor, columnId); });
         menuItem(menu, 'Duplicar columna', 'copy', function () {
           columnAction(columnId, 'duplicate', { success: 'Columna duplicada' });
         });
@@ -1441,27 +1413,6 @@
               columnAction(columnId, 'delete', { success: 'Columna eliminada' });
             }, true);
         }, true);
-      });
-    }
-
-    function openColumnMoveMenu(anchor, columnId) {
-      showMenu(anchor, function (menu) {
-        menuLabel(menu, 'Mover a la posición');
-        state.columns.forEach(function (column, index) {
-          var label = (index + 1) + '. ' + (column.id === columnId ? '(acá está)' : 'antes de ' + column.name);
-          menuItem(menu, label, null, function () {
-            var order = state.columns.map(function (item) { return item.id; })
-              .filter(function (id) { return id !== columnId; });
-            order.splice(index, 0, columnId);
-            reorderColumns(order);
-          });
-        });
-        menuItem(menu, 'Al final', null, function () {
-          var order = state.columns.map(function (item) { return item.id; })
-            .filter(function (id) { return id !== columnId; });
-          order.push(columnId);
-          reorderColumns(order);
-        });
       });
     }
 
@@ -1510,10 +1461,9 @@
         limit.placeholder = 'Sin límite';
         form.appendChild(limit);
 
-        var actions = el('div', 'kb-compose__row');
-        var save = el('button', 'btn btn--primary btn--sm', 'Guardar');
-        save.type = 'button';
-        save.addEventListener('click', function () {
+        body.appendChild(form);
+
+        dialogActions(body, 'Guardar', function () {
           saveColumn(columnId, {
             description: desc.value.trim(),
             status_key: status.value.trim(),
@@ -1521,15 +1471,7 @@
             task_limit: limit.value === '' ? null : Number(limit.value)
           }, { success: 'Columna actualizada' });
           close();
-        });
-        var cancel = el('button', 'btn btn--secondary btn--sm', 'Cancelar');
-        cancel.type = 'button';
-        cancel.addEventListener('click', close);
-        actions.appendChild(save);
-        actions.appendChild(cancel);
-        form.appendChild(actions);
-
-        body.appendChild(form);
+        }, close);
       });
     }
 
@@ -1633,6 +1575,9 @@
         if (task) Object.keys(changes).forEach(function (key) { task[key] = changes[key]; });
         if (ui.detail && ui.detail.id === taskId) {
           Object.keys(changes).forEach(function (key) { ui.detail[key] = changes[key]; });
+          // La ventana abierta también se repinta en el acto: sin esto el
+          // costado seguía anunciando la prioridad vieja hasta cerrarla.
+          renderDetail();
         }
       }, options || {});
     }
@@ -2014,8 +1959,10 @@
     function confirmAction(title, message, acceptLabel, onAccept, danger) {
       pendingConfirm = onAccept;
       dom.confirm.querySelector('[data-kb-confirm-title]').textContent = title;
-      dom.confirmText.textContent = message;
-      dom.confirmAccept.hidden = false;
+      clear(dom.confirmText);
+      dom.confirmText.className = 'kb-dialog';
+      dom.confirmText.appendChild(el('p', 'kb-dialog__text', message));
+      dom.confirmActions.hidden = false;
       dom.confirmAccept.textContent = acceptLabel || 'Confirmar';
       dom.confirmAccept.className = 'btn ' + (danger ? 'btn--danger' : 'btn--primary');
       openOverlay(dom.confirm);
@@ -2035,17 +1982,62 @@
       });
     });
 
-    /* Diálogo chico reutilizando el mismo modal de confirmación. */
+    /* Diálogo chico reutilizando el mismo modal de confirmación.
+
+       El diálogo trae sus propios botones, así que se esconde la fila fija
+       de Confirmar/Cancelar: se esconde la FILA entera y no el botón, que
+       lleva la clase .btn y su display:inline-flex le gana al atributo
+       hidden (por eso antes quedaba un «Confirmar» suelto que no hacía
+       nada al lado del botón real del diálogo). */
     function openDialog(title, build) {
+      pendingConfirm = null;
       dom.confirm.querySelector('[data-kb-confirm-title]').textContent = title;
       var body = dom.confirmText;
       clear(body);
-      dom.confirmAccept.hidden = true;
+      body.className = 'kb-dialog';
+      dom.confirmActions.hidden = true;
       build(body, function () {
-        dom.confirmAccept.hidden = false;
         closeOverlay(dom.confirm);
       });
       openOverlay(dom.confirm);
+    }
+
+    /* Fila de botones propia de un diálogo: la acción principal primero y
+       la salida al lado, con el mismo peso visual que el resto del tablero.
+       Sin acción principal (acceptLabel nulo) queda solo el botón de
+       cerrar, para los diálogos que únicamente muestran algo. */
+    function dialogActions(body, acceptLabel, onAccept, close) {
+      var row = el('div', 'kb-dialog__actions');
+
+      if (acceptLabel) {
+        var accept = el('button', 'btn btn--primary btn--sm', acceptLabel);
+        accept.type = 'button';
+        accept.addEventListener('click', onAccept);
+        row.appendChild(accept);
+      }
+
+      var cancel = el('button', 'btn btn--secondary btn--sm', acceptLabel ? 'Cancelar' : 'Cerrar');
+      cancel.type = 'button';
+      cancel.addEventListener('click', close);
+
+      row.appendChild(cancel);
+      body.appendChild(row);
+      return row;
+    }
+
+    /* Campo de un diálogo: rótulo arriba y campo abajo, para que no haya
+       que adivinar qué va en cada casilla. Devuelve el input. */
+    function dialogField(body, label, type, placeholder) {
+      var wrap = el('label', 'kb-dialog__field');
+      wrap.appendChild(el('span', 'kb-dialog__label', label));
+
+      var input = el('input', 'kb-field');
+      input.type = type || 'text';
+      if (placeholder) input.placeholder = placeholder;
+
+      wrap.appendChild(input);
+      body.appendChild(wrap);
+      return input;
     }
 
     function openOverlay(modal) {
@@ -2054,7 +2046,8 @@
     }
 
     function closeOverlay(modal) {
-      if (modal === dom.confirm) dom.confirmAccept.hidden = false;
+      // La fila fija no se restaura acá: se vería reaparecer durante la
+      // animación de salida. La repone confirmAction() al abrir.
       if (window.PrevcsModal) window.PrevcsModal.close(modal);
       else modal.hidden = true;
     }
@@ -2180,9 +2173,16 @@
       }
       if (!files.length) return;
 
-      var editing = document.activeElement;
-      var typing = editing && (editing.tagName === 'INPUT' || editing.tagName === 'TEXTAREA');
-      if (typing && String(data.getData('text/plain') || '').trim()) return;
+      // Una imagen en el portapapeles se adjunta siempre, aunque el foco
+      // esté en un campo de texto: es la forma natural de pegar una
+      // captura en la tarea. Con otros archivos se respeta el pegado de
+      // texto de siempre cuando se está escribiendo.
+      var hasImage = files.some(function (file) { return /^image\//.test(file.type || ''); });
+      if (!hasImage) {
+        var editing = document.activeElement;
+        var typing = editing && (editing.tagName === 'INPUT' || editing.tagName === 'TEXTAREA');
+        if (typing && String(data.getData('text/plain') || '').trim()) return;
+      }
 
       event.preventDefault();
       uploadFiles(ui.openTaskId, files);
@@ -2257,15 +2257,19 @@
       var focused = document.activeElement;
       if (focused && dom.modalBody.contains(focused) &&
         (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA')) {
-        if (!ui.detailPending) {
-          ui.detailPending = true;
+        // Se guarda el campo y no una bandera: si el campo desapareciera
+        // sin llegar a soltar el foco, una bandera quedaba encendida para
+        // siempre y la ventana no se repintaba nunca más.
+        if (ui.detailPending !== focused) {
+          ui.detailPending = focused;
           focused.addEventListener('blur', function () {
-            ui.detailPending = false;
+            if (ui.detailPending === focused) ui.detailPending = null;
             renderDetail();
           }, { once: true });
         }
         return;
       }
+      ui.detailPending = null;
 
       var task = ui.detail;
       var column = columnById(task.column_id);
@@ -2323,8 +2327,8 @@
       main.appendChild(head);
 
       /* ── Descripción ────────────────────────────────────────────── */
-      main.appendChild(sectionWithTextarea('Descripción', 'note', task.description || '',
-        'Contá qué hay que hacer…', function (value) {
+      main.appendChild(textSection('Descripción', 'note', task.description || '',
+        'Agregá una descripción', 'Contá qué hay que hacer…', function (value) {
           return saveTask(task.id, { description: value });
         }));
 
@@ -2359,9 +2363,6 @@
       /* ── Checklists ─────────────────────────────────────────────── */
       main.appendChild(buildChecklists(task));
 
-      /* ── Subtareas ──────────────────────────────────────────────── */
-      main.appendChild(buildSubtasks(task));
-
       /* ── Adjuntos ───────────────────────────────────────────────── */
       main.appendChild(buildAttachments(task));
 
@@ -2369,8 +2370,8 @@
       main.appendChild(buildLinks(task));
 
       /* ── Notas internas ─────────────────────────────────────────── */
-      main.appendChild(sectionWithTextarea('Notas internas', 'note', task.internal_notes || '',
-        'Notas que no se muestran en la tarjeta…', function (value) {
+      main.appendChild(textSection('Notas internas', 'note', task.internal_notes || '',
+        'Agregá una nota interna', 'Notas que no se muestran en la tarjeta…', function (value) {
           return saveTask(task.id, { internal_notes: value });
         }));
 
@@ -2399,32 +2400,196 @@
       return heading;
     }
 
-    function sectionWithTextarea(label, iconName, value, placeholder, save) {
+    /* ── Campo que se despliega al pedirlo ─────────────────────────────
+       En la ventana de la tarea ningún campo queda abierto de entrada: se
+       ve un botón («+ Nuevo ítem», «Agregá una descripción») y recién al
+       tocarlo se despliega el campo, con la cruz roja para cancelar y el
+       tilde para confirmar al lado. Enter confirma, Escape cancela y un
+       clic afuera lo cierra. Todo el despliegue es una transición de alto,
+       sin saltos.
+
+       options:
+         label        texto del botón cerrado
+         placeholder  texto guía del campo
+         multiline    textarea (Enter confirma, Shift+Enter salta de línea)
+         value        contenido inicial, para editar lo que ya hay
+         preview      texto ya cargado: en vez del botón se muestra el texto
+         maxlength    tope de caracteres
+         allowEmpty   permite confirmar vacío (así se borra lo que había)
+         keepOpen     deja el campo abierto y limpio para cargar varios
+         onSubmit(value)
+       ───────────────────────────────────────────────────────────────── */
+    function collapsibleField(options) {
+      var wrap = el('div', 'kb-drawer');
+      var multiline = !!options.multiline;
+      var trigger;
+
+      if (options.preview) {
+        trigger = el('div', 'kb-drawer__preview', options.preview);
+        trigger.tabIndex = 0;
+        trigger.setAttribute('role', 'button');
+        trigger.title = 'Clic para editar';
+      } else {
+        trigger = el('button', 'kb-add kb-add--drawer');
+        trigger.type = 'button';
+        trigger.appendChild(icon('plus'));
+        trigger.appendChild(document.createTextNode(options.label));
+      }
+
+      var panel = el('div', 'kb-drawer__panel');
+      var inner = el('div', 'kb-drawer__inner');
+      var row = el('div', 'kb-inputrow');
+
+      var field = el(multiline ? 'textarea' : 'input', 'kb-field');
+      if (multiline) field.rows = 1;
+      else field.type = 'text';
+      field.placeholder = options.placeholder || '';
+      if (options.maxlength) field.setAttribute('maxlength', String(options.maxlength));
+      field.setAttribute('aria-label', options.label || options.placeholder || '');
+
+      var cancel = el('button', 'kb-inputrow__btn kb-inputrow__btn--cancel');
+      cancel.type = 'button';
+      cancel.title = 'Cancelar';
+      cancel.setAttribute('aria-label', 'Cancelar');
+      cancel.appendChild(icon('close'));
+
+      var accept = el('button', 'kb-inputrow__btn kb-inputrow__btn--ok');
+      accept.type = 'button';
+      accept.title = 'Guardar';
+      accept.setAttribute('aria-label', 'Guardar');
+      accept.appendChild(icon('check'));
+
+      row.appendChild(field);
+      row.appendChild(cancel);
+      row.appendChild(accept);
+      inner.appendChild(row);
+      panel.appendChild(inner);
+      wrap.appendChild(trigger);
+      wrap.appendChild(panel);
+
+      var open = false;
+      var heightTimer = 0;
+
+      /* Despliegue: se mide el contenido, se anima hasta ese alto y al
+         terminar se suelta en auto, para que el campo pueda seguir
+         creciendo mientras se escribe. */
+      function expand() {
+        window.clearTimeout(heightTimer);
+        if (reduceMotion.matches) { panel.style.height = 'auto'; return; }
+        panel.style.height = inner.offsetHeight + 'px';
+        heightTimer = window.setTimeout(function () {
+          if (open) panel.style.height = 'auto';
+        }, 280);
+      }
+
+      function collapse() {
+        window.clearTimeout(heightTimer);
+        if (reduceMotion.matches) { panel.style.height = ''; return; }
+        // De 'auto' no se puede animar: primero se fija el alto real y
+        // recién en el cuadro siguiente se lo lleva a cero.
+        panel.style.height = inner.offsetHeight + 'px';
+        void panel.offsetHeight;
+        panel.style.height = '';
+      }
+
+      function show(prefill) {
+        field.value = prefill !== undefined ? prefill : (options.value || '');
+        if (open) { focusField(); return; }
+        open = true;
+
+        // El foco pasa al campo ANTES de sacar de pantalla al disparador:
+        // si no, el disparador se queda sin foco por un instante, el
+        // focusout no encuentra a nadie adentro del cajón y lo cierra en
+        // el acto (el campo recién se enfocaría un cuadro después).
+        focusField();
+        wrap.classList.add('is-open');
+        autoSize(field);
+        expand();
+
+        window.setTimeout(function () {
+          autoSize(field);
+          if (field.value) field.setSelectionRange(field.value.length, field.value.length);
+        }, 30);
+      }
+
+      function focusField() {
+        try { field.focus({ preventScroll: true }); }
+        catch (error) { field.focus(); }
+      }
+
+      function hide() {
+        if (!open) return;
+        open = false;
+        collapse();
+        wrap.classList.remove('is-open');
+        // Soltar el foco es parte de cerrar: el campo queda plegado y con
+        // alto cero, y mientras lo conserve la ventana no puede repintarse
+        // (renderDetail() posterga el repintado mientras se está tipeando).
+        if (document.activeElement === field) field.blur();
+        field.value = '';
+      }
+
+      function submit() {
+        var value = field.value.trim();
+        if (!value && !options.allowEmpty) { field.focus(); return; }
+
+        if (options.keepOpen) {
+          field.value = '';
+          autoSize(field);
+          focusField();
+        } else {
+          hide();
+        }
+        options.onSubmit(value);
+      }
+
+      trigger.addEventListener('click', function () { show(); });
+      trigger.addEventListener('keydown', function (event) {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        show();
+      });
+
+      // El mousedown de los botones no debe robarle el foco al campo: si
+      // no, el focusout cierra el cajón antes de que llegue el click.
+      cancel.addEventListener('mousedown', function (event) { event.preventDefault(); });
+      accept.addEventListener('mousedown', function (event) { event.preventDefault(); });
+      cancel.addEventListener('click', hide);
+      accept.addEventListener('click', submit);
+
+      field.addEventListener('input', function () { autoSize(field); });
+      field.addEventListener('keydown', function (event) {
+        event.stopPropagation();
+        if (event.key === 'Enter' && !(multiline && event.shiftKey)) {
+          event.preventDefault();
+          submit();
+          return;
+        }
+        if (event.key === 'Escape') { event.preventDefault(); hide(); }
+      });
+
+      cancelOnFocusOut(wrap, hide);
+
+      wrap.kbOpen = show;
+      wrap.kbField = field;
+      return wrap;
+    }
+
+    /* Bloque de texto largo (descripción, notas): muestra lo que ya hay y
+       lo abre para editar; si está vacío, ofrece el botón para cargarlo. */
+    function textSection(label, iconName, value, emptyLabel, placeholder, save) {
       var section = el('div', 'kb-section');
       section.appendChild(sectionHeading(label, iconName));
-
-      var field = el('textarea', 'kb-field');
-      field.value = value;
-      field.placeholder = placeholder;
-      field.setAttribute('maxlength', '5000');
-      field.setAttribute('aria-label', label);
-
-      var debounced = debounce(function () { save(field.value.trim()); }, 700);
-      field.addEventListener('input', function () { autoSize(field); debounced(); });
-      field.addEventListener('blur', function () {
-        if (field.value.trim() !== (value || '').trim()) save(field.value.trim());
-      });
-      field.addEventListener('keydown', function (event) {
-        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-          event.preventDefault();
-          field.blur();
-        }
-        event.stopPropagation();
-      });
-
-      section.appendChild(field);
-      // El alto inicial se calcula cuando el campo ya está en el documento.
-      window.setTimeout(function () { autoSize(field); }, 0);
+      section.appendChild(collapsibleField({
+        label: emptyLabel,
+        placeholder: placeholder,
+        multiline: true,
+        maxlength: 5000,
+        value: value,
+        preview: value,
+        allowEmpty: true,
+        onSubmit: save
+      }));
       return section;
     }
 
@@ -2456,9 +2621,7 @@
           return mutate('POST', '/checklists/' + checklist.id, { title: value }, null, {});
         }, 'El checklist necesita un título.');
 
-        var done = checklist.items.filter(function (item) { return item.is_completed; }).length;
-        var pct = checklist.items.length ? Math.round((done / checklist.items.length) * 100) : 0;
-        var badge = el('span', 'kb-checklist__pct', done + '/' + checklist.items.length + ' · ' + pct + '%');
+        var badge = el('span', 'kb-checklist__pct');
 
         var remove = el('button', 'kb-icon-btn');
         remove.type = 'button';
@@ -2477,30 +2640,62 @@
 
         var bar = el('div', 'kb-progress');
         var fill = el('i');
-        fill.style.width = pct + '%';
         bar.appendChild(fill);
-        bar.classList.toggle('is-full', pct === 100);
         block.appendChild(bar);
 
+        /* El avance se recalcula sobre el estado local: así el tilde de un
+           ítem mueve la barra y el porcentaje en el acto, sin esperar la
+           respuesta del servidor. */
+        var refreshProgress = function () {
+          var total = checklist.items.length;
+          var done = checklist.items.filter(function (item) { return item.is_completed; }).length;
+          var pct = total ? Math.round((done / total) * 100) : 0;
+          badge.textContent = done + '/' + total + ' · ' + pct + '%';
+          fill.style.width = pct + '%';
+          bar.classList.toggle('is-full', pct === 100 && total > 0);
+        };
+        refreshProgress();
+
         checklist.items.forEach(function (item) {
-          block.appendChild(buildChecklistItem(item));
+          block.appendChild(buildChecklistItem(item, refreshProgress));
         });
 
-        var newItem = el('input', 'kb-field');
-        newItem.type = 'text';
-        newItem.placeholder = 'Añadir un ítem…';
-        newItem.setAttribute('maxlength', '255');
-        newItem.setAttribute('aria-label', 'Nuevo ítem de checklist');
-        newItem.addEventListener('keydown', function (event) {
-          event.stopPropagation();
-          if (event.key !== 'Enter') return;
-          event.preventDefault();
-          var content = newItem.value.trim();
-          if (!content) return;
-          newItem.value = '';
-          mutate('POST', '/checklists/' + checklist.id + '/items', { content: content }, null, {});
+        /* El campo queda abierto para cargar varios ítems seguidos, así que
+           el nuevo se cuelga en la lista a mano en vez de rearmar toda la
+           ventana: un rearmado le sacaría el foco al campo en medio de la
+           carga. */
+        var composer = collapsibleField({
+          label: 'Nuevo ítem',
+          placeholder: 'Nuevo ítem…',
+          maxlength: 255,
+          keepOpen: true,
+          onSubmit: function (content) {
+            request('POST', '/checklists/' + checklist.id + '/items', { content: content })
+              .then(function (data) {
+                applyPayload(data);
+                if (data.task && ui.openTaskId === data.task.id) ui.detail = data.task;
+
+                var fresh = null;
+                (((data.task || {}).checklists) || []).forEach(function (other) {
+                  if (other.id === checklist.id) fresh = other;
+                });
+                if (fresh) {
+                  var known = checklist.items.map(function (item) { return item.id; });
+                  fresh.items.forEach(function (item) {
+                    if (known.indexOf(item.id) !== -1) return;
+                    checklist.items.push(item);
+                    block.insertBefore(buildChecklistItem(item, refreshProgress), composer);
+                  });
+                  refreshProgress();
+                }
+                render();
+              })
+              .catch(function (error) {
+                toast(error.message || 'No se pudo agregar el ítem.', 'error');
+              });
+          }
         });
-        block.appendChild(newItem);
+        block.appendChild(composer);
 
         section.appendChild(block);
       });
@@ -2508,17 +2703,45 @@
       return section;
     }
 
-    function buildChecklistItem(item) {
+    function buildChecklistItem(item, onToggle) {
       var row = el('div', 'kb-check-item' + (item.is_completed ? ' is-done' : ''));
 
       var box = el('input');
       box.type = 'checkbox';
       box.checked = item.is_completed;
       box.setAttribute('aria-label', item.content);
+
+      /* El tilde se aplica primero acá y después se avisa al servidor: el
+         tachado tiene que crecer apenas se hace clic, no un viaje después
+         (antes había que volver a tocarlo para verlo cambiar, porque el
+         estado llegaba recién con el repintado del payload). */
       box.addEventListener('change', function () {
-        mutate('POST', '/items/' + item.id, { is_completed: box.checked }, null, {});
+        item.is_completed = box.checked;
+        row.classList.toggle('is-done', box.checked);
+        if (onToggle) onToggle();
+
+        request('POST', '/items/' + item.id, { is_completed: box.checked })
+          .then(function (data) {
+            applyPayload(data);
+            // La ventana no se repinta: ya muestra el estado nuevo y un
+            // rearmado cortaría la animación del tachado. Solo se guarda
+            // el detalle fresco para el próximo repintado.
+            if (data.task && ui.openTaskId === data.task.id) ui.detail = data.task;
+            render();
+          })
+          .catch(function (error) {
+            // Falló: se devuelve el ítem a como estaba y se avisa.
+            item.is_completed = !box.checked;
+            box.checked = item.is_completed;
+            row.classList.toggle('is-done', box.checked);
+            if (onToggle) onToggle();
+            toast(error.message || 'No se pudo guardar el ítem.', 'error');
+          });
       });
 
+      // El tachado se dibuja sobre este envoltorio: un <input> no admite
+      // pseudoelementos, así que la línea que crece vive en el contenedor.
+      var field = el('div', 'kb-check-item__field');
       var text = el('input', 'kb-check-item__text');
       text.type = 'text';
       text.value = item.content;
@@ -2526,6 +2749,7 @@
       bindInlineEdit(text, function () { return item.content; }, function (value) {
         return mutate('POST', '/items/' + item.id, { content: value }, null, {});
       }, 'El ítem no puede quedar vacío.');
+      field.appendChild(text);
 
       var actions = el('div', 'kb-check-item__actions');
 
@@ -2551,67 +2775,11 @@
       actions.appendChild(remove);
 
       row.appendChild(box);
-      row.appendChild(text);
+      row.appendChild(field);
       row.appendChild(actions);
       return row;
     }
 
-    function buildSubtasks(task) {
-      var section = el('div', 'kb-section');
-      var heading = sectionHeading('Subtareas', 'list');
-      var add = el('button', 'kb-link-btn', '+ Añadir subtarea');
-      add.type = 'button';
-      add.addEventListener('click', function () {
-        openDialog('Nueva subtarea', function (body, close) {
-          var input = el('input', 'kb-field');
-          input.type = 'text';
-          input.placeholder = 'Título de la subtarea';
-          input.setAttribute('maxlength', '200');
-          body.appendChild(input);
-
-          var row = el('div', 'kb-compose__row');
-          var save = el('button', 'btn btn--primary btn--sm', 'Crear');
-          save.type = 'button';
-          save.addEventListener('click', function () {
-            var title = input.value.trim();
-            if (!title) { input.focus(); return; }
-            close();
-            mutate('POST', '/tareas', {
-              column_id: task.column_id, title: title, parent_task_id: task.id
-            }, null, { success: 'Subtarea creada', after: function () { openTask(task.id); } });
-          });
-          row.appendChild(save);
-          body.appendChild(row);
-          window.setTimeout(function () { input.focus(); }, 30);
-        });
-      });
-      heading.appendChild(add);
-      section.appendChild(heading);
-
-      if (!task.subtasks.length) {
-        section.appendChild(el('p', 'kb-empty', 'Sin subtareas'));
-        return section;
-      }
-
-      task.subtasks.forEach(function (subtask) {
-        var row = el('div', 'kb-linkrow');
-        var open = el('button', 'kb-link-btn', (subtask.code ? subtask.code + ' · ' : '') + subtask.title);
-        open.type = 'button';
-        open.style.flex = '1';
-        open.style.textAlign = 'left';
-        open.addEventListener('click', function () { openTask(subtask.id); });
-        row.appendChild(open);
-        if (subtask.is_completed) {
-          var chip = el('span', 'kb-badge kb-badge--done');
-          chip.appendChild(icon('check'));
-          chip.appendChild(document.createTextNode('Lista'));
-          row.appendChild(chip);
-        }
-        section.appendChild(row);
-      });
-
-      return section;
-    }
 
     function buildAttachments(task) {
       var section = el('div', 'kb-section');
@@ -2691,26 +2859,28 @@
       add.type = 'button';
       add.addEventListener('click', function () {
         openDialog('Nuevo enlace', function (body, close) {
-          var url = el('input', 'kb-field');
-          url.type = 'url';
-          url.placeholder = 'https://…';
-          var title = el('input', 'kb-field');
-          title.type = 'text';
-          title.placeholder = 'Título (opcional)';
-          body.appendChild(url);
-          body.appendChild(title);
+          var url = dialogField(body, 'Dirección', 'url', 'https://…');
+          var title = dialogField(body, 'Título (opcional)', 'text', 'Cómo se va a ver en la lista');
+          title.setAttribute('maxlength', '150');
 
-          var row = el('div', 'kb-compose__row');
-          var save = el('button', 'btn btn--primary btn--sm', 'Añadir');
-          save.type = 'button';
-          save.addEventListener('click', function () {
-            if (!url.value.trim()) { url.focus(); return; }
+          var submit = function () {
+            var value = url.value.trim();
+            if (!value) { url.focus(); return; }
             close();
             mutate('POST', '/tareas/' + task.id + '/enlaces',
-              { url: url.value.trim(), title: title.value.trim() }, null, { success: 'Enlace agregado' });
+              { url: value, title: title.value.trim() }, null, { success: 'Enlace agregado' });
+          };
+
+          // Enter en cualquiera de los dos campos confirma: el diálogo no
+          // es un <form>, así que el envío se ata a mano.
+          [url, title].forEach(function (field) {
+            field.addEventListener('keydown', function (event) {
+              event.stopPropagation();
+              if (event.key === 'Enter') { event.preventDefault(); submit(); }
+            });
           });
-          row.appendChild(save);
-          body.appendChild(row);
+
+          dialogActions(body, 'Añadir enlace', submit, close);
           window.setTimeout(function () { url.focus(); }, 30);
         });
       });
@@ -2749,36 +2919,16 @@
       var section = el('div', 'kb-section');
       section.appendChild(sectionHeading('Comentarios', 'comment'));
 
-      var composer = el('div', 'kb-compose');
-      var field = el('textarea', 'kb-field');
-      field.rows = 1;
-      field.placeholder = 'Escribí un comentario… (usá @nombre para mencionar)';
-      field.setAttribute('maxlength', '3000');
-      field.setAttribute('aria-label', 'Nuevo comentario');
-      field.addEventListener('input', function () { autoSize(field); });
-      field.addEventListener('keydown', function (event) {
-        event.stopPropagation();
-        if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); submit(); }
+      var composer = collapsibleField({
+        label: 'Escribir un comentario',
+        placeholder: 'Escribí un comentario… (usá @nombre para mencionar)',
+        multiline: true,
+        maxlength: 3000,
+        onSubmit: function (content) {
+          mutate('POST', '/tareas/' + task.id + '/comentarios',
+            { content: content, parent_comment_id: null }, null, {});
+        }
       });
-
-      var row = el('div', 'kb-compose__row');
-      var send = el('button', 'btn btn--primary btn--sm', 'Comentar');
-      send.type = 'button';
-      var hint = el('span', 'kb-compose__hint', 'Ctrl+Enter para enviar');
-
-      function submit(parentId) {
-        var content = field.value.trim();
-        if (!content) { field.focus(); return; }
-        field.value = '';
-        mutate('POST', '/tareas/' + task.id + '/comentarios',
-          { content: content, parent_comment_id: parentId || null }, null, {});
-      }
-
-      send.addEventListener('click', function () { submit(); });
-      row.appendChild(send);
-      row.appendChild(hint);
-      composer.appendChild(field);
-      composer.appendChild(row);
       section.appendChild(composer);
 
       if (!task.comments_list.length) {
@@ -2787,7 +2937,7 @@
       }
 
       task.comments_list.forEach(function (comment) {
-        section.appendChild(buildComment(task, comment, field));
+        section.appendChild(buildComment(task, comment, composer));
       });
 
       return section;
@@ -2813,8 +2963,8 @@
       var reply = el('button', 'kb-link-btn', 'Responder');
       reply.type = 'button';
       reply.addEventListener('click', function () {
-        composer.value = '@' + comment.author.split(' ')[0] + ' ';
-        composer.focus();
+        // Despliega el campo de comentarios ya con la mención escrita.
+        composer.kbOpen('@' + comment.author.split(' ')[0] + ' ');
       });
       actions.appendChild(reply);
 
@@ -2879,13 +3029,9 @@
 
     function buildSideActions(task) {
       var group = el('div', 'kb-section');
-      group.appendChild(sectionHeading('Acciones', 'move'));
+      group.appendChild(sectionHeading('Acciones', 'bolt'));
 
       var box = el('div', 'kb-side-group');
-
-      box.appendChild(sideButton('Mover a otra columna', 'move', function (event) {
-        openTaskMoveMenu(event.currentTarget, task.id);
-      }));
 
       box.appendChild(sideButton(task.is_completed ? 'Reabrir tarea' : 'Marcar completada', 'check', function () {
         taskAction(task.id, task.is_completed ? 'reopen' : 'complete', {
@@ -3049,13 +3195,12 @@
 
     function openLabelDialog() {
       openDialog('Nueva etiqueta', function (body, close) {
-        var name = el('input', 'kb-field');
-        name.type = 'text';
-        name.placeholder = 'Nombre de la etiqueta';
+        var name = dialogField(body, 'Nombre', 'text', 'Ej: eléctrico');
         name.setAttribute('maxlength', '60');
-        body.appendChild(name);
 
         var chosen = state.colors[0] || 'azul';
+        var colorWrap = el('div', 'kb-dialog__field');
+        colorWrap.appendChild(el('span', 'kb-dialog__label', 'Color'));
         var grid = el('div', 'kb-swatches');
         (state.colors || []).forEach(function (color) {
           var swatch = el('button', 'kb-swatch' + (color === chosen ? ' is-on' : ''));
@@ -3069,18 +3214,20 @@
           });
           grid.appendChild(swatch);
         });
-        body.appendChild(grid);
+        colorWrap.appendChild(grid);
+        body.appendChild(colorWrap);
 
-        var row = el('div', 'kb-compose__row');
-        var save = el('button', 'btn btn--primary btn--sm', 'Crear');
-        save.type = 'button';
-        save.addEventListener('click', function () {
+        var submit = function () {
           if (!name.value.trim()) { name.focus(); return; }
           close();
           mutate('POST', '/etiquetas', { name: name.value.trim(), color: chosen }, null, { success: 'Etiqueta creada' });
+        };
+        name.addEventListener('keydown', function (event) {
+          event.stopPropagation();
+          if (event.key === 'Enter') { event.preventDefault(); submit(); }
         });
-        row.appendChild(save);
-        body.appendChild(row);
+
+        dialogActions(body, 'Crear etiqueta', submit, close);
         window.setTimeout(function () { name.focus(); }, 30);
       });
     }
@@ -3292,12 +3439,7 @@
 
         body.appendChild(list);
 
-        var row = el('div', 'kb-compose__row');
-        var add = el('button', 'btn btn--primary btn--sm', 'Nueva etiqueta');
-        add.type = 'button';
-        add.addEventListener('click', function () { close(); openLabelDialog(); });
-        row.appendChild(add);
-        body.appendChild(row);
+        dialogActions(body, 'Nueva etiqueta', function () { close(); openLabelDialog(); }, close);
       });
     }
 
@@ -3305,51 +3447,71 @@
 
     dom.archiveBtn.addEventListener('click', function () {
       openDialog('Elementos archivados', function (body, close) {
-        var loading = el('p', 'kb-empty', 'Cargando…');
-        body.appendChild(loading);
+        body.appendChild(el('p', 'kb-empty', 'Cargando…'));
+
+        /* Un grupo por tipo: título chico, la lista debajo y cada fila con
+           el nombre a la izquierda y el botón de restaurar a la derecha. */
+        var group = function (title, count) {
+          var section = el('div', 'kb-section');
+          var heading = sectionHeading(title, 'archive');
+          heading.appendChild(el('span', 'kb-dialog__count', String(count)));
+          section.appendChild(heading);
+          var list = el('div', 'kb-dialog__list');
+          section.appendChild(list);
+          body.appendChild(section);
+          return list;
+        };
+
+        var restoreButton = function (label, onClick) {
+          var button = el('button', 'btn btn--secondary btn--sm', label);
+          button.type = 'button';
+          button.addEventListener('click', function () { close(); onClick(); });
+          return button;
+        };
 
         request('GET', '/archivo').then(function (data) {
           clear(body);
 
           if (!data.columns.length && !data.tasks.length) {
-            body.appendChild(el('p', 'kb-empty', 'No hay nada archivado'));
+            var empty = el('div', 'kb-dialog__empty');
+            empty.appendChild(icon('archive', 'kb-dialog__empty-icon'));
+            empty.appendChild(el('strong', null, 'No hay nada archivado'));
+            empty.appendChild(el('p', null,
+              'Las columnas y las tareas que archives van a aparecer acá para que puedas volver a traerlas.'));
+            body.appendChild(empty);
+            dialogActions(body, null, null, close);
             return;
           }
 
           if (data.columns.length) {
-            body.appendChild(sectionHeading('Columnas archivadas', 'archive'));
+            var columns = group('Columnas archivadas', data.columns.length);
             data.columns.forEach(function (column) {
-              var row = el('div', 'kb-linkrow');
+              var row = el('div', 'kb-dialog__row');
               var swatch = el('span', 'kb-picker__swatch');
               swatch.setAttribute('data-kb-color', column.color);
               row.appendChild(swatch);
-              row.appendChild(el('span', null, column.name));
-              var restore = el('button', 'kb-link-btn', 'Restaurar');
-              restore.type = 'button';
-              restore.addEventListener('click', function () {
-                close();
+              row.appendChild(el('span', 'kb-dialog__row-name', column.name));
+              row.appendChild(restoreButton('Restaurar', function () {
                 columnAction(column.id, 'restore', { success: 'Columna restaurada' });
-              });
-              row.appendChild(restore);
-              body.appendChild(row);
+              }));
+              columns.appendChild(row);
             });
           }
 
           if (data.tasks.length) {
-            body.appendChild(sectionHeading('Tareas archivadas', 'archive'));
+            var tasks = group('Tareas archivadas', data.tasks.length);
             data.tasks.forEach(function (task) {
-              var row = el('div', 'kb-linkrow');
-              row.appendChild(el('span', null, (task.code ? task.code + ' · ' : '') + task.title));
-              var restore = el('button', 'kb-link-btn', 'Restaurar');
-              restore.type = 'button';
-              restore.addEventListener('click', function () {
-                close();
+              var row = el('div', 'kb-dialog__row');
+              if (task.code) row.appendChild(el('span', 'kb-dialog__code', task.code));
+              row.appendChild(el('span', 'kb-dialog__row-name', task.title));
+              row.appendChild(restoreButton('Restaurar', function () {
                 taskAction(task.id, 'restore', { success: 'Tarea restaurada' });
-              });
-              row.appendChild(restore);
-              body.appendChild(row);
+              }));
+              tasks.appendChild(row);
             });
           }
+
+          dialogActions(body, null, null, close);
         }).catch(function (error) {
           clear(body);
           body.appendChild(el('p', 'kb-empty', error.message || 'No se pudo cargar el archivo.'));
@@ -3433,15 +3595,17 @@
         var open = el('button', 'btn btn--secondary btn--sm', 'Abrir tarea');
         open.type = 'button';
         open.addEventListener('click', function () { openTask(task.id); });
+        // Reabrir y archivar cambian la firma de completadas, así que el
+        // panel se recarga solo (ver syncCompleted).
         var reopen = el('button', 'btn btn--secondary btn--sm', 'Reabrir');
         reopen.type = 'button';
         reopen.addEventListener('click', function () {
-          taskAction(task.id, 'reopen', { success: 'Tarea reabierta', after: loadCompleted });
+          taskAction(task.id, 'reopen', { success: 'Tarea reabierta' });
         });
         var archive = el('button', 'btn btn--secondary btn--sm', 'Archivar');
         archive.type = 'button';
         archive.addEventListener('click', function () {
-          taskAction(task.id, 'archive', { success: 'Tarea archivada', after: loadCompleted });
+          taskAction(task.id, 'archive', { success: 'Tarea archivada' });
         });
         actions.appendChild(open);
         actions.appendChild(reopen);

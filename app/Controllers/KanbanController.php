@@ -489,7 +489,12 @@ class KanbanController extends BaseController
             }
         }
 
-        return $this->ok($this->boardPayload());
+        // Se relee la fila antes de armar el detalle: si se devuelve la que
+        // se leyó al principio, la ventana abierta sigue mostrando los
+        // valores viejos (la prioridad, por ejemplo) aunque ya se guardaron.
+        $fresh = $taskModel->findInBoard((int) $task['id'], $boardId) ?? $task;
+
+        return $this->ok(['task' => $this->taskDetailPayload($fresh)] + $this->boardPayload());
     }
 
     /**
@@ -676,10 +681,22 @@ class KanbanController extends BaseController
         }
 
         $assigned = (new KanbanTaskAssigneeModel())->toggle((int) $task['id'], $userId);
+
+        // Con el nombre entre paréntesis: en el historial «asignó un
+        // responsable» a secas no dice a quién se le asignó la tarea.
+        $name = '';
+        foreach ($this->members() as $member) {
+            if ($member['id'] === $userId) {
+                $name = $member['nombre_completo'];
+                break;
+            }
+        }
+
         $this->log(
             (int) $task['id'],
             'task_assignee_changed',
             ($assigned ? 'asignó' : 'quitó') . ' un responsable'
+                . ($name !== '' ? ' (' . $name . ')' : '')
         );
 
         return $this->ok(['task' => $this->taskDetailPayload($task)] + $this->boardPayload());

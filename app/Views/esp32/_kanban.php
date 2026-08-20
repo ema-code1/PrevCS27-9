@@ -148,8 +148,12 @@
             </button>
         </header>
         <div class="space-modal__body" data-lenis-prevent>
-            <div data-kb-confirm-text></div>
-            <div class="kb-compose__row">
+            <div class="kb-dialog" data-kb-confirm-text></div>
+            <!-- Los diálogos que traen sus propios botones (enlace nuevo,
+                 etiquetas, archivados…) esconden esta fila entera: ocultar
+                 solo el botón no alcanza, porque .btn pisa el display:none
+                 del atributo hidden. -->
+            <div class="kb-dialog__actions" data-kb-confirm-actions>
                 <button type="button" class="btn btn--primary" data-kb-confirm-accept>Confirmar</button>
                 <button type="button" class="btn btn--secondary" data-kb-dismiss>Cancelar</button>
             </div>
