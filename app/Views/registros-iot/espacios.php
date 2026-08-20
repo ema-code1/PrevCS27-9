@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260807-1">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
-<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260806-1">
+<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260820-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -323,7 +323,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260806-1" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260820-1" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Si la página volvió con ?config=<id> (desbloqueo / borrado), dejar

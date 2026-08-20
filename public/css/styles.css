@@ -481,13 +481,24 @@ input, select, textarea {
     box-shadow var(--transition-normal),
     background var(--transition-normal);
 }
-input:hover:not(:focus), select:hover:not(:focus), textarea:hover:not(:focus) {
-  border-color: color-mix(in oklab, var(--text-primary) 22%, var(--hair-2));
+/* Los campos de texto NO reaccionan al paso del mouse: en reposo son una
+   caja quieta y el único estado que se dibuja es el foco. Un campo que se
+   ilumina al pasar por encima promete algo que no pasa hasta hacer clic, y
+   en las cajas que se ven como texto (los títulos editables del tablero)
+   además aparecía un recuadro de la nada. Si hace falta volver a marcar
+   alguno, que sea uno puntual y no la regla general. */
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-faint);
+  transition: color var(--transition-normal), opacity var(--transition-normal);
 }
-input::placeholder, textarea::placeholder { color: var(--text-faint); }
+/* Con el campo enfocado el marcador de posición se corre a un segundo
+   plano: lo que importa ahí es lo que se está por escribir. */
+input:focus::placeholder, textarea:focus::placeholder { opacity: .55; }
+
 input:focus, select:focus, textarea:focus {
-  border-color: color-mix(in oklab, var(--accent) 65%, var(--hair-2));
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 14%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 72%, var(--hair-2));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 16%, transparent);
 }
 
 /* ─────────────────────────────── DASHBOARD HEAD ─────────────── */

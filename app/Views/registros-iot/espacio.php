@@ -170,6 +170,6 @@
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260806-1" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260820-1" defer></script>
 <script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260612-1" defer></script>
 <?= $this->endSection() ?>

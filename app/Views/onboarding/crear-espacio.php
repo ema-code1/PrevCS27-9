@@ -166,7 +166,7 @@ $chartLabels = [
 
 <?= $this->section('pageScripts') ?>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260806-1" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260820-1" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('[data-wizard-form]');

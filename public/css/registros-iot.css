@@ -693,7 +693,8 @@
     background-color var(--transition-normal),
     box-shadow var(--transition-normal);
 }
-.iot-date-input:hover { border-color: var(--hair-2); }
+/* Sin estado de hover: los campos de texto de todo el proyecto solo
+   dibujan el foco (ver styles.css). */
 .iot-date-input:focus {
   outline: none;
   border-color: color-mix(in oklab, var(--accent) 65%, var(--hair-2));
@@ -708,7 +709,6 @@
   background-image: none;
   padding-right: 14px;
 }
-.iot-date-input[data-iot-end-date]:hover { border-color: var(--hair); }
 
 /* motor render */
 .iot-status-card {

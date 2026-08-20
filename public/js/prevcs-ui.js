@@ -1,6 +1,7 @@
 /* =====================================================================
    PrevCS · UI compartida (vistas IoT)
    - Modales emergentes con animación de entrada/salida ([data-space-modal]).
+   - Scroll con inercia adentro de cualquier ventana abierta.
    - Kebab de opciones por tarjeta ([data-kebab]).
    - Acordeón de espacios ([data-acc]).
    - Confirmación estilada para acciones destructivas (form[data-confirm]).
@@ -9,7 +10,93 @@
 (function () {
   'use strict';
 
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* ── Scroll con inercia dentro de una caja ──────────────────────────
+     Lenis maneja el scroll de la página pero no llega a los modales: la
+     caja lleva data-lenis-prevent y además Lenis se frena entero mientras
+     hay una ventana abierta, así que adentro quedaba el scroll nativo a
+     los saltos. Esto le devuelve la misma inercia sin tocar a Lenis: la
+     rueda mueve un objetivo y un rAF lo persigue interpolando.
+
+     Devuelve una función para reamarrar el objetivo cuando el contenido de
+     la caja cambia (si no, apunta a un alto que ya no existe). Llamarla dos
+     veces sobre el mismo nodo no duplica el enganche: devuelve el resync
+     que ya tenía.
+     ─────────────────────────────────────────────────────────────────── */
+  function bindSmoothBox(node) {
+    if (!node) return function () {};
+    if (node.__pcsSmoothResync) return node.__pcsSmoothResync;
+    if (reduceMotion.matches) {
+      node.__pcsSmoothResync = function () {};
+      return node.__pcsSmoothResync;
+    }
+
+    var target = 0;
+    var raf = 0;
+    var EASE = 0.16;
+
+    function step() {
+      var delta = target - node.scrollTop;
+      if (Math.abs(delta) < 0.5) {
+        node.scrollTop = target;
+        raf = 0;
+        return;
+      }
+      node.scrollTop += delta * EASE;
+      raf = window.requestAnimationFrame(step);
+    }
+
+    /* Una lista con scroll propio adentro (el historial de una tarea, por
+       ejemplo) se queda con la rueda mientras le quede recorrido. */
+    function ownsWheel(from, deltaY) {
+      var current = from;
+      while (current && current !== node) {
+        if (current.scrollHeight > current.clientHeight + 1) {
+          var overflow = window.getComputedStyle(current).overflowY;
+          if (overflow === 'auto' || overflow === 'scroll') {
+            var room = deltaY > 0
+              ? current.scrollHeight - current.clientHeight - current.scrollTop
+              : current.scrollTop;
+            if (room > 1) return true;
+          }
+        }
+        current = current.parentElement;
+      }
+      return false;
+    }
+
+    node.addEventListener('wheel', function (event) {
+      if (event.ctrlKey || !event.deltaY) return;
+
+      var limit = Math.max(0, node.scrollHeight - node.clientHeight);
+      if (limit <= 0) return;
+      if (ownsWheel(event.target, event.deltaY)) return;
+
+      // deltaMode 1 son líneas y 2 son páginas: se pasan a píxeles.
+      var amount = event.deltaY;
+      if (event.deltaMode === 1) amount *= 18;
+      else if (event.deltaMode === 2) amount *= node.clientHeight;
+
+      event.preventDefault();
+      target = Math.max(0, Math.min(limit, (raf ? target : node.scrollTop) + amount));
+      if (!raf) raf = window.requestAnimationFrame(step);
+    }, { passive: false });
+
+    node.__pcsSmoothResync = function resync() {
+      if (raf) { window.cancelAnimationFrame(raf); raf = 0; }
+      target = node.scrollTop;
+    };
+    return node.__pcsSmoothResync;
+  }
+
+  window.PrevcsScrollBox = { bind: bindSmoothBox };
+
   document.addEventListener('DOMContentLoaded', function () {
+    /* Toda ventana emergente scrollea con la misma inercia que la página. */
+    document.querySelectorAll('[data-space-modal] .space-modal__body, [data-smooth-box]')
+      .forEach(bindSmoothBox);
+
     /* ── Kebab (menú de opciones por tarjeta) ─────────────────────── */
     document.querySelectorAll('[data-kebab]').forEach(function (wrap) {
       var button = wrap.querySelector('[data-kebab-button]');
@@ -113,14 +200,40 @@
       openModal(confirmModal);
     }
 
+    /* Bloqueo del scroll de fondo por evento, sin recortar la raíz.
+
+       Recortar <html> (o <body>) manda la página al principio del documento
+       de un salto, y con la página movida la topbar y el menú del costado
+       —los dos position:sticky— se dibujan en otro lado: parecía que la
+       navegación desaparecía al abrir cualquier ventana. Frenando la rueda
+       y el arrastre táctil el fondo queda quieto donde estaba. */
+    /* Se deja pasar la rueda dentro de la ventana abierta y también dentro
+       de cualquier caja que maneje su propio scroll (los menús del tablero
+       viven colgados del body, fuera del modal, y tienen que poder
+       desplazarse). */
+    function ownsScroll(node) {
+      if (!node || !node.closest) return false;
+      var modal = node.closest('[data-space-modal]');
+      if (modal && !modal.hidden) return true;
+
+      return !!node.closest('[data-lenis-prevent], .kb-menu, .pv-toasts');
+    }
+
+    function blockBackgroundScroll(event) {
+      if (!document.documentElement.classList.contains('has-modal-open')) return;
+      if (ownsScroll(event.target)) return;
+      event.preventDefault();
+    }
+
+    window.addEventListener('wheel', blockBackgroundScroll, { passive: false });
+    window.addEventListener('touchmove', blockBackgroundScroll, { passive: false });
+
     function syncBody() {
       var open = !!document.querySelector('[data-space-modal]:not([hidden])');
-      // El bloqueo del scroll vive en <html> (ver space-modal.css): en el
-      // body rompería el sticky de la topbar. La clase también se deja en
-      // el body para lo que quiera reaccionar a "hay un modal abierto".
       document.documentElement.classList.toggle('has-modal-open', open);
       document.body.classList.toggle('has-modal-open', open);
-      // Lenis scrollea con transforms e ignora overflow:hidden: hay que frenarlo.
+      // Lenis scrollea por su cuenta: mientras hay una ventana abierta se
+      // para, y así deja de responder a la rueda y al touch.
       if (window.PCSSmoothScroll) {
         if (open) window.PCSSmoothScroll.stop();
         else window.PCSSmoothScroll.start();
@@ -131,6 +244,9 @@
       if (!modal) return;
       modal.classList.remove('is-closing');
       modal.hidden = false;
+      // El cuerpo puede haberse creado después del arranque: engancharlo
+      // acá es idempotente y garantiza la inercia en cualquier ventana.
+      bindSmoothBox(modal.querySelector('.space-modal__body'));
       syncBody();
     }
 

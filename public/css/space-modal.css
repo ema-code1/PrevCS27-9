@@ -18,10 +18,13 @@
 .space-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(11, 12, 14, .42);
-  /* Desenfoca el fondo para que el modal sea el único foco. */
-  backdrop-filter: saturate(1.1) blur(7px);
-  -webkit-backdrop-filter: saturate(1.1) blur(7px);
+  background: rgba(11, 12, 14, .28);
+  /* Apenas un velo: con el desenfoque fuerte de antes la topbar y el menú
+     del costado quedaban ilegibles y parecía que la navegación se había
+     ido de la pantalla. Alcanza con atenuar el fondo para que el modal se
+     lleve la atención sin borrar el marco de la aplicación. */
+  backdrop-filter: saturate(1.05) blur(2px);
+  -webkit-backdrop-filter: saturate(1.05) blur(2px);
   animation: spaceModalFade 200ms ease;
 }
 
@@ -197,16 +200,23 @@
   text-align: right;
 }
 
-/* Evita el scroll de fondo cuando hay un modal abierto.
+/* Bloqueo del scroll de fondo mientras hay un modal abierto.
 
-   Va en <html> y NO en <body> a propósito: con overflow:hidden en el body,
-   el body pasa a ser el contenedor de scroll y todo lo que está pegado con
-   position:sticky se reancla a ese scrollport, que arranca en cero. La
-   topbar quedaba entonces dibujada en su posición estática —arriba de todo
-   el documento— y desaparecía de pantalla apenas se abría una ventana.
-   En <html> el overflow se propaga al viewport: se conserva la posición de
-   scroll y la topbar sigue fija donde estaba. */
-html.has-modal-open { overflow: hidden; }
+   Sin overflow:hidden en ningún lado. Se probó primero en <body> y después
+   en <html>, y en las dos la página se iba de un salto al principio del
+   documento: al recortar la raíz, el viewport pierde su recorrido y el
+   navegador lleva el scroll a cero. Con la página movida, la topbar y el
+   menú del costado —los dos position:sticky— se dibujan en otro lado y
+   parece que la navegación desapareció.
+
+   Acá el scroll se frena por evento (Lenis parado + el bloqueo de rueda y
+   touch de prevcs-ui.js), así que la posición de la página no se toca y el
+   marco de la aplicación queda exactamente donde estaba. Lo único que se
+   neutraliza es el recorte que Lenis aplica solo al pararse. */
+html.has-modal-open,
+html.has-modal-open.lenis-stopped { overflow: visible !important; }
+
+html.has-modal-open body { overscroll-behavior: none; }
 
 @media (max-width: 480px) {
   .space-modal__unlock { flex-direction: column; }

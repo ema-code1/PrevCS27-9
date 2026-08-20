@@ -240,9 +240,8 @@
     box-shadow var(--transition-normal),
     background var(--transition-normal);
 }
-.auth-field input:hover:not(:focus) {
-  border-color: color-mix(in oklab, var(--text-primary) 22%, var(--hair-2));
-}
+/* Sin estado de hover: los campos de texto de todo el proyecto solo
+   dibujan el foco (ver styles.css). */
 .auth-field input:focus {
   background: var(--bg-card);
   border-color: color-mix(in oklab, var(--accent) 65%, var(--hair-2));
