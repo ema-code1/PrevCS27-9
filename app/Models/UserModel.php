@@ -19,6 +19,7 @@ class UserModel extends Model
         'foto_perfil',
         'email_verified_at',
         'two_factor_enabled',
+        'phone_verification_enabled',
     ];
     protected $beforeInsert     = ['hashPassword'];
     protected $beforeUpdate     = ['hashPassword'];

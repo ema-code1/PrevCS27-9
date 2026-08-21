@@ -1,3 +1,32 @@
+/* =====================================================================
+   PrevCS · Administrar cuenta (admin_account.php)
+   Réplica de los frames "Administrar cuenta — Desktop 1440/1442" de Figma
+   (colapsado y con el bloque de contraseña desplegado).
+   Toda la vista usa la sans (Inter): acá no se usa la mono en ningún lado.
+   Los componentes compartidos (.card, .btn, .security-switch) se reutilizan
+   tal cual: lo único que se ajusta es lo que el frame define para esta vista.
+   ===================================================================== */
+
+/* El frame usa Inter con interlineado "normal" (~1.2). El 1.5 heredado del
+   layout engordaba cada fila, así que se fija acá — sólo en el contenido,
+   nunca en el header ni en el sidebar. */
+.page--account .content-area {
+  font-family: var(--font-sans);
+  line-height: 1.2;
+}
+
+.acct-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── Encabezado ───────────────────────────────────────────────────── */
 .acct-head {
   display: flex;
   align-items: flex-end;
@@ -7,55 +36,133 @@
   flex-wrap: wrap;
 }
 
+.acct-head__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
 .acct-head__eyebrow {
-  margin-bottom: 6px;
+  margin: 0;
   color: var(--text-muted);
-  font-family: var(--font-mono);
   font-size: 12.5px;
   letter-spacing: .06em;
   text-transform: uppercase;
 }
 
 .acct-head h1 {
+  margin: 0;
   font-size: clamp(28px, 3.4vw, 40px);
   font-weight: var(--font-weight-medium);
+  line-height: 1.2;
   letter-spacing: -.03em;
 }
 
 .acct-head__text {
-  max-width: 56ch;
-  margin-top: 8px;
+  margin: 0;
+  max-width: 520px;
   color: var(--text-muted);
   font-size: 16px;
+  line-height: 1.45;
 }
 
 .acct-head__meta {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
   color: var(--text-muted);
-  font-family: var(--font-mono);
   font-size: 12.5px;
+  white-space: nowrap;
 }
 
 .acct-head__meta b {
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
+/* ── Grilla de la vista ───────────────────────────────────────────── */
 .acct-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--content-gap);
 }
 
+.acct-grid__left,
+.acct-grid__right,
+.acct-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--content-gap);
+  min-width: 0;
+}
+
+/* ── Tarjeta de identidad ─────────────────────────────────────────── */
 .id-card {
-  display: grid;
-  grid-template-columns: auto 1fr;
+  display: flex;
   align-items: center;
   gap: 20px;
-  padding: 20px 24px;
+  min-height: 100px;
+  padding: 7px 24px;
+}
+
+.id-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.id-card__name {
+  font-size: 24px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -.02em;
+}
+
+.id-card__line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.id-card__email {
+  color: var(--text-muted);
+  font-size: 14.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.id-card__check {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.id-card__check svg {
+  width: 10px;
+  height: 10px;
+}
+
+/* ── Foto de perfil ───────────────────────────────────────────────── */
+.avatar-picker {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+/* El input queda accesible por teclado pero sin ocupar lugar: el circulo
+   entero es el disparador del explorador de archivos. */
+.avatar-picker__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
 .avatar {
@@ -72,67 +179,122 @@
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 8px 28px -10px var(--accent-ring), 0 0 0 4px var(--bg-card);
   color: #fff;
+  cursor: pointer;
+}
+
+.avatar__face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transition:
+    opacity var(--transition-normal),
+    filter var(--transition-normal),
+    transform var(--transition-normal);
+}
+
+.avatar__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar__img[hidden] {
+  display: none;
+}
+
+.avatar__initials {
   font-size: 32px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   letter-spacing: -.02em;
+  line-height: 1;
 }
 
-.id-card__name {
-  font-size: 24px;
-  font-weight: 500;
-  letter-spacing: -.02em;
+.avatar__overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  background: rgba(20, 22, 18, .42);
+  color: #fff;
+  transition: opacity var(--transition-normal);
 }
 
-.id-card__email {
-  margin-top: 4px;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 14.5px;
+.avatar__overlay svg {
+  width: 26px;
+  height: 26px;
+  transform: scale(.82);
+  transition: transform var(--transition-normal);
 }
 
-.id-card__roles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
+.avatar:hover .avatar__face,
+.avatar-picker__input:focus-visible + .avatar .avatar__face {
+  opacity: 0;
+  filter: blur(6px);
+  transform: scale(1.06);
 }
 
+.avatar:hover .avatar__overlay,
+.avatar-picker__input:focus-visible + .avatar .avatar__overlay {
+  opacity: 1;
+}
+
+.avatar:hover .avatar__overlay svg,
+.avatar-picker__input:focus-visible + .avatar .avatar__overlay svg {
+  transform: scale(1);
+}
+
+.avatar-picker__input:focus-visible + .avatar {
+  box-shadow: 0 0 0 3px var(--accent-ring), 0 0 0 4px var(--bg-card);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar__face,
+  .avatar__overlay,
+  .avatar__overlay svg {
+    transition: none;
+  }
+}
+
+/* ── Tarjetas de sección ──────────────────────────────────────────── */
 .sec {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 22px 24px;
+  padding: 22px 24px 13px;
+}
+
+.sec__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .sec__head h2 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  margin: 0;
   font-size: 17.5px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
   letter-spacing: -.01em;
 }
 
-.sec__head h2 .num {
-  padding: 3px 7px;
-  border-radius: 4px;
-  background: var(--bg-card-soft);
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 11.5px;
-  letter-spacing: .04em;
-}
-
 .sec__head p {
-  margin-top: 4px;
+  margin: 0;
   color: var(--text-muted);
   font-size: 14.5px;
 }
 
+/* ── Campos ───────────────────────────────────────────────────────── */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14px 18px;
+  gap: 18px;
+}
+
+.form-grid--row {
+  grid-template-columns: 1fr;
 }
 
 .field {
@@ -142,10 +304,6 @@
   min-width: 0;
 }
 
-.field--full {
-  grid-column: 1 / -1;
-}
-
 .field__label {
   display: flex;
   align-items: center;
@@ -153,26 +311,37 @@
   gap: 8px;
   color: var(--text-secondary);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .field__hint {
   color: var(--text-faint);
-  font-family: var(--font-mono);
   font-size: 11.5px;
+  font-weight: var(--font-weight-regular);
   letter-spacing: .05em;
-  text-transform: uppercase;
 }
 
 .field input {
   width: 100%;
-  padding: 11px 13px;
-  border: 1px solid var(--hair);
+  height: 41px;
+  padding: 0 13px;
+  border: var(--border-thin) solid var(--hair);
   border-radius: var(--radius-md);
   background: var(--bg-card);
   color: var(--text-primary);
   font-family: inherit;
   font-size: 15.5px;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.field input::placeholder {
+  color: var(--text-faint);
+}
+
+.field input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .field input[readonly] {
@@ -181,62 +350,69 @@
   cursor: not-allowed;
 }
 
+.field input[readonly]:focus-visible {
+  border-color: var(--hair);
+  box-shadow: none;
+}
+
 .field__error {
   margin-top: 2px;
   color: var(--error);
-  font-family: var(--font-mono);
   font-size: 13px;
   letter-spacing: -.005em;
 }
 
-.meta {
-  display: flex;
-  flex-direction: column;
-  padding: 6px 0;
-}
-
-.meta__row {
+/* Fila del email: input · separador · botón de contraseña. */
+.field__row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
-  border-bottom: 1px dashed var(--hair);
+  gap: 16px;
+  width: 100%;
+}
+
+.field__email {
+  flex: 0 1 377px;
+}
+
+.field__divider {
+  flex: 0 0 auto;
+  width: 1px;
+  height: 40px;
+  background: var(--hair-2);
+}
+
+.acct-password {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* display:flex le gana a la regla [hidden] del navegador: hay que repetirla. */
+.acct-password[hidden] {
+  display: none;
+}
+
+/* ── Acciones del formulario ──────────────────────────────────────── */
+.acct-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  min-height: 57px;
+}
+
+/* Los botones del frame son rectangulares (10px, alto 38), no píldoras.
+   Se ajusta sólo dentro de esta vista: el preset global no se toca. */
+.page--account .btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
   font-size: 14.5px;
 }
 
-.meta__row:last-child {
-  border-bottom: 0;
-}
-
-.meta__row span {
-  color: var(--text-muted);
-}
-
-.meta__row b {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  letter-spacing: -.01em;
-}
-
-.acct-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.acct-actions .btn--accent {
-  background: var(--accent);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .12) inset, 0 6px 16px -6px var(--accent-ring);
-  color: #fff;
-}
-
-.acct-actions .btn--accent:hover {
-  background: var(--accent-hover);
-}
-
+/* ── Avisos ───────────────────────────────────────────────────────── */
 .acct-alert {
-  margin-bottom: 14px;
   padding: 11px 14px;
   border-radius: var(--radius-md);
   font-size: 14.5px;
@@ -250,6 +426,40 @@
 .acct-alert--error {
   background: var(--error-soft);
   color: var(--error);
+}
+
+/* ── Protección de la cuenta ──────────────────────────────────────── */
+.sec--security {
+  gap: 0;
+  justify-content: space-between;
+  min-height: 330px;
+  padding: 22px 24px;
+}
+
+/* ── Ayuda ────────────────────────────────────────────────────────── */
+.sec--help {
+  gap: 18px;
+  padding: 22px 24px;
+}
+
+/* El título de esta tarjeta lleva el ícono al lado, no debajo. */
+.sec__head--icon {
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+
+.sec__icon {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  color: #958DA5;
+}
+
+/* Los ítems de ayuda son texto solo: sin switch al que dejarle lugar. */
+.sec--help .security-control__copy {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .security-control {
@@ -268,7 +478,7 @@
 
 .security-control__copy strong {
   font-size: 15.5px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .security-control__copy span {
@@ -277,6 +487,7 @@
   line-height: 1.45;
 }
 
+/* ── Switch: preset intacto, no tocar ─────────────────────────────── */
 .security-switch {
   position: relative;
   flex: 0 0 auto;
@@ -326,22 +537,66 @@
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
+/* ── Responsive ───────────────────────────────────────────────────── */
+/* De acá para abajo no se toca nada de pantallas chicas: apilado, la
+   tarjeta de ayuda cae al final y todo queda como estaba. */
+
 @media (min-width: 1080px) {
+  /* La columna derecha ahora es la de Ayuda (356 en el frame). */
   .acct-grid {
-    grid-template-columns: 1.4fr 1fr;
+    grid-template-columns: minmax(0, 1fr) 356px;
     align-items: start;
   }
 
-  .acct-grid__left,
-  .acct-grid__right {
-    display: flex;
-    flex-direction: column;
-    gap: var(--content-gap);
+  /* Avatar de 70px (antes 84) — el resto de la id-card no cambia. */
+  .avatar {
+    --size: 70px;
+  }
+
+  .avatar__initials {
+    font-size: 25px;
+  }
+
+  .sec--help {
+    min-height: 326px;
   }
 }
 
-@media (max-width: 640px) {
+/* El frame pone "Datos personales" y "Protección de la cuenta" lado a lado
+   dentro de la columna izquierda. Recién entran juntos cuando el área de
+   contenido llega a ~1430px (622 + 16 + 420 + 16 + 356): por debajo de eso
+   se siguen apilando, que es como venían. */
+@media (min-width: 1720px) {
+  .acct-row {
+    flex-direction: row;
+    align-items: start;
+  }
+
+  .acct-row > .sec--data {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .acct-row > .sec--security {
+    flex: 0 0 420px;
+  }
+}
+
+@media (max-width: 760px) {
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .field__row {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .field__email {
+    flex: 1 1 100%;
+  }
+
+  .field__divider {
+    display: none;
   }
 }
