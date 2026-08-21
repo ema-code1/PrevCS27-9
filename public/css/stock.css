@@ -44,18 +44,6 @@ body[data-theme="dark"] .stock-card { background: var(--bg-card); }
   max-width: 62ch;
 }
 
-.stock-card__badge {
-  flex: 0 0 auto;
-  padding: 5px 11px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-card-soft);
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  letter-spacing: var(--letter-spacing-mono);
-  white-space: nowrap;
-}
-
 /* Contenedor de tablas: hoy trae una (la de la empresa del espacio), pero
    admite varias apiladas sin tocar nada mas. */
 .stock-tables {
@@ -63,37 +51,6 @@ body[data-theme="dark"] .stock-card { background: var(--bg-card); }
   flex-direction: column;
 }
 .stock-tables > * + * { border-top: 1px solid var(--hair); }
-
-.stock-table-block__head {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-md) var(--space-lg) var(--space-xs);
-}
-.stock-table-block__icon {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 auto;
-  border-radius: var(--radius-sm);
-  background: var(--accent-soft);
-  color: var(--accent);
-}
-.stock-table-block__icon svg { width: 17px; height: 17px; }
-.stock-table-block__head h3 {
-  margin: 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-tight);
-}
-.stock-table-block__meta {
-  margin-left: auto;
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: var(--font-size-xs);
-  white-space: nowrap;
-}
 
 /* La tabla scrollea sola en pantallas chicas: el card nunca desborda. */
 .stock-table-scroll {
@@ -487,8 +444,6 @@ body[data-theme="dark"] .folder-btn { background: rgba(235, 252, 254, 0.1); }
 .folder-btn:hover .folder-btn__tip { opacity: 1; }
 
 @media (max-width: 620px) {
-  .stock-card__head,
-  .stock-table-block__head { padding-inline: var(--space-md); }
   .stock-table th:first-child,
   .stock-table td:first-child { padding-left: var(--space-md); }
   .stock-table th:last-child,

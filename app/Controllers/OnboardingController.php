@@ -6,6 +6,7 @@ use App\Models\IndustryMetricModel;
 use App\Models\IndustryModel;
 use App\Models\IndustryUserModel;
 use App\Models\SensorTypeModel;
+use App\Models\StockTableModel;
 use Config\Database;
 
 class OnboardingController extends BaseController
@@ -118,6 +119,10 @@ class OnboardingController extends BaseController
                 'suggested_chart' => $type['default_chart'] ?? 'line',
             ]);
         }
+
+        // Todo espacio nace con su tabla de stock: el mínimo es una, y así el
+        // módulo nunca arranca en un estado sin forma.
+        (new StockTableModel())->provisionDefault((int) $industryId, $company, $userId);
 
         $db->transComplete();
 
