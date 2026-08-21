@@ -14,7 +14,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>?v=20260820-1">
-    <link rel="stylesheet" href="<?= base_url('css/header.css') ?>?v=20260807-4">
+    <link rel="stylesheet" href="<?= base_url('css/header.css') ?>?v=20260821-1">
     <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>?v=20260807-4">
     <link rel="stylesheet" href="<?= base_url('css/password-toggle.css') ?>?v=20260612-1">
     <link rel="stylesheet" href="<?= base_url('css/toast.css') ?>?v=20260612-1">
@@ -82,7 +82,7 @@
        Mismo efecto en el menú lateral y en el dropdown del header. */
     (function () {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        const containers = document.querySelectorAll('.sidebar__nav, .sidebar__foot, .user-menu__panel');
+        const containers = document.querySelectorAll('.sidebar__nav, .sidebar__foot, .user-menu__panel:not(.notif-panel), .notif-panel__list');
 
         containers.forEach(function (container) {
             const hl = document.createElement('span');
@@ -171,7 +171,7 @@
 
     /* ─── User menu placement: topbar (desktop) ↔ sidebar foot (mobile) ─ */
     (function () {
-        const userMenu = document.querySelector('.topbar .user-menu, .sidebar [data-sidebar-user-slot] .user-menu');
+        const userMenu = document.querySelector('.topbar [data-user-menu], .sidebar [data-sidebar-user-slot] [data-user-menu]');
         if (!userMenu) return;
         const topbarHome = document.querySelector('.topbar__actions');
         const sidebarHome = document.querySelector('[data-sidebar-user-slot]');
@@ -281,6 +281,22 @@
         });
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') menus.forEach(closeMenu);
+        });
+    })();
+
+    /* ─── Notificaciones: marcar todas como leídas ────────────────────── */
+    (function () {
+        const menu = document.querySelector('.notif-menu');
+        if (!menu) return;
+        const button = menu.querySelector('[data-notif-read-all]');
+        if (!button) return;
+
+        button.addEventListener('click', function () {
+            menu.querySelectorAll('.notif-item.is-unread').forEach(function (item) {
+                item.classList.remove('is-unread');
+            });
+            const badge = menu.querySelector('.notif-bell__badge');
+            if (badge) badge.remove();
         });
     })();
     </script>

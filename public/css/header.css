@@ -392,3 +392,186 @@ body[data-theme="dark"] .theme-switch__moon,
   white-space: nowrap;
   z-index: 100;
 }
+
+/* ─── NOTIFICACIONES (campana + dropdown) ─────────────────
+   El <details> lleva también la clase .user-menu, así que hereda el
+   posicionamiento del panel, la animación de apertura y el highlight
+   deslizante (.nav-hl) que comparten sidebar y menú de usuario. */
+.notif-menu { position: relative; }
+
+/* Mismo material que la píldora de usuario: borde hairline sobre card. */
+.notif-bell {
+  list-style: none;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 40px; height: 40px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--hair);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background var(--transition-fast);
+}
+.notif-bell::-webkit-details-marker { display: none; }
+.notif-bell:hover { border-color: var(--hair-2); color: var(--text-secondary); }
+.notif-menu[open] > .notif-bell { border-color: var(--hair-2); color: var(--text-secondary); }
+.notif-bell__icon { display: inline-grid; place-items: center; }
+.notif-bell__icon svg { width: 19px; height: 19px; }
+
+/* Contador: rojo apagado (contraste bajo) para que avise sin gritar. */
+.notif-bell__badge {
+  position: absolute;
+  top: -3px; right: -3px;
+  min-width: 17px; height: 17px;
+  padding: 0 4px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--bg);
+  background: color-mix(in oklab, var(--error) 62%, var(--bg-card));
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  animation: notif-badge-in var(--transition-normal) cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes notif-badge-in {
+  from { opacity: 0; transform: scale(.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ─── Panel ─────────────────────────────────────────────── */
+.notif-panel {
+  width: min(340px, calc(100vw - 32px));
+  padding: 0;
+  overflow: hidden;
+  transform: translateY(-6px) scale(.985);
+  transform-origin: top right;
+  transition:
+    opacity 190ms cubic-bezier(.2,.7,.2,1),
+    transform 260ms cubic-bezier(.22, 1, .36, 1);
+}
+.user-menu.is-open .notif-panel { transform: none; }
+/* El panel de usuario se muestra con [open] (sin animación de entrada). Acá
+   la entrada sí se anima, así que mientras el JS no agregó .is-open el panel
+   arranca oculto y desplazado. */
+.notif-menu[open]:not(.is-open) .notif-panel {
+  opacity: 0;
+  transform: translateY(-6px) scale(.985);
+}
+.user-menu.is-closing .notif-panel { transform: translateY(-6px) scale(.985); }
+
+.notif-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--hair);
+}
+.notif-panel__title {
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--letter-spacing-normal);
+}
+.notif-panel__action {
+  border: 0;
+  padding: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+.notif-panel__action:hover { color: var(--text-primary); }
+
+.notif-panel__list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  max-height: min(58vh, 420px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Estado vacío: gris claro, sin peso visual. */
+.notif-empty {
+  margin: 0;
+  padding: 26px 14px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-faint);
+}
+
+/* ─── Item ──────────────────────────────────────────────── */
+.notif-item {
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px 12px;
+}
+.notif-item__dot {
+  width: 6px; height: 6px;
+  margin-top: 7px;
+  flex: none;
+  border-radius: var(--radius-pill);
+  background: color-mix(in oklab, var(--error) 62%, var(--bg-card));
+  opacity: 0;
+}
+.notif-item.is-unread .notif-item__dot { opacity: 1; }
+.notif-item__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.notif-item__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.notif-item__title {
+  font-size: 14.5px;
+  font-weight: var(--font-weight-medium);
+  color: color-mix(in oklab, var(--text-primary) 75%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.notif-item.is-unread .notif-item__title { color: var(--text-primary); }
+.notif-item__date {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.notif-item__text {
+  font-size: 13px;
+  line-height: var(--line-height-snug);
+  color: var(--text-muted);
+}
+
+/* Entrada escalonada de los items al abrir el panel. */
+.user-menu.is-open .notif-item {
+  animation: notif-item-in 260ms cubic-bezier(.22, 1, .36, 1) both;
+}
+.user-menu.is-open .notif-item:nth-child(2) { animation-delay: 35ms; }
+.user-menu.is-open .notif-item:nth-child(3) { animation-delay: 70ms; }
+.user-menu.is-open .notif-item:nth-child(4) { animation-delay: 105ms; }
+.user-menu.is-open .notif-item:nth-child(n+5) { animation-delay: 140ms; }
+@keyframes notif-item-in {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (max-width: 480px) {
+  .notif-panel { width: calc(100vw - 32px); }
+}

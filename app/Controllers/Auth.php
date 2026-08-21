@@ -315,6 +315,7 @@ class Auth extends BaseController
         session()->remove([
             'user_id',
             'user_name',
+            'user_foto',
             'user_email',
             'email_verified',
             'isLoggedIn',

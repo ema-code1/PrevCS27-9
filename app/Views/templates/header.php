@@ -2,6 +2,33 @@
 $isLoggedIn   = session('isLoggedIn') === true;
 $headerHref   = $isLoggedIn ? base_url('principal') : base_url('/');
 $menuDisplay  = session('user_name') ?? 'Usuario';
+
+// Foto de perfil para la pildora de usuario. Se cachea en sesion para no
+// pegarle a la base en cada request: AdminAccount la refresca al guardar.
+$avatarFile = $isLoggedIn ? session('user_foto') : null;
+if ($isLoggedIn && $avatarFile === null) {
+    $avatarRow  = (new \App\Models\UserModel())->find((int) session('user_id'));
+    $avatarFile = trim((string) ($avatarRow['foto_perfil'] ?? ''));
+    session()->set('user_foto', $avatarFile);
+}
+$avatarFile = trim((string) $avatarFile);
+$avatarUrl  = $avaFtarFile !== '' ? base_url('uploads/avatars/' . rawurlencode($avatarFile)) : '';
+
+// Iniciales de respaldo cuando todavia no hay foto cargada.
+$avatarInitials = '';
+foreach (array_slice(preg_split('/\s+/', trim($menuDisplay), -1, PREG_SPLIT_NO_EMPTY) ?: [], 0, 2) as $part) {
+    $avatarInitials .= mb_strtoupper(mb_substr($part, 0, 1));
+}
+
+// Notificaciones: la vista/controller puede pasarlas; sin datos el panel
+// muestra su estado vacio. Cada item: title, text, date, read.
+$notifications = array_values($notifications ?? []);
+$notifUnread   = 0;
+foreach ($notifications as $notification) {
+    if (empty($notification['read'])) {
+        $notifUnread++;
+    }
+}
 ?>
 <header class="topbar">
     <?php if ($isLoggedIn): ?>
@@ -21,13 +48,63 @@ $menuDisplay  = session('user_name') ?? 'Usuario';
 
     <div class="topbar__actions">
         <?php if ($isLoggedIn): ?>
-            <details class="user-menu">
-                <summary class="user-chip" aria-label="Abrir menu de usuario">
-                    <span class="user-chip__icon" aria-hidden="true">
+            <details class="user-menu notif-menu">
+                <summary class="notif-bell" aria-label="Abrir notificaciones">
+                    <span class="notif-bell__icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" fill="none">
-                            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
-                            <path d="M4 20c1.6-4 5-6 8-6s6.4 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M18 9a6 6 0 1 0-12 0c0 4.2-1 5.6-1.7 6.4a.8.8 0 0 0 .6 1.3h14.2a.8.8 0 0 0 .6-1.3C19 14.6 18 13.2 18 9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                            <path d="M10 20a2.2 2.2 0 0 0 4 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
+                    </span>
+                    <?php if ($notifUnread > 0): ?>
+                        <span class="notif-bell__badge" aria-label="<?= esc($notifUnread) ?> notificaciones sin leer"><?= esc($notifUnread > 99 ? '99+' : $notifUnread) ?></span>
+                    <?php endif; ?>
+                </summary>
+                <div class="user-menu__panel notif-panel">
+                    <div class="notif-panel__head">
+                        <span class="notif-panel__title">Notificaciones</span>
+                        <?php if ($notifications !== []): ?>
+                            <button type="button" class="notif-panel__action" data-notif-read-all>Marcar todo como leído</button>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="notif-panel__list">
+                        <?php if ($notifications === []): ?>
+                            <p class="notif-empty">No hay notificaciones</p>
+                        <?php else: ?>
+                            <?php foreach ($notifications as $notification): ?>
+                                <?php $isUnread = empty($notification['read']); ?>
+                                <div class="user-menu__item notif-item<?= $isUnread ? ' is-unread' : '' ?>">
+                                    <span class="notif-item__dot" aria-hidden="true"></span>
+                                    <span class="notif-item__body">
+                                        <span class="notif-item__head">
+                                            <span class="notif-item__title"><?= esc($notification['title'] ?? 'Notificación') ?></span>
+                                            <span class="notif-item__date"><?= esc($notification['date'] ?? '') ?></span>
+                                        </span>
+                                        <?php if (($notification['text'] ?? '') !== ''): ?>
+                                            <span class="notif-item__text"><?= esc($notification['text']) ?></span>
+                                        <?php endif; ?>
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </details>
+
+            <details class="user-menu" data-user-menu>
+                <summary class="user-chip" aria-label="Abrir menu de usuario">
+                    <span class="user-chip__icon<?= $avatarUrl !== '' ? ' has-img' : '' ?>" aria-hidden="true">
+                        <?php if ($avatarUrl !== ''): ?>
+                            <img src="<?= esc($avatarUrl) ?>" alt="">
+                        <?php elseif ($avatarInitials !== ''): ?>
+                            <span class="user-chip__icon-fallback"><?= esc($avatarInitials) ?></span>
+                        <?php else: ?>
+                            <svg viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                <path d="M4 20c1.6-4 5-6 8-6s6.4 2 8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        <?php endif; ?>
                     </span>
                     <span class="session-dot" data-tooltip="Sesión activa" tabindex="0" aria-label="Sesión activa"></span>
                     <span class="user-chip__label"><?= esc($menuDisplay) ?></span>
