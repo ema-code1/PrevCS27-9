@@ -3,7 +3,7 @@
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/standalone.css') ?>?v=20260807-3">
-<link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260820-3">
+<link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260820-8">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -39,7 +39,11 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
                 <div class="stock-global-header">
                     <button class="stock-menu-btn" id="btn-menu-global" type="button" aria-label="Opciones de tablas" aria-haspopup="true" aria-expanded="false">
-                        <span aria-hidden="true">...</span>
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                            <circle cx="12" cy="5" r="1.85"/>
+                            <circle cx="12" cy="12" r="1.85"/>
+                            <circle cx="12" cy="19" r="1.85"/>
+                        </svg>
                     </button>
 
                     <div class="dropdown-menu" id="menu-global">
@@ -52,56 +56,133 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             <div id="tablas-container" class="stock-tables-app"></div>
 
             <div class="drop-zone" id="drop-zone">
+                <span class="drop-zone__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M7.2 18.4a4.45 4.45 0 0 1-.6-8.86 5.45 5.45 0 0 1 10.55-1.48A4.2 4.2 0 0 1 17.4 18.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 20.5v-8.4M8.9 15.2 12 12.1l3.1 3.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
                 <p>Solta un Excel o elegi archivo</p>
-                <span>.xlsx y .xls</span>
+                <span class="drop-zone__formats">.xlsx y .xls</span>
                 <input type="file" id="file-input" accept=".xlsx, .xls">
             </div>
         </section>
 
         <div class="column-menu" id="column-menu" hidden>
             <button type="button" data-column-action="properties">
-                <span aria-hidden="true">⌘</span>
+                <span class="column-menu__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M5 5v5M5 15v4M12 5v2M12 12v7M19 5v7M19 17v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <circle cx="5" cy="12.5" r="2.4" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="12" cy="9.5" r="2.4" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="19" cy="14.5" r="2.4" stroke="currentColor" stroke-width="1.8"/>
+                    </svg>
+                </span>
                 Propiedades de Columna
             </button>
             <button type="button" data-column-action="rename">
-                <span aria-hidden="true">⌕</span>
+                <span class="column-menu__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <path d="M14.7 4.8a2.1 2.1 0 0 1 3 3l-8.4 8.4-3.9.9.9-3.9 8.4-8.4Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                    </svg>
+                </span>
                 Renombrar Columna
             </button>
             <button type="button" data-column-action="insert-left">
-                <span aria-hidden="true">←</span>
+                <span class="column-menu__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="12.5" y="4" width="8" height="16" rx="2.2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M7 8.5v7M3.5 12h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </span>
                 Insertar a la Izquierda
             </button>
             <button type="button" data-column-action="insert-right">
-                <span aria-hidden="true">→</span>
+                <span class="column-menu__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3.5" y="4" width="8" height="16" rx="2.2" stroke="currentColor" stroke-width="1.8"/>
+                        <path d="M17 8.5v7M13.5 12h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                    </svg>
+                </span>
                 Insertar a la Derecha
             </button>
             <button type="button" data-column-action="delete" class="is-danger">
-                <span aria-hidden="true">⌫</span>
+                <span class="column-menu__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M4 7h16M10 11.5v5M14 11.5v5M6.5 7l.9 12.2a1.5 1.5 0 0 0 1.5 1.3h6.2a1.5 1.5 0 0 0 1.5-1.3L17.5 7M9.5 7V4.8a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
                 Eliminar Columna
             </button>
         </div>
 
         <div class="stock-modal-overlay" id="modal-overlay" hidden></div>
         <section class="stock-modal" id="prop-modal" role="dialog" aria-modal="true" aria-labelledby="prop-modal-title" hidden>
-            <h2 id="prop-modal-title">Propiedades de columna</h2>
+            <header class="stock-modal__head">
+                <span class="stock-modal__icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M5 5v6M5 15v4M12 5v3M12 12v7M19 5v9M19 18v1" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                        <circle cx="5" cy="13" r="1.9" stroke="currentColor" stroke-width="1.9"/>
+                        <circle cx="12" cy="10" r="1.9" stroke="currentColor" stroke-width="1.9"/>
+                        <circle cx="19" cy="16" r="1.9" stroke="currentColor" stroke-width="1.9"/>
+                    </svg>
+                </span>
+                <div class="stock-modal__heading">
+                    <h2 id="prop-modal-title">Propiedades de Columna</h2>
+                    <p class="stock-modal__subtitle" data-prop-subtitle>Configurando la columna</p>
+                </div>
+                <button class="stock-modal__close" id="btn-cerrar-prop" type="button" aria-label="Cerrar">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </header>
 
-            <label class="stock-field" for="select-tipo-col">
-                <span>Tipo</span>
-                <select id="select-tipo-col">
-                    <option value="texto">Texto</option>
-                    <option value="contador">Contador</option>
-                </select>
-            </label>
+            <div class="stock-modal__body">
+                <fieldset class="stock-fieldset">
+                    <legend class="stock-fieldset__label">Tipo de columna</legend>
+                    <div class="stock-type-grid">
+                        <label class="stock-type-card">
+                            <input type="radio" name="stock-col-tipo" value="texto" checked>
+                            <span class="stock-type-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                                    <path d="M14 3v5h4M8.5 13h7M8.5 17h4.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <span class="stock-type-card__text">
+                                <span class="stock-type-card__title">Texto</span>
+                                <span class="stock-type-card__hint">Texto libre</span>
+                            </span>
+                        </label>
 
-            <label class="stock-field stock-field--counter" id="config-contador" for="input-unidad" hidden>
-                <span>Unidad</span>
-                <input type="text" id="input-unidad" value="unidades">
-            </label>
+                        <label class="stock-type-card">
+                            <input type="radio" name="stock-col-tipo" value="contador">
+                            <span class="stock-type-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M9 4L7 20M17 4l-2 16M4.5 9h15M3.5 15h15" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                            <span class="stock-type-card__text">
+                                <span class="stock-type-card__title">Contador</span>
+                                <span class="stock-type-card__hint">Valor (&#94; 0 &#8964;)</span>
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
 
-            <div class="stock-modal__actions">
-                <button class="stock-modal__btn stock-modal__btn--ghost" id="btn-cancelar-prop" type="button">Cancelar</button>
-                <button class="stock-modal__btn stock-modal__btn--primary" id="btn-guardar-prop" type="button">Guardar</button>
+                <div class="stock-fieldset stock-fieldset--unit" id="config-contador" hidden>
+                    <label class="stock-fieldset__label" for="input-unidad">Etiqueta de unidad</label>
+                    <input class="stock-input" type="text" id="input-unidad" value="unidades" autocomplete="off">
+                    <p class="stock-fieldset__help">Esta etiqueta se mostrara junto al valor del contador.</p>
+                </div>
             </div>
+
+            <footer class="stock-modal__actions">
+                <button class="stock-modal__btn stock-modal__btn--ghost" id="btn-cancelar-prop" type="button">Cancelar</button>
+                <button class="stock-modal__btn stock-modal__btn--primary" id="btn-guardar-prop" type="button">Guardar Cambios</button>
+            </footer>
         </section>
 
         <section class="stock-confirm" id="stock-confirm" role="dialog" aria-modal="true" aria-labelledby="stock-confirm-title" hidden>
@@ -113,7 +194,6 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             </div>
         </section>
 
-        <div class="stock-popups" id="stock-popups" aria-live="polite" aria-atomic="true"></div>
     </section>
 </main>
 <?= $this->endSection() ?>
@@ -139,14 +219,15 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
     var nuevaTabla = document.getElementById('btn-nueva-tabla');
     var modal = document.getElementById('prop-modal');
     var overlay = document.getElementById('modal-overlay');
-    var selectTipo = document.getElementById('select-tipo-col');
+    var tipoRadios = Array.prototype.slice.call(modal.querySelectorAll('input[name="stock-col-tipo"]'));
+    var propSubtitle = modal.querySelector('[data-prop-subtitle]');
     var configContador = document.getElementById('config-contador');
     var inputUnidad = document.getElementById('input-unidad');
     var guardarProp = document.getElementById('btn-guardar-prop');
     var cancelarProp = document.getElementById('btn-cancelar-prop');
+    var cerrarProp = document.getElementById('btn-cerrar-prop');
     var dropZone = document.getElementById('drop-zone');
     var fileInput = document.getElementById('file-input');
-    var popupHost = document.getElementById('stock-popups');
     var columnMenu = document.getElementById('column-menu');
     var confirmDialog = document.getElementById('stock-confirm');
     var confirmMessage = document.getElementById('stock-confirm-message');
@@ -154,6 +235,9 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
     var cancelDelete = document.getElementById('btn-cancel-delete');
     var columnaMenuActiva = null;
     var tablaPendienteEliminar = null;
+    var columnMenuTimer = null;
+    var columnHighlight = null;
+    var menuGlobalHighlight = null;
 
     function escapeHtml(value) {
         return String(value)
@@ -168,33 +252,167 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         return tipo === 'contador' ? '#' : 'T';
     }
 
-    function mostrarPopup(mensaje, tipo, accionTexto, accionCallback) {
-        if (!popupHost) return;
+    /* ── Capas modales ────────────────────────────────────────────────────
+       Abren y cierran con transicion: el atributo [hidden] se saca antes de
+       animar y se repone recien cuando termina la salida, asi el dialogo no
+       desaparece de golpe. El overlay se comparte entre todas las capas. */
+    function capaActiva() {
+        return (modal && modal.classList.contains('is-open')) ||
+            (confirmDialog && confirmDialog.classList.contains('is-open'));
+    }
 
-        var popup = document.createElement('div');
-        popup.className = 'stock-popup stock-popup--' + (tipo || 'info');
-        popup.innerHTML = '<span>' + escapeHtml(mensaje) + '</span>';
+    function abrirCapa(el) {
+        if (!el) return;
 
-        if (accionTexto && typeof accionCallback === 'function') {
-            var button = document.createElement('button');
-            button.type = 'button';
-            button.textContent = accionTexto;
-            button.addEventListener('click', function () {
-                accionCallback();
-                popup.remove();
-            });
-            popup.appendChild(button);
+        if (el._stockCloseTimer) {
+            window.clearTimeout(el._stockCloseTimer);
+            el._stockCloseTimer = null;
         }
 
-        popupHost.appendChild(popup);
+        el.hidden = false;
+        if (overlay) overlay.hidden = false;
+        void el.offsetWidth;
+        if (overlay) overlay.classList.add('is-open');
+        el.classList.add('is-open');
+    }
 
-        window.setTimeout(function () {
-            if (!popup.isConnected) return;
-            popup.classList.add('is-hiding');
-            window.setTimeout(function () {
-                popup.remove();
-            }, 180);
-        }, 2800);
+    function cerrarCapa(el) {
+        if (!el || el.hidden) return;
+
+        el.classList.remove('is-open');
+        if (overlay && !capaActiva()) overlay.classList.remove('is-open');
+
+        el._stockCloseTimer = window.setTimeout(function () {
+            el.hidden = true;
+            el._stockCloseTimer = null;
+            if (overlay && !capaActiva()) overlay.hidden = true;
+        }, 180);
+    }
+
+    /* ── Recuadro flotante de la celda enfocada ───────────────────────────
+       Vive dentro de .tabla-canvas (que es position:relative) y se comparte
+       entre todas las celdas de esa tabla, asi el salto de una a otra es un
+       desplazamiento y no un borde que se apaga y otro que se prende. */
+    var celdaHl = null;
+
+    function highlightDeCanvas(canvas) {
+        var hl = canvas.querySelector(':scope > .cell-hl');
+
+        if (!hl) {
+            hl = document.createElement('span');
+            hl.className = 'cell-hl';
+            hl.setAttribute('aria-hidden', 'true');
+            canvas.appendChild(hl);
+        }
+
+        return hl;
+    }
+
+    function ocultarCeldaActiva() {
+        if (!celdaHl) return;
+        celdaHl.classList.remove('is-visible');
+        celdaHl = null;
+    }
+
+    function moverCeldaActiva(celda) {
+        var canvas = celda.closest('.tabla-canvas');
+        if (!canvas) return;
+
+        var hl = highlightDeCanvas(canvas);
+
+        // Cambiar de tabla apaga el recuadro anterior: no puede viajar entre
+        // dos canvas distintos.
+        if (celdaHl && celdaHl !== hl) celdaHl.classList.remove('is-visible');
+
+        var box = celda.getBoundingClientRect();
+        var base = canvas.getBoundingClientRect();
+        var entrando = celdaHl !== hl;
+
+        if (entrando) hl.classList.add('is-placing');
+
+        hl.style.width = box.width + 'px';
+        hl.style.height = box.height + 'px';
+        hl.style.transform = 'translate3d(' + (box.left - base.left) + 'px,' + (box.top - base.top) + 'px,0)';
+
+        if (entrando) {
+            void hl.offsetWidth;
+            hl.classList.remove('is-placing');
+        }
+
+        hl.classList.add('is-visible');
+        celdaHl = hl;
+    }
+
+    /* ── Highlight deslizante (mismo efecto que el sidebar y el header) ───
+       Una sola superficie que viaja entre los items del menu en vez de que
+       cada uno prenda su propio fondo. La geometria sale del item apuntado;
+       el color, del currentColor del contenedor. */
+    function montarHighlight(container, selector) {
+        if (!container) return null;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return null;
+
+        var hl = document.createElement('span');
+        hl.className = 'nav-hl';
+        hl.setAttribute('aria-hidden', 'true');
+        container.appendChild(hl);
+        container.classList.add('has-hl');
+
+        var visible = false;
+
+        function moveTo(target) {
+            var box = target.getBoundingClientRect();
+            var base = container.getBoundingClientRect();
+
+            if (!visible) hl.classList.add('is-placing');
+
+            hl.style.width = box.width + 'px';
+            hl.style.height = box.height + 'px';
+            hl.style.transform = 'translate3d(' + (box.left - base.left) + 'px,' + (box.top - base.top) + 'px,0)';
+            hl.style.borderRadius = window.getComputedStyle(target).borderRadius;
+
+            if (!visible) {
+                void hl.offsetWidth;
+                hl.classList.remove('is-placing');
+                visible = true;
+            }
+
+            hl.classList.add('is-visible');
+        }
+
+        function hide() {
+            visible = false;
+            hl.classList.remove('is-visible');
+        }
+
+        container.addEventListener('mouseover', function (event) {
+            var target = event.target.closest(selector);
+            if (target && container.contains(target)) moveTo(target);
+        });
+        container.addEventListener('mouseleave', hide);
+        window.addEventListener('resize', hide);
+
+        return { hide: hide };
+    }
+
+    var TOAST_MS = 2000;
+
+    /* Los avisos del stock usan el mismo toast que el resto del proyecto
+       (arriba a la derecha, con entrada y salida animadas y barra de vida),
+       en vez de una pila propia abajo. prevcs-ui.js se carga con defer, asi
+       que recien existe despues de este script: solo se llama desde acciones
+       del usuario, pero igual se comprueba antes de usarlo. */
+    function mostrarPopup(mensaje, tipo, accionTexto, accionCallback) {
+        var toast = window.PrevcsToast;
+        if (!toast || typeof toast.show !== 'function') return;
+
+        var accion = null;
+        if (accionTexto && typeof accionCallback === 'function') {
+            accion = { label: accionTexto, onClick: accionCallback };
+        }
+
+        // El toast compartido solo distingue error de exito.
+        var esError = tipo === 'error' || tipo === 'warning';
+        toast.show(mensaje, esError ? 'error' : 'success', TOAST_MS, accion);
     }
 
     function chevronSvg(direction) {
@@ -202,6 +420,14 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
         return '<svg class="contador-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
             '<path d="' + path + '" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '</svg>';
+    }
+
+    function dotsSvg() {
+        return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+            '<circle cx="12" cy="5" r="1.85"/>' +
+            '<circle cx="12" cy="12" r="1.85"/>' +
+            '<circle cx="12" cy="19" r="1.85"/>' +
         '</svg>';
     }
 
@@ -220,7 +446,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
                 '<div class="col-header-content">' +
                     '<span class="column-kind" data-col-icon>' + iconoTipo(columnType) + '</span>' +
                     '<span class="col-name" data-editable="true">' + escapeHtml(nombre) + '</span>' +
-                    '<button class="col-menu-btn" type="button" data-action="column-menu" aria-label="Menu de columna">&#8942;</button>' +
+                    '<button class="col-menu-btn" type="button" data-action="column-menu" aria-label="Menu de columna" aria-haspopup="true" aria-expanded="false">' + dotsSvg() + '</button>' +
                 '</div>' +
             '</th>';
     }
@@ -232,11 +458,36 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             '<div class="contador-wrapper">' +
                 '<div class="contador-controls">' +
                     '<button class="contador-btn" type="button" data-counter-delta="1" aria-label="Sumar">' + chevronSvg('up') + '</button>' +
-                    '<input type="number" inputmode="numeric" class="contador-input" value="0" min="0">' +
+                    '<input type="text" inputmode="numeric" pattern="[0-9]*" class="contador-input" value="0" autocomplete="off">' +
                     '<button class="contador-btn" type="button" data-counter-delta="-1" aria-label="Restar">' + chevronSvg('down') + '</button>' +
                 '</div>' +
                 '<span class="unidad-label" data-editable-unidad="true">' + escapeHtml(label) + '</span>' +
             '</div>';
+    }
+
+    function botonEliminarFila() {
+        return '<button class="btn-eliminar-fila" type="button" data-action="delete-row" aria-label="Eliminar fila" title="Eliminar fila">' +
+            '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+                '<path d="M7 7l10 10M17 7L7 17" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/>' +
+            '</svg>' +
+        '</button>';
+    }
+
+    /* La cruz de borrar vive en la primera celda de cada fila y se dibuja en
+       el margen izquierdo del canvas. Como insertar o borrar columnas cambia
+       cual es "la primera", se rehace despues de cada cambio estructural en
+       vez de intentar seguirle el rastro. */
+    function sincronizarBotonesFila(tabla) {
+        if (!tabla) return;
+
+        tabla.querySelectorAll('tbody tr').forEach(function (tr) {
+            tr.querySelectorAll('.btn-eliminar-fila').forEach(function (btn) {
+                btn.remove();
+            });
+
+            var primera = tr.firstElementChild;
+            if (primera) primera.insertAdjacentHTML('beforeend', botonEliminarFila());
+        });
     }
 
     function generarTd(tipo, unidad, texto, placeholder) {
@@ -265,14 +516,16 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             '<header class="tabla-header">' +
                 '<div class="tabla-title-group">' +
                     '<span class="tabla-icon" aria-hidden="true">' +
-                        '<svg viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M5 10h14M5 15h14M10 4v16M15 4v16" stroke="currentColor" stroke-width="1.8"/></svg>' +
+                        '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke="currentColor" stroke-width="1.7"/></svg>' +
                     '</span>' +
                     '<h2 class="tabla-titulo" data-editable="true">Tabla Interactiva ' + contadorTablas + '</h2>' +
                     '<span class="tabla-meta" data-table-meta></span>' +
                 '</div>' +
                 '<div class="tabla-actions">' +
                     '<span class="tabla-mode" data-table-mode>Modo lectura interactivo</span>' +
-                    '<button class="btn-eliminar-tabla" type="button" data-action="delete-table">Eliminar</button>' +
+                    '<button class="btn-eliminar-tabla" type="button" data-action="delete-table" aria-label="Eliminar tabla" title="Eliminar tabla">' +
+                        '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                    '</button>' +
                 '</div>' +
             '</header>' +
             '<div class="tabla-scroll">' +
@@ -338,14 +591,16 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             '<header class="tabla-header">' +
                 '<div class="tabla-title-group">' +
                     '<span class="tabla-icon" aria-hidden="true">' +
-                        '<svg viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M5 10h14M5 15h14M10 4v16M15 4v16" stroke="currentColor" stroke-width="1.8"/></svg>' +
+                        '<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke="currentColor" stroke-width="1.7"/></svg>' +
                     '</span>' +
                     '<h2 class="tabla-titulo" data-editable="true">' + escapeHtml(nombreArchivo.replace(/\.[^/.]+$/, '')) + '</h2>' +
                     '<span class="tabla-meta" data-table-meta></span>' +
                 '</div>' +
                 '<div class="tabla-actions">' +
                     '<span class="tabla-mode" data-table-mode>Modo lectura interactivo</span>' +
-                    '<button class="btn-eliminar-tabla" type="button" data-action="delete-table">Eliminar</button>' +
+                    '<button class="btn-eliminar-tabla" type="button" data-action="delete-table" aria-label="Eliminar tabla" title="Eliminar tabla">' +
+                        '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                    '</button>' +
                 '</div>' +
             '</header>' +
             '<div class="tabla-scroll">' +
@@ -410,6 +665,8 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         var meta = wrapper.querySelector('[data-table-meta]');
         var mode = wrapper.querySelector('[data-table-mode]');
 
+        sincronizarBotonesFila(table);
+
         if (meta) meta.textContent = '';
 
         if (mode) {
@@ -432,12 +689,35 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             elemento.setAttribute('contenteditable', modoEdicion ? 'true' : 'false');
         });
 
-        if (dropZone) {
-            dropZone.style.display = modoEdicion ? 'block' : 'none';
-        }
+        // En modo lectura el numero sigue siendo interactivo por los chevrones,
+        // pero no debe recibir el foco: si no, al tocarlo aparece el cursor de
+        // escritura sobre un valor que no se puede tipear.
+        document.querySelectorAll('.contador-input').forEach(function (input) {
+            input.readOnly = !modoEdicion;
+            input.tabIndex = modoEdicion ? 0 : -1;
+            ajustarAnchoContador(input);
+        });
+
+        if (!modoEdicion) ocultarCeldaActiva();
 
         toggleModo.textContent = modoEdicion ? 'Salir de edicion' : 'Activar modo edicion';
         actualizarTodoMeta();
+    }
+
+    /* Marca los nodos recien insertados para que el CSS los anime al entrar
+       y limpia la clase cuando termina, asi no se reanima en cada repaint. */
+    function animarEntrada(nodes, className) {
+        if (!nodes.length) return;
+
+        nodes.forEach(function (node) {
+            node.classList.add(className);
+        });
+
+        window.setTimeout(function () {
+            nodes.forEach(function (node) {
+                node.classList.remove(className);
+            });
+        }, 420);
     }
 
     function agregarFila(tabla) {
@@ -449,18 +729,46 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         });
 
         tabla.querySelector('tbody').appendChild(tr);
+        animarEntrada([tr], 'is-entering');
         actualizarAtributosEditables();
         actualizarMeta(tabla.closest('.tabla-wrapper'));
     }
 
+    function eliminarFila(tr, tabla) {
+        if (!tr || !tabla) return;
+
+        if (tabla.querySelectorAll('tbody tr').length <= 1) {
+            mostrarPopup('La tabla debe tener al menos una fila', 'error');
+            return;
+        }
+
+        var wrapper = tabla.closest('.tabla-wrapper');
+
+        ocultarCeldaActiva();
+        tr.classList.add('is-leaving');
+
+        window.setTimeout(function () {
+            tr.remove();
+            actualizarMeta(wrapper);
+        }, 240);
+
+        mostrarPopup('Fila eliminada', 'info');
+    }
+
     function agregarColumna(tabla) {
         var thCount = tabla.querySelectorAll('thead th').length + 1;
-        tabla.querySelector('thead tr').insertAdjacentHTML('beforeend', generarTh('Columna ' + thCount, 'texto', ''));
+        var headerRow = tabla.querySelector('thead tr');
+        var nuevos = [];
+
+        headerRow.insertAdjacentHTML('beforeend', generarTh('Columna ' + thCount, 'texto', ''));
+        nuevos.push(headerRow.lastElementChild);
 
         tabla.querySelectorAll('tbody tr').forEach(function (tr) {
             tr.insertAdjacentHTML('beforeend', generarTd('texto', ''));
+            nuevos.push(tr.lastElementChild);
         });
 
+        animarEntrada(nuevos, 'is-entering-col');
         actualizarAtributosEditables();
         actualizarMeta(tabla.closest('.tabla-wrapper'));
     }
@@ -475,14 +783,17 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         var thCount = tabla.querySelectorAll('thead th').length + 1;
         var headerRow = tabla.querySelector('thead tr');
         var newTh = crearNodoHtml(generarTh('Columna ' + thCount, 'texto', ''));
+        var nuevos = [newTh];
 
         headerRow.insertBefore(newTh, headerRow.children[index] || null);
 
         tabla.querySelectorAll('tbody tr').forEach(function (tr) {
             var newTd = crearNodoHtml(generarTd('texto', '', '', 'Insertar texto'));
             tr.insertBefore(newTd, tr.children[index] || null);
+            nuevos.push(newTd);
         });
 
+        animarEntrada(nuevos, 'is-entering-col');
         actualizarAtributosEditables();
         actualizarMeta(tabla.closest('.tabla-wrapper'));
     }
@@ -491,15 +802,48 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         columnaMenuActiva = button.closest('th');
         if (!columnaMenuActiva || !columnMenu) return;
 
+        // Un solo desplegable abierto por vez: el del contenedor se cierra.
+        toggleMenu(false);
+
+        if (columnMenuTimer) {
+            window.clearTimeout(columnMenuTimer);
+            columnMenuTimer = null;
+        }
+
         var rect = button.getBoundingClientRect();
         columnMenu.hidden = false;
-        columnMenu.style.left = Math.min(rect.left - 126, window.innerWidth - 246) + 'px';
-        columnMenu.style.top = rect.bottom + 8 + 'px';
+        columnMenu.style.left = Math.max(12, Math.min(rect.left, window.innerWidth - columnMenu.offsetWidth - 12)) + 'px';
+        columnMenu.style.top = Math.min(rect.bottom + 6, window.innerHeight - columnMenu.offsetHeight - 12) + 'px';
+
+        // El menu nace transparente y encogido: hay que fijar la posicion
+        // antes de prender .is-open para que la entrada anime desde ahi.
+        void columnMenu.offsetWidth;
+        columnMenu.classList.add('is-open');
+
+        marcarBotonColumna(button);
+    }
+
+    // El boton de la columna abierta queda resaltado mientras dura el menu.
+    function marcarBotonColumna(button) {
+        document.querySelectorAll('.col-menu-btn[aria-expanded="true"]').forEach(function (btn) {
+            if (btn !== button) btn.setAttribute('aria-expanded', 'false');
+        });
+
+        if (button) button.setAttribute('aria-expanded', 'true');
     }
 
     function cerrarMenuColumna() {
-        if (columnMenu) columnMenu.hidden = true;
         columnaMenuActiva = null;
+        marcarBotonColumna(null);
+        if (!columnMenu || columnMenu.hidden) return;
+
+        columnMenu.classList.remove('is-open');
+        if (columnHighlight) columnHighlight.hide();
+
+        columnMenuTimer = window.setTimeout(function () {
+            columnMenu.hidden = true;
+            columnMenuTimer = null;
+        }, 160);
     }
 
     function ejecutarAccionColumna(action) {
@@ -554,19 +898,17 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
     function pedirEliminarTabla(wrapper) {
         if (document.querySelectorAll('.tabla-wrapper').length <= 1) {
-            mostrarPopup('Debe quedar al menos una tabla', 'error');
+            mostrarPopup('No se pueden eliminar todas las tablas. Debe quedar al menos una.', 'error');
             return;
         }
 
         tablaPendienteEliminar = wrapper;
         if (confirmMessage) confirmMessage.textContent = 'Seguro que queres eliminar esta tabla?';
-        if (confirmDialog) confirmDialog.hidden = false;
-        if (overlay) overlay.hidden = false;
+        abrirCapa(confirmDialog);
     }
 
     function cerrarConfirmacion() {
-        if (confirmDialog) confirmDialog.hidden = true;
-        if (overlay) overlay.hidden = true;
+        cerrarCapa(confirmDialog);
         tablaPendienteEliminar = null;
     }
 
@@ -597,11 +939,47 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         value += delta;
         if (value < 0) value = 0;
         input.value = value;
+        ajustarAnchoContador(input);
+    }
+
+    /* El campo crece con la cantidad de digitos: con un ancho fijo el segundo
+       numero quedaba cortado. La unidad, que se achica sola, cede el espacio. */
+    function ajustarAnchoContador(input) {
+        var digitos = Math.max(1, String(input.value).length);
+        input.style.width = (digitos + 0.7) + 'ch';
+    }
+
+    function ajustarAnchoContadores(raiz) {
+        (raiz || document).querySelectorAll('.contador-input').forEach(ajustarAnchoContador);
     }
 
     function validarContador(input) {
-        var value = parseInt(input.value, 10);
-        if (isNaN(value) || value < 0) input.value = 0;
+        var crudo = input.value;
+        var caret = input.selectionStart;
+
+        // Solo digitos. Y el cero inicial se va en cuanto se tipea encima:
+        // arrancando de "0", escribir 1 dejaba "01" en pantalla.
+        var limpio = crudo.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
+        if (limpio === '') limpio = '0';
+
+        if (limpio !== crudo) {
+            var quitados = crudo.length - limpio.length;
+            input.value = limpio;
+
+            // El caret se corre tantos lugares como caracteres se borraron
+            // antes de el, para no mandarlo al principio en cada tecla.
+            var destino = Math.max(0, (caret === null ? limpio.length : caret) - quitados);
+            try { input.setSelectionRange(destino, destino); } catch (e) {}
+        }
+
+        ajustarAnchoContador(input);
+    }
+
+    function tipoSeleccionado() {
+        for (var i = 0; i < tipoRadios.length; i++) {
+            if (tipoRadios[i].checked) return tipoRadios[i].value;
+        }
+        return 'texto';
     }
 
     function abrirModalPropiedades(button) {
@@ -610,24 +988,33 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
         var tipoActual = colActiva.dataset.type || 'texto';
         var unidadActual = colActiva.dataset.unit || 'unidades';
+        var nombreCol = colActiva.querySelector('.col-name');
 
-        selectTipo.value = tipoActual;
+        tipoRadios.forEach(function (radio) {
+            radio.checked = radio.value === tipoActual;
+        });
+
+        if (propSubtitle) {
+            var nombre = nombreCol ? nombreCol.textContent.trim() : '';
+            propSubtitle.textContent = nombre
+                ? 'Configurando "' + nombre + '"'
+                : 'Configurando la columna';
+        }
+
         inputUnidad.value = unidadActual;
         configContador.hidden = tipoActual !== 'contador';
-        modal.hidden = false;
-        overlay.hidden = false;
+        abrirCapa(modal);
     }
 
     function cerrarModal() {
-        modal.hidden = true;
-        overlay.hidden = true;
+        cerrarCapa(modal);
         colActiva = null;
     }
 
     function guardarPropiedades() {
         if (!colActiva) return;
 
-        var nuevoTipo = selectTipo.value;
+        var nuevoTipo = tipoSeleccionado();
         var nuevaUnidad = inputUnidad.value.trim() || 'unidades';
         var colIndex = Array.prototype.indexOf.call(colActiva.parentElement.children, colActiva);
         var tabla = colActiva.closest('table');
@@ -659,10 +1046,12 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         var next = typeof show === 'boolean' ? show : !menuGlobal.classList.contains('active');
         menuGlobal.classList.toggle('active', next);
         menuButton.setAttribute('aria-expanded', next ? 'true' : 'false');
+        if (!next && menuGlobalHighlight) menuGlobalHighlight.hide();
     }
 
     menuButton.addEventListener('click', function (event) {
         event.stopPropagation();
+        cerrarMenuColumna();
         toggleMenu();
     });
 
@@ -727,12 +1116,15 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         });
     }
 
-    selectTipo.addEventListener('change', function () {
-        configContador.hidden = selectTipo.value !== 'contador';
+    tipoRadios.forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            configContador.hidden = tipoSeleccionado() !== 'contador';
+        });
     });
 
     guardarProp.addEventListener('click', guardarPropiedades);
     cancelarProp.addEventListener('click', cerrarModal);
+    if (cerrarProp) cerrarProp.addEventListener('click', cerrarModal);
     if (confirmDelete) confirmDelete.addEventListener('click', confirmarEliminarTabla);
     if (cancelDelete) cancelDelete.addEventListener('click', cerrarConfirmacion);
     overlay.addEventListener('click', function () {
@@ -764,6 +1156,8 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
         if (action === 'column-menu') {
             abrirMenuColumna(actionButton);
+        } else if (action === 'delete-row' && tabla) {
+            eliminarFila(actionButton.closest('tr'), tabla);
         } else if (action === 'add-row' && tabla) {
             agregarFila(tabla);
         } else if (action === 'add-col' && tabla) {
@@ -785,6 +1179,36 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             event.target.blur();
         }
     });
+
+    columnHighlight = montarHighlight(columnMenu, '[data-column-action]');
+    menuGlobalHighlight = montarHighlight(menuGlobal, '.dropdown-item');
+
+    /* ── Recuadro de la celda en edicion ──────────────────────────────────
+       En vez de prender un borde por celda hay un solo recuadro por tabla
+       que viaja hasta la celda enfocada, igual que el highlight del menu.
+       Las celdas de contador quedan afuera: ahi el borde molesta. */
+    tablasContainer.addEventListener('focusin', function (event) {
+        var editable = event.target.closest('[contenteditable="true"]');
+        var celda = editable ? editable.closest('td') : null;
+
+        // Solo texto editable dentro de una celda del cuerpo: los titulos de
+        // columna y de tabla, los botones y los contadores no llevan recuadro.
+        if (!celda || celda.querySelector('.contador-wrapper')) {
+            ocultarCeldaActiva();
+            return;
+        }
+
+        moverCeldaActiva(celda);
+    });
+
+    tablasContainer.addEventListener('focusout', function () {
+        window.setTimeout(function () {
+            var activo = document.activeElement;
+            if (!activo || !tablasContainer.contains(activo)) ocultarCeldaActiva();
+        }, 0);
+    });
+
+    window.addEventListener('resize', ocultarCeldaActiva);
 
     crearNuevaTabla();
 })();

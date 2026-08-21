@@ -514,6 +514,19 @@ body[data-theme="dark"] .folder-btn { background: rgba(235, 252, 254, 0.1); }
   font-family: var(--font-sans, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
 }
 
+/* Las capas flotantes cuelgan de .content-area, asi que heredaban la entrada
+   en cascada de los bloques de contenido (`pageEntry`, styles.css). Esa
+   animacion termina en `transform: none` y, al ganarle una animacion a una
+   declaracion normal, pisaba el `translate(-50%, -50%)` del modal: el dialogo
+   quedaba con su esquina —no su centro— sobre el centro de la pantalla. Son
+   capas fixed, no bloques de la pagina: no entran en cascada. */
+.content-area > .stock-modal-overlay,
+.content-area > .stock-modal,
+.content-area > .stock-confirm,
+.content-area > .column-menu {
+  animation: none;
+}
+
 .stock-interactive-card {
   --stock-bg: var(--bg-card, #ffffff);
   --stock-soft: var(--bg-card-soft, #f5f5f5);
@@ -523,6 +536,9 @@ body[data-theme="dark"] .folder-btn { background: rgba(235, 252, 254, 0.1); }
   --stock-faint: var(--text-faint, #999999);
   --stock-hover: color-mix(in oklab, var(--text-primary, #333333) 5%, transparent);
   --stock-primary: var(--accent, #007bff);
+  /* El foco de celda usa el verde de la app, no un celeste de sistema. */
+  --stock-focus: var(--accent, #007bff);
+  --stock-focus-ring: var(--accent-ring, rgba(0,123,255,.18));
 
   color: var(--stock-text);
   background: var(--stock-bg);
@@ -530,57 +546,109 @@ body[data-theme="dark"] .folder-btn { background: rgba(235, 252, 254, 0.1); }
   border-radius: 8px;
   padding: 20px;
   box-shadow: var(--card-shadow, 0 1px 3px rgba(0,0,0,0.05));
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
 }
 
 body[data-theme="dark"] .stock-interactive-card {
   --stock-hover: color-mix(in oklab, var(--text-primary, #ffffff) 8%, transparent);
 }
 
+.stock-feature-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.stock-feature-head h2 {
+  margin: 0;
+  color: var(--stock-text);
+  font-size: 1.12rem;
+  font-weight: 750;
+}
+
 .stock-global-header {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 20px;
   position: relative;
 }
 
+/* Caja cuadrada: con padding asimetrico el boton se leia estirado y el
+   glifo de tres puntos quedaba fuera del centro optico. */
 .stock-menu-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  padding: 0;
   background: transparent;
   border: 0;
-  color: var(--stock-text);
+  border-radius: 9px;
+  color: var(--stock-muted);
   cursor: pointer;
-  font-size: 24px;
-  line-height: 1;
-  padding: 5px 10px;
-  border-radius: 5px;
+  line-height: 0;
+  transition: background-color 160ms ease, color 160ms ease;
 }
-.stock-menu-btn:hover { background: var(--stock-hover); }
+.stock-menu-btn svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.stock-menu-btn:hover,
+.stock-menu-btn[aria-expanded="true"] {
+  background: var(--stock-hover);
+  color: var(--stock-text);
+}
 
+/* Mismo panel que el dropdown del header: caja con padding propio e items
+   redondeados, para que el highlight deslizante (.nav-hl) tenga por donde
+   viajar sin cortarse contra separadores. */
 .stock-interactive-card .dropdown-menu {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   position: absolute;
-  top: 40px;
+  top: calc(100% + 8px);
   right: 0;
   z-index: 100;
-  min-width: 190px;
-  overflow: hidden;
-  background: var(--stock-bg);
-  border: 1px solid var(--stock-border);
-  border-radius: 8px;
-  box-shadow: var(--shadow, 0 4px 6px rgba(0,0,0,0.1));
+  min-width: 210px;
+  padding: 6px;
+  pointer-events: none;
+  background: var(--bg-card, #fff);
+  border: 1px solid var(--hair, rgba(0,0,0,.07));
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--shadow-lg, 0 4px 6px rgba(0,0,0,0.1));
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--transition-fast, 190ms ease), transform var(--transition-fast, 190ms ease);
 }
-.stock-interactive-card .dropdown-menu.active { display: block; }
+.stock-interactive-card .dropdown-menu.active {
+  pointer-events: auto;
+  opacity: 1;
+  transform: none;
+}
 
 .stock-interactive-card .dropdown-item {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
-  padding: 10px 15px;
-  border-bottom: 1px solid var(--stock-border);
-  color: var(--stock-text);
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--radius-md, 10px);
+  color: color-mix(in oklab, var(--stock-text) 80%, transparent);
   cursor: pointer;
-  font-size: 14px;
+  font: inherit;
+  font-size: 15px;
+  background: transparent;
+  text-align: left;
+  transition: background var(--transition-fast, 190ms ease), color var(--transition-fast, 190ms ease);
 }
-.stock-interactive-card .dropdown-item:last-child { border-bottom: 0; }
-.stock-interactive-card .dropdown-item:hover { background: var(--stock-hover); }
+.stock-interactive-card .dropdown-item:hover { background: var(--stock-hover); color: var(--stock-text); }
+/* Con el highlight montado el fondo propio sobra: se sumarian los dos. */
+.stock-interactive-card .dropdown-menu.has-hl .dropdown-item:hover { background: transparent; }
 
 #btn-nueva-tabla { display: none; }
 .stock-interactive-card.modo-edicion #btn-nueva-tabla { display: block; }
@@ -589,6 +657,7 @@ body[data-theme="dark"] .stock-interactive-card {
   display: flex;
   flex-direction: column;
   gap: 24px;
+  min-width: 0;
 }
 
 .stock-interactive-card .tabla-wrapper {
@@ -596,8 +665,10 @@ body[data-theme="dark"] .stock-interactive-card {
   border: 1px solid var(--stock-border);
   border-radius: 8px;
   padding: 20px 20px 24px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: var(--card-shadow, 0 1px 3px rgba(0,0,0,0.05));
+  animation: stockTableIn 220ms ease both;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .stock-interactive-card .tabla-header {
@@ -615,22 +686,24 @@ body[data-theme="dark"] .stock-interactive-card {
   min-width: 0;
 }
 
+/* Icono neutro y sin pastilla de color: acompana al titulo igual que el
+   resto de los iconos de la app, sin competir con el acento. */
 .tabla-icon {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   flex: 0 0 auto;
-  border-radius: 8px;
-  background: var(--accent-soft, rgba(0,123,255,.12));
-  color: var(--stock-primary);
+  color: var(--stock-faint);
 }
-.tabla-icon svg { width: 17px; height: 17px; }
+.tabla-icon svg { width: 20px; height: 20px; }
 
+/* Solo el texto: sin caja, sin fondo y sin marco al enfocarlo. */
 .stock-interactive-card .tabla-titulo {
   margin: 0;
-  padding: 5px;
-  border-radius: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--stock-text);
   font-size: 1.05rem;
   font-weight: 700;
@@ -638,19 +711,8 @@ body[data-theme="dark"] .stock-interactive-card {
   overflow-wrap: anywhere;
 }
 
-.stock-interactive-card.modo-edicion .tabla-titulo:hover,
-.stock-interactive-card.modo-edicion .tabla-titulo:focus {
-  background: var(--stock-hover);
-}
-
 .tabla-meta {
-  flex: 0 0 auto;
-  padding: 4px 9px;
-  border-radius: 8px;
-  background: var(--stock-soft);
-  color: var(--stock-muted);
-  font-family: var(--font-mono, monospace);
-  font-size: 12px;
+  display: none;
 }
 
 .tabla-actions {
@@ -666,49 +728,86 @@ body[data-theme="dark"] .stock-interactive-card {
   white-space: nowrap;
 }
 
+/* Solo el icono: gris en reposo, y al pasar por encima se tine de rojo y
+   crece apenas. Nada de pastilla de fondo ni de borde. */
 .stock-interactive-card .btn-eliminar-tabla {
   display: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   border: 0;
   background: transparent;
-  color: var(--error, red);
+  color: var(--stock-faint);
   cursor: pointer;
+  line-height: 0;
+  transition: color 150ms ease, transform 150ms ease;
 }
-.stock-interactive-card.modo-edicion .btn-eliminar-tabla { display: block; }
+.stock-interactive-card .btn-eliminar-tabla svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+.stock-interactive-card .btn-eliminar-tabla:hover,
+.stock-interactive-card .btn-eliminar-tabla:focus-visible {
+  background: transparent;
+  color: var(--error, #d33);
+  transform: scale(1.12);
+  outline: none;
+  box-shadow: none;
+}
+.stock-interactive-card.modo-edicion .btn-eliminar-tabla { display: grid; }
 
 .tabla-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+  overflow: visible;
 }
 
 .tabla-canvas {
   position: relative;
   display: block;
+  box-sizing: border-box;
+  width: 100%;
   min-width: 100%;
-  padding-bottom: 34px;
+  padding-right: 0;
+  padding-bottom: 0;
+  overflow: visible;
+  transition: padding 180ms ease;
+}
+/* En edicion el canvas abre tres margenes: izquierda para las cruces de
+   fila, derecha para sumar columna y abajo para sumar fila. */
+.stock-interactive-card.modo-edicion .tabla-canvas {
+  padding-left: 34px;
+  padding-right: 38px;
+  padding-bottom: 38px;
 }
 
 .stock-interactive-card table {
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  transition: width 180ms ease;
 }
 
 .stock-interactive-card th,
 .stock-interactive-card td {
-  min-width: 140px;
+  min-width: 0;
   height: 44px;
-  padding: 11px 18px;
+  padding: 13px 22px;
   border: 0;
   border-left: 1px solid var(--stock-border);
+  border-bottom: 1px solid var(--stock-border);
   color: var(--stock-text);
   position: relative;
   text-align: left;
   vertical-align: middle;
+  transition: background-color 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
 }
 
 .stock-interactive-card th:first-child,
 .stock-interactive-card td:first-child {
   border-left: 0;
+  padding-left: 30px;
 }
 
 .stock-interactive-card th {
@@ -718,14 +817,88 @@ body[data-theme="dark"] .stock-interactive-card {
 }
 
 .stock-interactive-card tbody td {
-  border-bottom: 0;
+  background: var(--stock-bg);
+}
+.stock-interactive-card tbody tr:last-child td {
+  border-bottom: 1px solid var(--stock-border);
+}
+/* El foco de celda ya no lo dibuja la propia celda: lo hace .cell-hl, un
+   unico recuadro por tabla que se desliza hasta la celda activa. Asi el
+   salto entre celdas es un movimiento y no un parpadeo de bordes. */
+.cell-hl {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  z-index: 6;
+  border: 2px solid var(--stock-focus);
+  border-radius: 7px;
+  box-shadow: 0 0 0 3px var(--stock-focus-ring);
+  background: color-mix(in oklab, var(--stock-focus) 5%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 280ms cubic-bezier(.22, 1, .36, 1),
+    width     280ms cubic-bezier(.22, 1, .36, 1),
+    height    280ms cubic-bezier(.22, 1, .36, 1),
+    opacity   150ms linear;
+}
+.cell-hl.is-visible { opacity: 1; }
+/* La primera aparicion se coloca sin transicion: si no, el recuadro viaja
+   desde la esquina superior izquierda de la tabla. */
+.cell-hl.is-placing { transition: none; }
+
+/* Campos que se editan en linea: invisibles hasta que se escribe en ellos.
+   El `:focus-visible` global (styles.css) les pintaba un halo de acento con
+   `box-shadow`, no con `outline`, asi que apagar el contorno no alcanzaba.
+   El unico indicador de foco es el recuadro de celda, y en los titulos —de
+   columna y de tabla— tampoco va: ahi se edita el texto pelado. */
+.stock-interactive-card [contenteditable]:focus,
+.stock-interactive-card [contenteditable]:focus-visible,
+.stock-interactive-card .col-name:focus,
+.stock-interactive-card .col-name:focus-visible,
+.stock-interactive-card .tabla-titulo:focus,
+.stock-interactive-card .tabla-titulo:focus-visible,
+.stock-interactive-card .unidad-label:focus,
+.stock-interactive-card .unidad-label:focus-visible,
+.stock-interactive-card .cell-content:focus,
+.stock-interactive-card .cell-content:focus-visible {
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  border-radius: 0;
+}
+
+/* ── Entrada de filas y columnas nuevas ───────────────────────────────
+   La fila crece de alto y la columna entra desplazandose, en vez de
+   aparecer de golpe al insertarse en el DOM. */
+.stock-interactive-card tbody tr.is-entering > td {
+  animation: stockRowIn 360ms cubic-bezier(.22, 1, .36, 1) both;
+  overflow: hidden;
+}
+.stock-interactive-card tbody tr.is-entering > td > * {
+  animation: stockCellFadeIn 360ms cubic-bezier(.22, 1, .36, 1) both;
+}
+.stock-interactive-card th.is-entering-col,
+.stock-interactive-card td.is-entering-col {
+  animation: stockColIn 340ms cubic-bezier(.22, 1, .36, 1) both;
+}
+.stock-interactive-card tbody tr.is-leaving > td {
+  animation: stockRowOut 240ms cubic-bezier(.4, 0, .2, 1) both;
+  overflow: hidden;
+}
+.stock-interactive-card tbody tr.is-leaving > td > * {
+  opacity: 0;
+  transition: opacity 110ms ease;
 }
 
 .col-header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .column-kind {
@@ -736,74 +909,184 @@ body[data-theme="dark"] .stock-interactive-card {
 
 .col-name {
   flex: 1 1 auto;
+  min-width: 0;
   outline: none;
   overflow-wrap: anywhere;
 }
 
+/* Caja cuadrada y fija: antes heredaba la line-height del th y el glifo
+   de tres puntos estiraba el boton en vertical. */
 .col-menu-btn {
   display: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  padding: 0;
   border: 0;
+  border-radius: 7px;
   background: transparent;
   color: var(--stock-muted);
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
-  padding: 0 5px;
+  line-height: 0;
+  transition: background-color 150ms ease, color 150ms ease;
 }
-.stock-interactive-card.modo-edicion .col-menu-btn { display: inline-flex; }
+.col-menu-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+.stock-interactive-card.modo-edicion .col-menu-btn { display: grid; }
+.col-menu-btn:hover,
+.col-menu-btn[aria-expanded="true"] {
+  background: var(--stock-hover);
+  color: var(--stock-text);
+}
 
 .btn-add {
   position: absolute;
+  inset: 0;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--stock-primary);
-  color: #fff;
+  width: 100%;
+  height: 100%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--stock-primary);
   cursor: pointer;
   font-weight: 700;
+  opacity: .42;
+  transition: background-color 160ms ease, border-color 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+.btn-add:hover,
+.btn-add:focus-visible {
+  background: color-mix(in oklab, var(--stock-primary) 16%, transparent);
+  border-color: color-mix(in oklab, var(--stock-primary) 28%, transparent);
+  opacity: 1;
+  outline: none;
+}
+.btn-add:hover .add-icon { transform: scale(1.1); }
+.add-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 160ms ease;
 }
 
-.btn-add-col { right: 8px; top: 50%; transform: translateY(-50%); }
-.btn-add-row { bottom: 2px; left: 50%; transform: translateX(-50%); }
+.btn-add-col {
+  right: 0;
+  top: 0;
+  width: 30px;
+  height: calc(100% - 38px);
+}
+/* Arranca donde arranca la tabla, no donde arranca el canvas: el margen de
+   34px de la izquierda es de las cruces de fila. */
+.btn-add-row {
+  bottom: 0;
+  left: 34px;
+  width: calc(100% - 72px);
+  height: 30px;
+}
 
-.add-controls { display: none; position: absolute; }
-.stock-interactive-card.modo-edicion .add-controls { display: block; }
+/* ── Cruz para borrar la fila ─────────────────────────────────────────
+   Se ancla a la primera celda pero se dibuja fuera de la tabla, en el
+   margen izquierdo del canvas, para no robarle ancho a las columnas. */
+.btn-eliminar-fila {
+  display: none;
+  place-items: center;
+  position: absolute;
+  top: 50%;
+  left: -34px;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--stock-faint);
+  cursor: pointer;
+  line-height: 0;
+  opacity: .5;
+  transform: translateY(-50%);
+  transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+}
+.btn-eliminar-fila svg { display: block; width: 15px; height: 15px; }
+.stock-interactive-card.modo-edicion tbody td:first-child .btn-eliminar-fila { display: grid; }
+/* Mismo trato que el tacho de la tabla: sin fondo, rojo y un poco mas
+   grande al pasar por encima. */
+.btn-eliminar-fila:hover,
+.btn-eliminar-fila:focus-visible {
+  background: transparent;
+  color: var(--error, #d33);
+  opacity: 1;
+  transform: translateY(-50%) scale(1.12);
+  outline: none;
+  box-shadow: none;
+}
+
+.add-controls {
+  display: none;
+  position: absolute;
+  opacity: 0;
+  transform: scale(.98);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.stock-interactive-card.modo-edicion .add-controls {
+  display: block;
+  opacity: 1;
+  transform: scale(1);
+}
 
 .cell-content {
-  min-height: 20px;
+  min-height: 26px;
+  width: 100%;
   outline: none;
   overflow-wrap: anywhere;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--stock-text);
+  transition: color 150ms ease;
 }
 .cell-content:empty::before {
   content: attr(data-placeholder);
   color: var(--stock-muted);
 }
-.stock-interactive-card.modo-edicion .cell-content:hover { background: var(--stock-hover); }
+.stock-interactive-card.modo-edicion .cell-content:hover,
+.stock-interactive-card.modo-edicion .cell-content:focus {
+  background: transparent;
+  box-shadow: none;
+}
 
 .contador-wrapper {
   display: inline-flex;
   align-items: center;
+  width: min(100%, 210px);
   height: 40px;
   border: 1px solid var(--stock-border);
   border-radius: 10px;
-  background: transparent;
+  background: var(--stock-bg);
   overflow: hidden;
+  max-width: 100%;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
+/* El contador no reacciona al hover ni al foco: en lectura y en edicion se
+   ve siempre igual, sin borde de acento ni halo. */
 
 .contador-controls {
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex: 1 1 auto;
+  gap: clamp(4px, 1.1vw, 16px);
   background: transparent;
   border: 0;
-  min-width: 124px;
+  min-width: 0;
   height: 100%;
-  padding: 0 12px;
+  padding: 0 clamp(6px, 1.2vw, 12px);
 }
 
 .contador-btn {
@@ -811,12 +1094,17 @@ body[data-theme="dark"] .stock-interactive-card {
   place-items: center;
   width: 24px;
   height: 24px;
+  flex: 0 0 auto;
   border: 0;
   background: transparent;
   color: var(--stock-muted);
   cursor: pointer;
   padding: 0;
+  border-radius: 6px;
+  transition: color 150ms ease, background-color 150ms ease, transform 150ms ease;
 }
+/* Los chevrones solo aclaran la tinta al pasar por encima: nada de fondo
+   ni de desplazamiento, para no reintroducir el hover del contador. */
 .contador-btn:hover { color: var(--stock-text); }
 
 .contador-icon {
@@ -824,59 +1112,95 @@ body[data-theme="dark"] .stock-interactive-card {
   height: 18px;
 }
 
+/* No se encoge: dentro del flex, con min-width 0, el campo cedia ancho y
+   cortaba el numero a partir del segundo digito. El ancho real lo pone el JS
+   segun cuantos digitos haya; esto es solo el arranque. */
 .contador-input {
-  width: 36px;
+  flex: 0 0 auto;
+  width: 2.7ch;
+  max-width: 9ch;
+  padding: 0;
   border: 0;
   outline: none;
   background: transparent;
   color: var(--stock-text);
   text-align: center;
+  font-family: inherit;
   font-size: 16px;
   font-weight: 700;
-  -moz-appearance: textfield;
+  transition: color 150ms ease;
 }
-.contador-input::-webkit-outer-spin-button,
-.contador-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.contador-input:focus {
+  box-shadow: none;
+  outline: none;
+}
+/* En modo lectura el numero no se tipea: sin puntero de texto, sin caret y
+   sin seleccion. El click cae en el wrapper y no pasa nada. */
+.contador-input[readonly] {
+  pointer-events: none;
+  caret-color: transparent;
+  user-select: none;
+  cursor: default;
 }
 
 .unidad-label {
   display: flex;
   align-items: center;
   align-self: stretch;
-  padding: 0 12px;
+  flex: 0 1 auto;
+  min-width: 0;
+  padding: 0 clamp(6px, 1vw, 12px);
   border-left: 1px solid var(--stock-border);
   color: var(--stock-muted);
   font-size: 13px;
   outline: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 .stock-interactive-card.modo-edicion .unidad-label {
-  background: color-mix(in oklab, var(--stock-primary) 3%, transparent);
+  background: transparent;
 }
 
 .drop-zone {
   display: none;
+  justify-items: center;
   margin-top: 18px;
-  padding: 14px 16px;
+  padding: 26px 16px 22px;
   border: 1px dashed color-mix(in oklab, var(--stock-primary) 60%, var(--stock-border));
   border-radius: 8px;
   background: color-mix(in oklab, var(--stock-primary) 4%, transparent);
   color: var(--stock-muted);
   text-align: center;
   cursor: pointer;
-  transition: background-color .3s ease, border-color .3s ease;
+  transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
+/* La visibilidad la manda el modo edicion, no un style inline. */
+.stock-interactive-card.modo-edicion .drop-zone { display: grid; }
 .drop-zone.dragover {
   background: color-mix(in oklab, var(--stock-primary) 10%, transparent);
+  transform: translateY(-1px);
 }
+/* Icono suelto, sin pastilla: solo el trazo en el verde de la app. */
+.drop-zone__icon {
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+  color: var(--stock-primary);
+  transition: transform 180ms ease;
+}
+.drop-zone__icon svg { width: 46px; height: 46px; }
+.drop-zone.dragover .drop-zone__icon { transform: translateY(-2px); }
 .drop-zone p {
   margin: 0;
   color: var(--stock-text);
   font-size: .92rem;
   font-weight: 600;
 }
-.drop-zone span {
+/* Por clase y no por etiqueta: `.drop-zone span` tambien alcanzaba al icono
+   y le pisaba el color de acento con el gris del texto. */
+.drop-zone__formats {
   display: block;
   margin-top: 3px;
   color: var(--stock-muted);
@@ -884,110 +1208,407 @@ body[data-theme="dark"] .stock-interactive-card {
 }
 #file-input { display: none; }
 
-.stock-popups {
-  position: fixed;
-  right: 18px;
-  bottom: 18px;
-  z-index: 1200;
-  display: grid;
-  gap: 8px;
-  width: min(320px, calc(100vw - 36px));
-  pointer-events: none;
-}
-
-.stock-popup {
-  padding: 10px 12px;
-  border: 1px solid var(--hair-2, #e0e0e0);
-  border-left: 3px solid var(--accent, #007bff);
-  border-radius: 8px;
-  background: var(--bg-card, #fff);
-  color: var(--text-primary, #333);
-  box-shadow: var(--shadow, 0 10px 24px rgba(0,0,0,.12));
-  font-size: 13px;
-  line-height: 1.35;
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 180ms ease, transform 180ms ease;
-}
-
-.stock-popup.is-hiding {
-  opacity: 0;
-  transform: translateY(6px);
-}
-
-.stock-popup--success { border-left-color: var(--success, #23a455); }
-.stock-popup--warning { border-left-color: var(--warning, #d69000); }
-.stock-popup--error { border-left-color: var(--error, #d33); }
-.stock-popup--info { border-left-color: var(--accent, #007bff); }
-
+/* ══════════════════ Propiedades de columna (modal) ══════════════════
+   Cabecera con icono + subtitulo de contexto, el tipo como dos tarjetas
+   seleccionables y el pie con las dos acciones. Todo sobre los tokens de
+   la app, asi el acento sigue siendo el verde y no un azul suelto. */
 #prop-modal.stock-modal {
   position: fixed;
   top: 50%;
   left: 50%;
   z-index: 1000;
-  width: min(300px, calc(100vw - 32px));
-  padding: 20px;
-  transform: translate(-50%, -50%);
-  border: 1px solid var(--hair-2, #e0e0e0);
-  border-radius: 8px;
+  width: min(440px, calc(100vw - 32px));
+  padding: 22px 22px 18px;
+  border: 1px solid var(--hair, rgba(0,0,0,.07));
+  border-radius: var(--radius-xl, 18px);
   background: var(--bg-card, #fff);
   color: var(--text-primary, #333);
   box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,.2));
+  opacity: 0;
+  transform: translate(-50%, calc(-50% + 10px)) scale(.97);
+  transition:
+    opacity var(--transition-fast, 190ms ease),
+    transform var(--transition-normal, 250ms ease);
+}
+#prop-modal.stock-modal.is-open {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
 }
 #prop-modal.stock-modal[hidden] { display: none !important; }
 #prop-modal.stock-modal:not([hidden]) { display: block !important; }
-#prop-modal h2 {
-  margin: 0 0 14px;
-  font-size: 1.1rem;
-}
 
-.stock-field {
+.stock-modal__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.stock-modal__icon {
   display: grid;
-  gap: 6px;
-  margin-top: 10px;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-md, 10px);
+  background: var(--accent-soft, rgba(0,123,255,.1));
+  color: var(--accent, #007bff);
+}
+.stock-modal__icon svg { width: 21px; height: 21px; }
+.stock-modal__heading { flex: 1 1 auto; min-width: 0; }
+#prop-modal h2 {
+  margin: 0;
+  font-size: 1.14rem;
+  font-weight: var(--font-weight-semibold, 600);
+  letter-spacing: var(--letter-spacing-tight, -0.01em);
+}
+.stock-modal__subtitle {
+  margin: 2px 0 0;
   color: var(--text-muted, #666);
+  font-size: var(--font-size-sm, 14px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stock-modal__close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  margin: -2px -4px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm, 8px);
+  background: transparent;
+  color: var(--text-faint, #999);
+  cursor: pointer;
+  line-height: 0;
+  transition: background var(--transition-fast, 190ms ease), color var(--transition-fast, 190ms ease);
+}
+.stock-modal__close svg { width: 18px; height: 18px; }
+.stock-modal__close:hover {
+  background: color-mix(in oklab, var(--text-primary, #333) 6%, transparent);
+  color: var(--text-primary, #333);
 }
 
-.stock-field select,
-.stock-field input {
+.stock-modal__body {
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.stock-fieldset {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.stock-fieldset[hidden] { display: none !important; }
+.stock-fieldset__label {
+  display: block;
+  padding: 0;
+  margin: 0 0 8px;
+  color: var(--text-muted, #666);
+  font-size: var(--font-size-xs, 12px);
+  font-weight: var(--font-weight-semibold, 600);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.stock-fieldset__help {
+  margin: 7px 0 0;
+  color: var(--text-faint, #999);
+  font-size: var(--font-size-xs, 12px);
+  line-height: var(--line-height-normal, 1.5);
+}
+
+/* Tipo de columna: dos tarjetas radio, la elegida se tinta de acento. */
+.stock-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stock-type-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  border: 1.5px solid var(--hair-2, #e0e0e0);
+  border-radius: var(--radius-md, 10px);
+  background: var(--bg-card, #fff);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast, 190ms ease),
+    background var(--transition-fast, 190ms ease),
+    box-shadow var(--transition-fast, 190ms ease);
+}
+.stock-type-card input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.stock-type-card__icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-sm, 8px);
+  background: color-mix(in oklab, var(--text-primary, #333) 5%, transparent);
+  color: var(--text-muted, #666);
+  transition: background var(--transition-fast, 190ms ease), color var(--transition-fast, 190ms ease);
+}
+.stock-type-card__icon svg { width: 18px; height: 18px; }
+.stock-type-card__text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.stock-type-card__title {
+  color: var(--text-primary, #333);
+  font-size: var(--font-size-sm, 14px);
+  font-weight: var(--font-weight-medium, 500);
+}
+.stock-type-card__hint {
+  color: var(--text-faint, #999);
+  font-size: var(--font-size-xs, 12px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stock-type-card:hover { border-color: var(--hair-2, #d0d0d0); background: var(--bg-card-soft, #fafafa); }
+.stock-type-card:has(input:checked) {
+  border-color: var(--accent, #007bff);
+  background: var(--accent-soft, rgba(0,123,255,.08));
+  box-shadow: 0 0 0 3px var(--accent-ring, rgba(0,123,255,.18));
+}
+.stock-type-card:has(input:checked) .stock-type-card__icon {
+  background: color-mix(in oklab, var(--accent, #007bff) 16%, transparent);
+  color: var(--accent, #007bff);
+}
+.stock-type-card:has(input:focus-visible) { border-color: var(--accent, #007bff); }
+
+.stock-input {
+  display: block;
   width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--hair-2, #e0e0e0);
-  border-radius: 6px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--hair-2, #e0e0e0);
+  border-radius: var(--radius-md, 10px);
   background: var(--input-bg, #fff);
   color: var(--text-primary, #333);
   font: inherit;
+  font-size: var(--font-size-sm, 14px);
+  transition: border-color var(--transition-fast, 190ms ease), box-shadow var(--transition-fast, 190ms ease);
+}
+.stock-input:focus {
+  outline: none;
+  border-color: var(--accent, #007bff);
+  box-shadow: 0 0 0 3px var(--accent-ring, rgba(0,123,255,.18));
 }
 
 .stock-modal__actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 20px;
+  margin-top: 22px;
 }
 
 .stock-modal__btn {
-  padding: 8px 12px;
-  border: 1px solid var(--hair-2, #e0e0e0);
-  border-radius: 6px;
-  background: var(--bg-card-soft, #f5f5f5);
-  color: var(--text-primary, #333);
+  padding: 10px 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md, 10px);
+  background: transparent;
+  color: var(--text-muted, #666);
   cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-sm, 14px);
+  font-weight: var(--font-weight-medium, 500);
+  transition:
+    background var(--transition-fast, 190ms ease),
+    border-color var(--transition-fast, 190ms ease),
+    color var(--transition-fast, 190ms ease);
+}
+.stock-modal__btn--ghost:hover {
+  background: color-mix(in oklab, var(--text-primary, #333) 6%, transparent);
+  color: var(--text-primary, #333);
 }
 .stock-modal__btn--primary {
   border-color: var(--accent, #007bff);
   background: var(--accent, #007bff);
   color: #fff;
 }
+.stock-modal__btn--primary:hover {
+  border-color: var(--accent-hover, #0069d9);
+  background: var(--accent-hover, #0069d9);
+}
+.stock-modal__btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring, rgba(0,123,255,.18));
+}
 
 .stock-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 999;
-  background: rgba(0,0,0,.3);
+  background: color-mix(in oklab, #0b0d10 42%, transparent);
+  opacity: 0;
+  transition: opacity var(--transition-fast, 190ms ease);
 }
+.stock-modal-overlay.is-open { opacity: 1; }
 .stock-modal-overlay[hidden] { display: none !important; }
 .stock-modal-overlay:not([hidden]) { display: block !important; }
+
+@media (max-width: 460px) {
+  .stock-type-grid { grid-template-columns: 1fr; }
+}
+
+/* Mismo panel e items que el dropdown del header, para que el highlight
+   deslizante se comporte igual en los tres menus de la app. */
+.column-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: fixed;
+  z-index: 1100;
+  width: 258px;
+  padding: 6px;
+  border: 1px solid var(--hair, rgba(0,0,0,.07));
+  border-radius: var(--radius-lg, 14px);
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #333);
+  box-shadow: var(--shadow-lg, 0 16px 36px rgba(0,0,0,.16));
+  opacity: 0;
+  transform: translateY(-6px) scale(.97);
+  transform-origin: top left;
+  transition:
+    opacity var(--transition-fast, 190ms ease),
+    transform var(--transition-fast, 190ms ease);
+}
+.column-menu.is-open {
+  opacity: 1;
+  transform: none;
+}
+.column-menu[hidden] { display: none !important; }
+.column-menu button {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--radius-md, 10px);
+  background: transparent;
+  color: color-mix(in oklab, var(--text-primary, #333) 80%, transparent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  transition: background var(--transition-fast, 190ms ease), color var(--transition-fast, 190ms ease);
+}
+.column-menu button:hover {
+  background: var(--stock-hover, rgba(0,0,0,.05));
+  color: var(--text-primary, #333);
+}
+.column-menu button:first-of-type { color: var(--accent, #007bff); }
+.column-menu button.is-danger { color: var(--error, #d33); }
+/* Con .nav-hl montado los fondos propios sobran: se sumarian al highlight
+   y el color dejaria de ser uniforme mientras se desliza. */
+.column-menu.has-hl button:hover { background: transparent; }
+.column-menu__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  color: color-mix(in oklab, currentColor 70%, transparent);
+}
+.column-menu__icon svg { width: 20px; height: 20px; }
+
+#stock-confirm.stock-confirm {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1000;
+  width: min(340px, calc(100vw - 32px));
+  padding: 20px;
+  transform: translate(-50%, calc(-50% + 10px)) scale(.97);
+  border: 1px solid var(--hair, rgba(0,0,0,.07));
+  border-radius: var(--radius-lg, 14px);
+  background: var(--bg-card, #fff);
+  color: var(--text-primary, #333);
+  box-shadow: var(--shadow-lg, 0 10px 25px rgba(0,0,0,.2));
+  opacity: 0;
+  transition:
+    opacity var(--transition-fast, 190ms ease),
+    transform var(--transition-normal, 250ms ease);
+}
+#stock-confirm.stock-confirm.is-open {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+#stock-confirm.stock-confirm[hidden] { display: none !important; }
+#stock-confirm h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+#stock-confirm p {
+  margin: 0;
+  color: var(--text-muted, #666);
+  line-height: 1.45;
+}
+.stock-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+.stock-confirm__btn {
+  padding: 8px 12px;
+  border: 1px solid var(--hair-2, #e0e0e0);
+  border-radius: 7px;
+  background: var(--bg-card-soft, #f5f5f5);
+  color: var(--text-primary, #333);
+  cursor: pointer;
+  font: inherit;
+  transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+.stock-confirm__btn:hover { transform: translateY(-1px); }
+.stock-confirm__btn--danger {
+  border-color: var(--error, #d33);
+  background: var(--error, #d33);
+  color: #fff;
+}
+
+@keyframes stockTableIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* La celda es la que anima el alto: el <tr> no acepta height animable. */
+@keyframes stockRowIn {
+  from { height: 0; padding-top: 0; padding-bottom: 0; }
+  to   { height: 44px; padding-top: 13px; padding-bottom: 13px; }
+}
+
+@keyframes stockCellFadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  40%  { opacity: 0; }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes stockColIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes stockRowOut {
+  from { height: 44px; padding-top: 13px; padding-bottom: 13px; }
+  to   { height: 0; padding-top: 0; padding-bottom: 0; }
+}
 
 @media (max-width: 700px) {
   .stock-interactive-card,
@@ -996,9 +1617,31 @@ body[data-theme="dark"] .stock-interactive-card {
     align-items: flex-start;
     flex-direction: column;
   }
+  .stock-feature-head {
+    align-items: flex-start;
+  }
   .tabla-actions {
     align-items: flex-start;
     flex-direction: column;
   }
   .drop-zone { padding: 28px 16px; }
+  .stock-interactive-card th,
+  .stock-interactive-card td {
+    min-width: 0;
+    padding-inline: 12px;
+  }
+  .stock-interactive-card th:first-child,
+  .stock-interactive-card td:first-child {
+    padding-left: 18px;
+  }
+  .tabla-mode { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stock-interactive-card *,
+  .column-menu,
+  #stock-confirm.stock-confirm {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
 }
