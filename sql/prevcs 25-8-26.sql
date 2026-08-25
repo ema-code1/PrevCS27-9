@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 20, 2026 at 05:04 PM
+-- Generation Time: Aug 25, 2026 at 04:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -116,7 +116,8 @@ CREATE TABLE `industries` (
 --
 
 INSERT INTO `industries` (`id`, `industry_uid`, `company_name`, `space_name`, `sector`, `space_password_hash`, `created_by`, `created_at`) VALUES
-(2, 'SJS-IND-4B1DCC', 'San Jose SRL', 'Extrusoras', 'Planta aceitera', '$2y$10$gxb7ZbvtD376nC/WWjvOO.fBLs.lZ7H8wVlCMpTY6DBgCjjDASXY2', 1, '2026-07-31 15:39:54');
+(2, 'SJS-IND-4B1DCC', 'San Jose SRL', 'Extrusoras', 'Planta aceitera', '$2y$10$gxb7ZbvtD376nC/WWjvOO.fBLs.lZ7H8wVlCMpTY6DBgCjjDASXY2', 1, '2026-07-31 15:39:54'),
+(4, 'TI-IND-805D32', 'Tacho ITR3', 'Extrusoras', 'Extrusora', '$2y$10$Ejy/Cr57axm0xqs1fuOIquPGEHyZdQMIS5Fsj.shz/gMVqPMBu3EG', 1, '2026-08-21 14:38:26');
 
 -- --------------------------------------------------------
 
@@ -138,7 +139,8 @@ CREATE TABLE `industry_metrics` (
 INSERT INTO `industry_metrics` (`id`, `industry_id`, `sensor_type_id`, `suggested_chart`) VALUES
 (4, 2, 4, 'gauge'),
 (5, 2, 1, 'line'),
-(6, 2, 3, 'line');
+(6, 2, 3, 'line'),
+(7, 4, 5, 'bars');
 
 -- --------------------------------------------------------
 
@@ -161,7 +163,8 @@ CREATE TABLE `industry_users` (
 
 INSERT INTO `industry_users` (`id`, `industry_id`, `user_id`, `role`, `permission`, `joined_at`) VALUES
 (3, 2, 1, 'admin_principal', 'read', '2026-07-31 15:39:54'),
-(4, 2, 3, 'admin_principal', 'read', '2026-07-31 16:06:35');
+(4, 2, 3, 'admin_principal', 'read', '2026-07-31 16:06:35'),
+(5, 4, 1, 'admin_principal', 'read', '2026-08-21 14:38:26');
 
 -- --------------------------------------------------------
 
@@ -659,7 +662,9 @@ INSERT INTO `migrations` (`id`, `version`, `class`, `group`, `namespace`, `time`
 (15, '2026-06-09-000001', 'App\\Database\\Migrations\\AddEmailVerificationAndTwoFactor', 'default', 'App', 1784806920, 1),
 (16, '2026-06-09-000002', 'App\\Database\\Migrations\\MakeEsp32MacNullable', 'default', 'App', 1784806920, 1),
 (17, '2026-07-30-000001', 'App\\Database\\Migrations\\AddPermissionToIndustryUsers', 'default', 'App', 1785409777, 2),
-(18, '2026-08-05-000001', 'App\\Database\\Migrations\\CreateKanbanTables', 'default', 'App', 1785935186, 3);
+(18, '2026-08-05-000001', 'App\\Database\\Migrations\\CreateKanbanTables', 'default', 'App', 1785935186, 3),
+(19, '2026-08-21-000001', 'App\\Database\\Migrations\\CreateStockTables', 'default', 'App', 1787318899, 4),
+(20, '2026-08-21-000002', 'App\\Database\\Migrations\\AddPhoneVerificationToUsers', 'default', 'App', 1787328740, 5);
 
 -- --------------------------------------------------------
 
@@ -728,6 +733,366 @@ INSERT INTO `sensor_types` (`id`, `code`, `name`, `unit`, `default_chart`, `crea
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `stock_cells`
+--
+
+CREATE TABLE `stock_cells` (
+  `id` int(11) NOT NULL,
+  `row_id` int(11) NOT NULL,
+  `column_id` int(11) NOT NULL,
+  `value_text` text DEFAULT NULL,
+  `value_number` decimal(14,3) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `stock_cells`
+--
+
+INSERT INTO `stock_cells` (`id`, `row_id`, `column_id`, `value_text`, `value_number`, `updated_at`) VALUES
+(5, 1, 1, 'boludo', NULL, '2026-08-21 14:37:53'),
+(6, 8, 13, 'Primer año', NULL, '2026-08-21 14:38:44'),
+(7, 8, 14, 'Primer año', NULL, '2026-08-21 14:38:44'),
+(8, 8, 15, 'Primer año', NULL, '2026-08-21 14:38:44'),
+(9, 10, 13, 'Introducción a la Economía', NULL, '2026-08-21 14:38:44'),
+(10, 10, 14, 'Análisis matemático i', NULL, '2026-08-21 14:38:44'),
+(11, 10, 15, 'Análisis matemático i', NULL, '2026-08-21 14:38:44'),
+(12, 11, 13, 'Análisis matemático I', NULL, '2026-08-21 14:38:44'),
+(13, 11, 14, 'Introducción a la contabilidad', NULL, '2026-08-21 14:38:44'),
+(14, 11, 15, 'Introducción a la contabilidad', NULL, '2026-08-21 14:38:44'),
+(15, 12, 13, 'Introducción a la Contabilidad', NULL, '2026-08-21 14:38:44'),
+(16, 12, 14, 'Metodología de la investigación', NULL, '2026-08-21 14:38:44'),
+(17, 12, 15, 'Metodología de la investigación', NULL, '2026-08-21 14:38:44'),
+(18, 13, 13, 'Tecnologías de la Información I', NULL, '2026-08-21 14:38:44'),
+(19, 13, 14, 'Tecnologías de la información i', NULL, '2026-08-21 14:38:44'),
+(20, 13, 15, 'Tecnologías de la información i', NULL, '2026-08-21 14:38:44'),
+(21, 14, 13, 'Introducción a la Administración', NULL, '2026-08-21 14:38:44'),
+(22, 14, 14, 'Introducción a la administración', NULL, '2026-08-21 14:38:44'),
+(23, 14, 15, 'Introducción a la administración', NULL, '2026-08-21 14:38:44'),
+(24, 15, 13, 'Psicología y sociología de las organizaciones', NULL, '2026-08-21 14:38:44'),
+(25, 15, 14, 'Comercialización y marketing i', NULL, '2026-08-21 14:38:44'),
+(26, 15, 15, 'Comercialización y marketing i', NULL, '2026-08-21 14:38:44'),
+(27, 16, 13, 'Introducción a los negocios digitales', NULL, '2026-08-21 14:38:44'),
+(28, 16, 14, 'Introducción a las finanzas', NULL, '2026-08-21 14:38:44'),
+(29, 16, 15, 'Introducción a las finanzas', NULL, '2026-08-21 14:38:44'),
+(30, 17, 13, 'Análisis matemático II', NULL, '2026-08-21 14:38:44'),
+(31, 17, 14, 'Introducción a la economía', NULL, '2026-08-21 14:38:44'),
+(32, 17, 15, 'Introducción a la economía', NULL, '2026-08-21 14:38:44'),
+(33, 18, 13, 'Álgebra', NULL, '2026-08-21 14:38:44'),
+(34, 18, 14, 'Análisis matemático ii', NULL, '2026-08-21 14:38:44'),
+(35, 18, 15, 'Análisis matemático ii', NULL, '2026-08-21 14:38:44'),
+(36, 19, 13, 'Tecnologías de la información II', NULL, '2026-08-21 14:38:44'),
+(37, 19, 14, 'Álgebra', NULL, '2026-08-21 14:38:44'),
+(38, 19, 15, 'Álgebra', NULL, '2026-08-21 14:38:44'),
+(39, 20, 13, 'Derecho empresarial I', NULL, '2026-08-21 14:38:44'),
+(40, 20, 14, 'Tecnologías de la información ii', NULL, '2026-08-21 14:38:44'),
+(41, 20, 15, 'Tecnologías de la información ii', NULL, '2026-08-21 14:38:44'),
+(42, 21, 13, 'Seminario de integración y vinculación', NULL, '2026-08-21 14:38:44'),
+(43, 21, 14, 'Derecho empresarial i', NULL, '2026-08-21 14:38:44'),
+(44, 21, 15, 'Derecho empresarial i', NULL, '2026-08-21 14:38:44'),
+(45, 22, 13, 'Pensamiento crítico filosófico', NULL, '2026-08-21 14:38:44'),
+(46, 22, 14, 'Seminario de integración y vinculación i', NULL, '2026-08-21 14:38:44'),
+(47, 22, 15, 'Seminario de integración y vinculación i', NULL, '2026-08-21 14:38:44'),
+(48, 23, 14, 'Pensamiento crítico filosófico', NULL, '2026-08-21 14:38:44'),
+(49, 23, 15, 'Pensamiento crítico filosófico', NULL, '2026-08-21 14:38:44'),
+(50, 25, 13, 'Segundo año', NULL, '2026-08-21 14:38:44'),
+(51, 25, 14, 'Segundo año', NULL, '2026-08-21 14:38:44'),
+(52, 25, 15, 'Segundo año', NULL, '2026-08-21 14:38:44'),
+(53, 27, 13, 'Comercio electrónico y marketplace', NULL, '2026-08-21 14:38:44'),
+(54, 27, 14, 'Estadística i', NULL, '2026-08-21 14:38:44'),
+(55, 27, 15, 'Teoría de las inversiones', NULL, '2026-08-21 14:38:44'),
+(56, 28, 13, 'Herramientas de la Industria 4.0', NULL, '2026-08-21 14:38:44'),
+(57, 28, 14, 'Macroeconomía', NULL, '2026-08-21 14:38:44'),
+(58, 28, 15, 'Historia económica de Argentina y el mundo', NULL, '2026-08-21 14:38:44'),
+(59, 29, 13, 'Estadística I', NULL, '2026-08-21 14:38:44'),
+(60, 29, 14, 'Contabilidad de gestión i', NULL, '2026-08-21 14:38:44'),
+(61, 29, 15, 'Estadística i', NULL, '2026-08-21 14:38:44'),
+(62, 30, 13, 'Comercialización y Marketing I', NULL, '2026-08-21 14:38:44'),
+(63, 30, 14, 'Administración de recursos humanos i', NULL, '2026-08-21 14:38:44'),
+(64, 30, 15, 'Macroeconomía i', NULL, '2026-08-21 14:38:44'),
+(65, 31, 13, 'Contabilidad de gestión I', NULL, '2026-08-21 14:38:44'),
+(66, 31, 14, 'Derecho empresarial ii - (derecho del trabajo y la seguridad social)', NULL, '2026-08-21 14:38:44'),
+(67, 31, 15, 'Contabilidad de gestión i', NULL, '2026-08-21 14:38:44'),
+(68, 32, 13, 'Administración de RRHH I', NULL, '2026-08-21 14:38:44'),
+(69, 32, 14, 'Taller de negociación', NULL, '2026-08-21 14:38:44'),
+(70, 32, 15, 'Econometría', NULL, '2026-08-21 14:38:44'),
+(71, 33, 13, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(72, 33, 14, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(73, 33, 15, 'Materia electiva i', NULL, '2026-08-21 14:38:44'),
+(74, 34, 13, 'Tecnología y herramientas digitales', NULL, '2026-08-21 14:38:44'),
+(75, 34, 14, 'Estadística ii', NULL, '2026-08-21 14:38:44'),
+(76, 34, 15, 'Estadística ii', NULL, '2026-08-21 14:38:44'),
+(77, 35, 13, 'Métodos Cuantitativos para la toma de decisiones', NULL, '2026-08-21 14:38:44'),
+(78, 35, 14, 'Microeconomía', NULL, '2026-08-21 14:38:44'),
+(79, 35, 15, 'Microeconomía i', NULL, '2026-08-21 14:38:44'),
+(80, 36, 13, 'Estadística II', NULL, '2026-08-21 14:38:44'),
+(81, 36, 14, 'Comercialización y marketing ii (mkt digital)', NULL, '2026-08-21 14:38:44'),
+(82, 36, 15, 'Economía del consumo', NULL, '2026-08-21 14:38:44'),
+(83, 37, 13, 'Comercialización y Marketing II', NULL, '2026-08-21 14:38:44'),
+(84, 37, 14, 'Dirección y estrategia de empresas i', NULL, '2026-08-21 14:38:44'),
+(85, 37, 15, 'Seminario de integración y vinculación ii', NULL, '2026-08-21 14:38:44'),
+(86, 38, 13, 'Dirección y estrategia de empresas I', NULL, '2026-08-21 14:38:44'),
+(87, 38, 14, 'Seminario de integración y vinculación', NULL, '2026-08-21 14:38:44'),
+(88, 38, 15, 'Problemáticas antropológicas contemporáneas', NULL, '2026-08-21 14:38:44'),
+(89, 39, 13, 'Seminario de integración y vinculación', NULL, '2026-08-21 14:38:44'),
+(90, 39, 14, 'Problemas antropológicos contemporáneos', NULL, '2026-08-21 14:38:44'),
+(91, 39, 15, 'Materia electiva ii', NULL, '2026-08-21 14:38:44'),
+(92, 40, 13, 'Problemas antropológicos contemporáneos', NULL, '2026-08-21 14:38:44'),
+(93, 40, 14, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(94, 42, 13, 'Tercer año', NULL, '2026-08-21 14:38:44'),
+(95, 42, 14, 'Tercer año', NULL, '2026-08-21 14:38:44'),
+(96, 42, 15, 'Tercer año', NULL, '2026-08-21 14:38:44'),
+(97, 44, 13, 'Inteligencia Artificial en modelos de negocios', NULL, '2026-08-21 14:38:44'),
+(98, 44, 14, 'Matemática financiera', NULL, '2026-08-21 14:38:44'),
+(99, 44, 15, 'Dirección y estrategia de empresas i', NULL, '2026-08-21 14:38:44'),
+(100, 45, 13, 'Matemática financiera', NULL, '2026-08-21 14:38:44'),
+(101, 45, 14, 'Contabilidad de gestión ii - (presupuestos y control presupuestario)', NULL, '2026-08-21 14:38:44'),
+(102, 45, 15, 'Matemática financiera', NULL, '2026-08-21 14:38:44'),
+(103, 46, 13, 'Impuestos I', NULL, '2026-08-21 14:38:44'),
+(104, 46, 14, 'Derecho empresarial iii - (sociedades comerciales)', NULL, '2026-08-21 14:38:44'),
+(105, 46, 15, 'Teoría de juegos y decisiones', NULL, '2026-08-21 14:38:44'),
+(106, 47, 13, 'Contabilidad de gestión II', NULL, '2026-08-21 14:38:44'),
+(107, 47, 14, 'Impuestos i', NULL, '2026-08-21 14:38:44'),
+(108, 47, 15, 'Impuestos i', NULL, '2026-08-21 14:38:44'),
+(109, 48, 13, 'Administración de operaciones', NULL, '2026-08-21 14:38:44'),
+(110, 48, 14, 'Dirección y estrategia de empresas ii', NULL, '2026-08-21 14:38:44'),
+(111, 48, 15, 'Mesoeconomía y desarrollo regional', NULL, '2026-08-21 14:38:44'),
+(112, 49, 13, 'Seminario de fe, vida y contextos culturales', NULL, '2026-08-21 14:38:44'),
+(113, 49, 14, 'Seminario de fe, vida y contextos culturales', NULL, '2026-08-21 14:38:44'),
+(114, 49, 15, 'Seminario de fe, vida y contextos culturales', NULL, '2026-08-21 14:38:44'),
+(115, 50, 13, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(116, 50, 14, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(117, 50, 15, 'Materia electiva iii', NULL, '2026-08-21 14:38:44'),
+(118, 51, 13, 'Ciberseguridad y Protección de Datos', NULL, '2026-08-21 14:38:44'),
+(119, 51, 14, 'Administración económica financiera i', NULL, '2026-08-21 14:38:44'),
+(120, 51, 15, 'Economía del comportamiento', NULL, '2026-08-21 14:38:44'),
+(121, 52, 13, 'Administración económica financiera I', NULL, '2026-08-21 14:38:44'),
+(122, 52, 14, 'Derecho empresarial iv - (concursos y quiebras)', NULL, '2026-08-21 14:38:44'),
+(123, 52, 15, 'Econometría ii', NULL, '2026-08-21 14:38:44'),
+(124, 53, 13, 'ERP - Criterios de selección', NULL, '2026-08-21 14:38:44'),
+(125, 53, 14, 'Administración de operaciones', NULL, '2026-08-21 14:38:44'),
+(126, 53, 15, 'Investigación de mercados en base digital', NULL, '2026-08-21 14:38:44'),
+(127, 54, 13, 'Investigación de mercados en base digital', NULL, '2026-08-21 14:38:44'),
+(128, 54, 14, 'Investigación de mercados en base digital', NULL, '2026-08-21 14:38:44'),
+(129, 54, 15, 'Mercado de capitales', NULL, '2026-08-21 14:38:44'),
+(130, 55, 13, 'Seminario de integración y vinculación', NULL, '2026-08-21 14:38:44'),
+(131, 55, 14, 'Erp - criterios de selección', NULL, '2026-08-21 14:38:44'),
+(132, 55, 15, 'Seminario de integración y vinculación iii', NULL, '2026-08-21 14:38:44'),
+(133, 56, 13, 'Seminario de fe, vida y contextos sociales', NULL, '2026-08-21 14:38:44'),
+(134, 56, 14, 'Seminario de integración y vinculación - (simulador de negocios)', NULL, '2026-08-21 14:38:44'),
+(135, 56, 15, 'Seminario de fe, vida y contextos sociales', NULL, '2026-08-21 14:38:44'),
+(136, 57, 13, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(137, 57, 14, 'Seminario de fe, vida y contextos sociales', NULL, '2026-08-21 14:38:44'),
+(138, 57, 15, 'Materia electiva iv', NULL, '2026-08-21 14:38:44'),
+(139, 58, 14, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(140, 58, 15, 'Administración económica financiera ii', NULL, '2026-08-21 14:38:44'),
+(141, 60, 13, 'Cuarto año', NULL, '2026-08-21 14:38:44'),
+(142, 60, 14, 'Cuarto año', NULL, '2026-08-21 14:38:44'),
+(143, 60, 15, 'Cuarto año', NULL, '2026-08-21 14:38:44'),
+(144, 62, 13, 'Gestión Financiera en Negocios Digitales', NULL, '2026-08-21 14:38:44'),
+(145, 62, 14, 'Administración económica financiera ii', NULL, '2026-08-21 14:38:44'),
+(146, 62, 15, 'Clusterización y competitividad', NULL, '2026-08-21 14:38:44'),
+(147, 63, 13, 'Gerenciamiento de Proyectos Digitales', NULL, '2026-08-21 14:38:44'),
+(148, 63, 14, 'Impuestos ii', NULL, '2026-08-21 14:38:44'),
+(149, 63, 15, 'Finanzas públicas', NULL, '2026-08-21 14:38:44'),
+(150, 64, 13, 'Administración económica financiera II', NULL, '2026-08-21 14:38:44'),
+(151, 64, 14, 'Historia y política económica', NULL, '2026-08-21 14:38:44'),
+(152, 64, 15, 'Política monetaria y sistema financiero', NULL, '2026-08-21 14:38:44'),
+(153, 65, 13, 'Administración de cadena de suministros', NULL, '2026-08-21 14:38:44'),
+(154, 65, 14, 'Administración de recursos humanos ii', NULL, '2026-08-21 14:38:44'),
+(155, 65, 15, 'Desafíos éticos contemporáneos', NULL, '2026-08-21 14:38:44'),
+(156, 66, 13, 'Impuestos II', NULL, '2026-08-21 14:38:44'),
+(157, 66, 14, 'Administración de cadena de suministros', NULL, '2026-08-21 14:38:44'),
+(158, 66, 15, 'Materia electiva v', NULL, '2026-08-21 14:38:44'),
+(159, 67, 13, 'Desafíos éticos contemporáneos', NULL, '2026-08-21 14:38:44'),
+(160, 67, 14, 'Comercio internacional', NULL, '2026-08-21 14:38:44'),
+(161, 67, 15, 'Finanzas corporativas internacionales', NULL, '2026-08-21 14:38:44'),
+(162, 68, 13, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(163, 68, 14, 'Ética profesional', NULL, '2026-08-21 14:38:44'),
+(164, 68, 15, 'Economía internacional', NULL, '2026-08-21 14:38:44'),
+(165, 69, 13, 'Emprendedurismo Digital', NULL, '2026-08-21 14:38:44'),
+(166, 69, 14, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(167, 69, 15, 'Economía ambiental y desarrollo sostenible', NULL, '2026-08-21 14:38:44'),
+(168, 70, 13, 'Legislación en Negocios Digitales', NULL, '2026-08-21 14:38:44'),
+(169, 70, 14, 'Finanzas corporativas', NULL, '2026-08-21 14:38:44'),
+(170, 70, 15, 'Seminario de integración y vinculación iv', NULL, '2026-08-21 14:38:44'),
+(171, 71, 13, 'Comercialización y marketing II', NULL, '2026-08-21 14:38:44'),
+(172, 71, 14, 'Logística', NULL, '2026-08-21 14:38:44'),
+(173, 71, 15, 'Derecho bancario y bursátil', NULL, '2026-08-21 14:38:44'),
+(174, 72, 13, 'Seminario de integración y vinculación', NULL, '2026-08-21 14:38:44'),
+(175, 72, 14, 'Comercialización y marketing iii (mkt estratégico)', NULL, '2026-08-21 14:38:44'),
+(176, 72, 15, 'Nuevas economías e innovación', NULL, '2026-08-21 14:38:44'),
+(177, 73, 13, 'Prácticas profesionales', NULL, '2026-08-21 14:38:44'),
+(178, 73, 14, 'Seminario de integración y vinculación', NULL, '2026-08-21 14:38:44'),
+(179, 73, 15, 'Prácticas preprofesionales', NULL, '2026-08-21 14:38:44'),
+(180, 74, 13, 'Electiva', NULL, '2026-08-21 14:38:44'),
+(181, 74, 14, '(Evaluación de proyectos de inversión + plan de negocios)', NULL, '2026-08-21 14:38:44'),
+(182, 74, 15, 'Pricing', NULL, '2026-08-21 14:38:44'),
+(183, 75, 14, 'Liderazgo y toma de decisiones', NULL, '2026-08-21 14:38:44'),
+(184, 75, 15, 'Materia electiva vi', NULL, '2026-08-21 14:38:44'),
+(185, 76, 14, 'Prácticas profesionales', NULL, '2026-08-21 14:38:44'),
+(186, 77, 14, 'Electiva', NULL, '2026-08-21 14:38:44');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `stock_columns`
+--
+
+CREATE TABLE `stock_columns` (
+  `id` int(11) NOT NULL,
+  `table_id` int(11) NOT NULL,
+  `name` varchar(120) NOT NULL,
+  `type` varchar(30) NOT NULL DEFAULT 'texto',
+  `unit` varchar(40) DEFAULT NULL,
+  `settings` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`settings`)),
+  `is_item_column` tinyint(1) NOT NULL DEFAULT 0,
+  `position` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `stock_columns`
+--
+
+INSERT INTO `stock_columns` (`id`, `table_id`, `name`, `type`, `unit`, `settings`, `is_item_column`, `position`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Item', 'texto', NULL, NULL, 1, 0, '2026-08-21 13:35:31', '2026-08-21 13:35:31'),
+(2, 1, 'Cantidad', 'contador', 'unidades', NULL, 0, 1, '2026-08-21 13:35:31', '2026-08-21 13:35:31'),
+(3, 1, 'Columna 3', 'texto', NULL, NULL, 0, 2, '2026-08-21 13:35:39', '2026-08-21 13:35:39'),
+(10, 4, 'Item', 'texto', NULL, NULL, 1, 0, '2026-08-21 14:38:26', '2026-08-21 14:38:26'),
+(11, 4, 'Cantidad', 'contador', 'unidades', NULL, 0, 1, '2026-08-21 14:38:26', '2026-08-21 14:38:26'),
+(12, 5, 'Columna 1', 'texto', NULL, NULL, 1, 0, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(13, 5, 'ADMIN. NEGOCIOS DIGITALES', 'texto', NULL, NULL, 0, 1, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(14, 5, 'ADMINISTRACION DE EMPRESAS', 'texto', NULL, NULL, 0, 2, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(15, 5, 'LIC. EN ECONOMÍA Y NEGOCIOS', 'texto', NULL, NULL, 0, 3, '2026-08-21 14:38:44', '2026-08-21 14:38:44');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `stock_rows`
+--
+
+CREATE TABLE `stock_rows` (
+  `id` int(11) NOT NULL,
+  `table_id` int(11) NOT NULL,
+  `position` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `stock_rows`
+--
+
+INSERT INTO `stock_rows` (`id`, `table_id`, `position`, `created_at`, `updated_at`) VALUES
+(1, 1, 0, '2026-08-21 13:35:31', '2026-08-21 13:35:31'),
+(2, 1, 1, '2026-08-21 13:35:38', '2026-08-21 13:35:38'),
+(6, 4, 0, '2026-08-21 14:38:26', '2026-08-21 14:38:26'),
+(7, 5, 0, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(8, 5, 1, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(9, 5, 2, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(10, 5, 3, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(11, 5, 4, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(12, 5, 5, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(13, 5, 6, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(14, 5, 7, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(15, 5, 8, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(16, 5, 9, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(17, 5, 10, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(18, 5, 11, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(19, 5, 12, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(20, 5, 13, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(21, 5, 14, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(22, 5, 15, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(23, 5, 16, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(24, 5, 17, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(25, 5, 18, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(26, 5, 19, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(27, 5, 20, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(28, 5, 21, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(29, 5, 22, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(30, 5, 23, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(31, 5, 24, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(32, 5, 25, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(33, 5, 26, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(34, 5, 27, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(35, 5, 28, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(36, 5, 29, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(37, 5, 30, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(38, 5, 31, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(39, 5, 32, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(40, 5, 33, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(41, 5, 34, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(42, 5, 35, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(43, 5, 36, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(44, 5, 37, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(45, 5, 38, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(46, 5, 39, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(47, 5, 40, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(48, 5, 41, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(49, 5, 42, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(50, 5, 43, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(51, 5, 44, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(52, 5, 45, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(53, 5, 46, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(54, 5, 47, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(55, 5, 48, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(56, 5, 49, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(57, 5, 50, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(58, 5, 51, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(59, 5, 52, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(60, 5, 53, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(61, 5, 54, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(62, 5, 55, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(63, 5, 56, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(64, 5, 57, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(65, 5, 58, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(66, 5, 59, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(67, 5, 60, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(68, 5, 61, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(69, 5, 62, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(70, 5, 63, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(71, 5, 64, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(72, 5, 65, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(73, 5, 66, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(74, 5, 67, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(75, 5, 68, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(76, 5, 69, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(77, 5, 70, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(78, 5, 71, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(79, 5, 72, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(80, 5, 73, '2026-08-21 14:38:44', '2026-08-21 14:38:44'),
+(81, 5, 74, '2026-08-21 14:38:44', '2026-08-21 14:38:44');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `stock_tables`
+--
+
+CREATE TABLE `stock_tables` (
+  `id` int(11) NOT NULL,
+  `industry_id` int(11) NOT NULL,
+  `title` varchar(200) NOT NULL DEFAULT 'Tabla de stock',
+  `position` int(11) NOT NULL DEFAULT 0,
+  `created_by` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `stock_tables`
+--
+
+INSERT INTO `stock_tables` (`id`, `industry_id`, `title`, `position`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 2, 'San Jose SRL', 0, 1, '2026-08-21 13:35:31', '2026-08-21 13:35:31'),
+(4, 4, 'Tacho ITR3', 0, 1, '2026-08-21 14:38:26', '2026-08-21 14:38:26'),
+(5, 4, 'Comp-MateriasUCC', 1, 1, '2026-08-21 14:38:44', '2026-08-21 14:38:44');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
@@ -740,17 +1105,18 @@ CREATE TABLE `users` (
   `foto_perfil` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `email_verified_at` datetime DEFAULT NULL,
-  `two_factor_enabled` tinyint(1) NOT NULL DEFAULT 0
+  `two_factor_enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `phone_verification_enabled` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `nombre`, `apellido`, `email`, `password_hash`, `foto_perfil`, `created_at`, `email_verified_at`, `two_factor_enabled`) VALUES
-(1, 'Jose', 'Mangold', 'josemangold08@gmail.com', '$2y$10$Smhm8zviXo1XBxeTPGTlB.u921tgThjP6YonSEZ38wfqv/8gp9h/i', 'https://media.glamour.mx/photos/65b096f13756393e0200c63d/16:9/w_2560%2Cc_limit/que-significa-tu-foto-de-perfil.jpg', '2026-07-23 11:44:14', '2026-07-23 11:44:35', 1),
-(3, 'Ema', 'risso', 'emarissopatron@gmail.com', '$2y$10$PCwJ5v3PrCO1t7xQKFVV0OFiKzhT5xKItQk6vxhutGPiBdcEaR586', NULL, '2026-07-31 16:05:49', '2026-07-31 16:06:09', 0),
-(5, 'Ema', 'Risso', 'emanuelrisopatron@gmail.com', '$2y$10$VRdc5wbV6Zb32x7YXFZiLeZp074V2SVF0J3dARXPEKZVESlsZkkUC', NULL, '2026-08-04 15:56:11', NULL, 0);
+INSERT INTO `users` (`id`, `nombre`, `apellido`, `email`, `password_hash`, `foto_perfil`, `created_at`, `email_verified_at`, `two_factor_enabled`, `phone_verification_enabled`) VALUES
+(1, 'Jose', 'Mangold', 'josemangold08@gmail.com', '$2y$10$Smhm8zviXo1XBxeTPGTlB.u921tgThjP6YonSEZ38wfqv/8gp9h/i', '1787321208_f833e5eb08baa9dc01cd.png', '2026-07-23 11:44:14', '2026-07-23 11:44:35', 0, 0),
+(3, 'Ema', 'risso', 'emarissopatron@gmail.com', '$2y$10$PCwJ5v3PrCO1t7xQKFVV0OFiKzhT5xKItQk6vxhutGPiBdcEaR586', NULL, '2026-07-31 16:05:49', '2026-07-31 16:06:09', 0, 0),
+(5, 'Ema', 'Risso', 'emanuelrisopatron@gmail.com', '$2y$10$VRdc5wbV6Zb32x7YXFZiLeZp074V2SVF0J3dARXPEKZVESlsZkkUC', NULL, '2026-08-04 15:56:11', NULL, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -775,7 +1141,7 @@ CREATE TABLE `verification_codes` (
 
 INSERT INTO `verification_codes` (`id`, `user_id`, `purpose`, `code_hash`, `attempts`, `expires_at`, `used_at`, `created_at`) VALUES
 (1, 1, 'email_verification', '$2y$10$9lPtFt.MuZZtyv7ldK4P/.dXFvaF5SKQwEnn.Vmkf15UJ4O06mzQ2', 0, '2026-07-23 11:49:14', '2026-07-23 11:44:35', '2026-07-23 11:44:14'),
-(3, 1, 'two_factor_login', '$2y$10$V64RGN.LRljDql.SOOQRZuUHwdXrz0n1GwR0rIxZgjI8VL0.bMTLa', 0, '2026-08-20 14:11:16', '2026-08-20 14:06:34', '2026-08-20 14:06:16'),
+(3, 1, 'two_factor_login', '$2y$10$zlzDrQ/IESAoX.vZYZfLP.sSppPtFRGf1NrQQyk9YSKnyzjnK0rJK', 0, '2026-08-21 12:33:48', '2026-08-21 12:29:37', '2026-08-21 12:28:48'),
 (4, 3, 'email_verification', '$2y$10$LBTqYv806Y72kshofbSyPuR5GRRxygRimOYnT3HmmpYTeOUEX4Dki', 0, '2026-07-31 16:10:49', '2026-07-31 16:06:09', '2026-07-31 16:05:49');
 
 --
@@ -956,6 +1322,36 @@ ALTER TABLE `sensor_types`
   ADD UNIQUE KEY `code` (`code`);
 
 --
+-- Indexes for table `stock_cells`
+--
+ALTER TABLE `stock_cells`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_stock_cells_celda` (`row_id`,`column_id`),
+  ADD KEY `fk_stock_cells_column` (`column_id`);
+
+--
+-- Indexes for table `stock_columns`
+--
+ALTER TABLE `stock_columns`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_stock_columns_orden` (`table_id`,`position`);
+
+--
+-- Indexes for table `stock_rows`
+--
+ALTER TABLE `stock_rows`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_stock_rows_orden` (`table_id`,`position`);
+
+--
+-- Indexes for table `stock_tables`
+--
+ALTER TABLE `stock_tables`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_stock_tables_orden` (`industry_id`,`position`),
+  ADD KEY `fk_stock_tables_creator` (`created_by`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -996,19 +1392,19 @@ ALTER TABLE `form_answers`
 -- AUTO_INCREMENT for table `industries`
 --
 ALTER TABLE `industries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `industry_metrics`
 --
 ALTER TABLE `industry_metrics`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `industry_users`
 --
 ALTER TABLE `industry_users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `kanban_activity_log`
@@ -1086,7 +1482,7 @@ ALTER TABLE `kanban_task_labels`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `password_resets`
@@ -1105,6 +1501,30 @@ ALTER TABLE `sensor_readings`
 --
 ALTER TABLE `sensor_types`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `stock_cells`
+--
+ALTER TABLE `stock_cells`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=187;
+
+--
+-- AUTO_INCREMENT for table `stock_columns`
+--
+ALTER TABLE `stock_columns`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `stock_rows`
+--
+ALTER TABLE `stock_rows`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
+
+--
+-- AUTO_INCREMENT for table `stock_tables`
+--
+ALTER TABLE `stock_tables`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1249,6 +1669,32 @@ ALTER TABLE `password_resets`
 --
 ALTER TABLE `sensor_readings`
   ADD CONSTRAINT `fk_sensor_readings_sensor` FOREIGN KEY (`esp32_sensor_id`) REFERENCES `esp32_sensors` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `stock_cells`
+--
+ALTER TABLE `stock_cells`
+  ADD CONSTRAINT `fk_stock_cells_column` FOREIGN KEY (`column_id`) REFERENCES `stock_columns` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_stock_cells_row` FOREIGN KEY (`row_id`) REFERENCES `stock_rows` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `stock_columns`
+--
+ALTER TABLE `stock_columns`
+  ADD CONSTRAINT `fk_stock_columns_table` FOREIGN KEY (`table_id`) REFERENCES `stock_tables` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `stock_rows`
+--
+ALTER TABLE `stock_rows`
+  ADD CONSTRAINT `fk_stock_rows_table` FOREIGN KEY (`table_id`) REFERENCES `stock_tables` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `stock_tables`
+--
+ALTER TABLE `stock_tables`
+  ADD CONSTRAINT `fk_stock_tables_creator` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE SET NULL,
+  ADD CONSTRAINT `fk_stock_tables_industry` FOREIGN KEY (`industry_id`) REFERENCES `industries` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `verification_codes`

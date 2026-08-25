@@ -556,7 +556,7 @@ class StockController extends BaseController
         return mb_substr(trim($value), 0, $max);
     }
 
-    /** Valor de un contador: nunca negativo, nunca no numérico. */
+    /** Valor numérico de contador o mínimo: nunca negativo ni no numérico. */
     private function number($value): float
     {
         if (! is_numeric($value)) {

@@ -104,7 +104,7 @@ class CreateStockTables extends Migration
                 'constraint' => 30,
                 'default'    => 'texto',
             ],
-            // Etiqueta del contador ("unidades", "cajas", "kg"...).
+            // Etiqueta del contador o mínimo ("unidades", "cajas", "kg"...).
             'unit' => [
                 'type'       => 'VARCHAR',
                 'constraint' => 40,
@@ -200,9 +200,8 @@ class CreateStockTables extends Migration
                 'type' => 'TEXT',
                 'null' => true,
             ],
-            // Valor de los contadores. Columna aparte y tipada para que las
-            // alertas de stock puedan filtrar con WHERE value_number < umbral
-            // sin castear nada.
+            // Valor de los contadores y mínimos. Columna aparte y tipada para
+            // que las alertas de stock puedan comparar sin castear nada.
             'value_number' => [
                 'type'       => 'DECIMAL',
                 'constraint' => '14,3',

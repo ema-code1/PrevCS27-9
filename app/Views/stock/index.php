@@ -3,7 +3,7 @@
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/standalone.css') ?>?v=20260807-3">
-<link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260821-1">
+<link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260825-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -176,13 +176,26 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
                                 <span class="stock-type-card__hint">Valor (&#94; 0 &#8964;)</span>
                             </span>
                         </label>
+
+                        <label class="stock-type-card">
+                            <input type="radio" name="stock-col-tipo" value="minimo">
+                            <span class="stock-type-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M5 17h14M7 13l3-3 2.5 2.5L17 8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            <span class="stock-type-card__text">
+                                <span class="stock-type-card__title">Mínimo</span>
+                                <span class="stock-type-card__hint">Stock de referencia</span>
+                            </span>
+                        </label>
                     </div>
                 </fieldset>
 
                 <div class="stock-fieldset stock-fieldset--unit" id="config-contador" hidden>
                     <label class="stock-fieldset__label" for="input-unidad">Etiqueta de unidad</label>
                     <input class="stock-input" type="text" id="input-unidad" value="unidades" autocomplete="off">
-                    <p class="stock-fieldset__help">Esta etiqueta se mostrara junto al valor del contador.</p>
+                    <p class="stock-fieldset__help">Esta etiqueta se mostrara junto al valor numérico.</p>
                 </div>
             </div>
 
@@ -318,7 +331,13 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
     }
 
     function iconoTipo(tipo) {
-        return tipo === 'contador' ? '#' : 'T';
+        if (tipo === 'contador') return '#';
+        if (tipo === 'minimo') return 'M';
+        return 'T';
+    }
+
+    function esTipoNumerico(tipo) {
+        return tipo === 'contador' || tipo === 'minimo';
     }
 
     /* ── Capas modales ────────────────────────────────────────────────────
@@ -525,12 +544,12 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             '</th>';
     }
 
-    function generarHtmlContador(unidad, valor) {
+    function generarHtmlContador(unidad, valor, claseAlerta) {
         var label = unidad || 'unidades';
         var numero = Math.max(0, Math.round(Number(valor) || 0));
 
         return '' +
-            '<div class="contador-wrapper">' +
+            '<div class="contador-wrapper' + (claseAlerta || '') + '">' +
                 '<div class="contador-controls">' +
                     '<button class="contador-btn" type="button" data-counter-delta="1" aria-label="Sumar">' + chevronSvg('up') + '</button>' +
                     '<input type="text" inputmode="numeric" pattern="[0-9]*" class="contador-input" value="' + numero + '" autocomplete="off">' +
@@ -565,12 +584,13 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         });
     }
 
-    function generarTd(col, valor) {
+    function generarTd(col, valor, stockBajo) {
         var tipo = col.type || 'texto';
         var attrs = ' data-column-id="' + (col.id || '') + '"';
 
-        if (tipo === 'contador') {
-            return '<td' + attrs + '>' + generarHtmlContador(col.unit, valor) + '</td>';
+        if (esTipoNumerico(tipo)) {
+            var claseAlerta = tipo === 'contador' && stockBajo ? ' is-stock-low' : '';
+            return '<td' + attrs + '>' + generarHtmlContador(col.unit, valor, claseAlerta) + '</td>';
         }
 
         // La celda de la columna de item es el nombre del item: se avisa con el
@@ -643,8 +663,14 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
     function cuerpoHtml(data) {
         return data.rows.map(function (row) {
+            var minimos = data.columns
+                .filter(function (col) { return col.type === 'minimo'; })
+                .map(function (col) { return Number(row.values[col.id]) || 0; });
+            var minimoReferencia = minimos.length ? Math.max.apply(null, minimos) : null;
             var celdas = data.columns.map(function (col) {
-                return generarTd(col, row.values[col.id]);
+                var valor = Number(row.values[col.id]) || 0;
+                var stockBajo = minimoReferencia !== null && valor < minimoReferencia;
+                return generarTd(col, row.values[col.id], stockBajo);
             }).join('');
 
             return '<tr data-row-id="' + row.id + '">' + celdas + '</tr>';
@@ -1153,6 +1179,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         if (value < 0) value = 0;
         input.value = value;
         ajustarAnchoContador(input);
+        actualizarAvisosFila(button.closest('tr'));
 
         // Se difiere para que apretar el chevron varias veces seguidas mande
         // una sola escritura con el valor final.
@@ -1190,6 +1217,33 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         }
 
         ajustarAnchoContador(input);
+        actualizarAvisosFila(input.closest('tr'));
+    }
+
+    /* Un mínimo de la fila sirve como referencia. Si hay más de uno, se toma
+       el mayor: así ningún nivel de referencia queda sin respetar. */
+    function actualizarAvisosFila(tr) {
+        if (!tr) return;
+
+        var tabla = tr.closest('table');
+        if (!tabla) return;
+
+        var minimos = [];
+        Array.prototype.forEach.call(tabla.querySelectorAll('thead th[data-type="minimo"]'), function (th, index) {
+            var celda = tr.children[index];
+            var input = celda ? celda.querySelector('.contador-input') : null;
+            if (input) minimos.push(parseInt(input.value, 10) || 0);
+        });
+
+        var minimoReferencia = minimos.length ? Math.max.apply(null, minimos) : null;
+        Array.prototype.forEach.call(tabla.querySelectorAll('thead th[data-type="contador"]'), function (th, index) {
+            var celda = tr.children[index];
+            var wrapper = celda ? celda.querySelector('.contador-wrapper') : null;
+            var input = celda ? celda.querySelector('.contador-input') : null;
+            if (wrapper && input) {
+                wrapper.classList.toggle('is-stock-low', minimoReferencia !== null && (parseInt(input.value, 10) || 0) < minimoReferencia);
+            }
+        });
     }
 
     function tipoSeleccionado() {
@@ -1219,7 +1273,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         }
 
         inputUnidad.value = unidadActual;
-        configContador.hidden = tipoActual !== 'contador';
+        configContador.hidden = !esTipoNumerico(tipoActual);
         abrirCapa(modal);
     }
 
@@ -1324,7 +1378,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
     tipoRadios.forEach(function (radio) {
         radio.addEventListener('change', function () {
-            configContador.hidden = tipoSeleccionado() !== 'contador';
+            configContador.hidden = !esTipoNumerico(tipoSeleccionado());
         });
     });
 
