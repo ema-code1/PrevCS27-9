@@ -12,7 +12,7 @@ if ($isLoggedIn && $avatarFile === null) {
     session()->set('user_foto', $avatarFile);
 }
 $avatarFile = trim((string) $avatarFile);
-$avatarUrl  = $avaFtarFile !== '' ? base_url('uploads/avatars/' . rawurlencode($avatarFile)) : '';
+$avatarUrl  = $avatarFile !== '' ? base_url('uploads/avatars/' . rawurlencode($avatarFile)) : '';
 
 // Iniciales de respaldo cuando todavia no hay foto cargada.
 $avatarInitials = '';
