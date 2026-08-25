@@ -92,7 +92,7 @@ class StockCellModel extends Model
     /**
      * Traslada los valores de una columna al cambiarle el tipo, en vez de
      * perderlos: texto → contador parsea el número (0 si no se puede) y
-     * contador → texto conserva el número como texto.
+     * contador o mínimo → texto conserva el número como texto.
      */
     public function convertColumn(int $columnId, string $fromType, string $toType): void
     {

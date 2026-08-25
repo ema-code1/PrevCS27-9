@@ -13,11 +13,12 @@ class StockColumnModel extends Model
      */
     public const TYPE_TEXTO    = 'texto';
     public const TYPE_CONTADOR = 'contador';
+    public const TYPE_MINIMO   = 'minimo';
 
-    public const TYPES = [self::TYPE_TEXTO, self::TYPE_CONTADOR];
+    public const TYPES = [self::TYPE_TEXTO, self::TYPE_CONTADOR, self::TYPE_MINIMO];
 
     /** Tipos cuyo valor vive en stock_cells.value_number en vez de value_text. */
-    public const NUMERIC_TYPES = [self::TYPE_CONTADOR];
+    public const NUMERIC_TYPES = [self::TYPE_CONTADOR, self::TYPE_MINIMO];
 
     protected $table            = 'stock_columns';
     protected $primaryKey       = 'id';

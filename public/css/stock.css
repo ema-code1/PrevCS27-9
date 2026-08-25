@@ -1098,6 +1098,11 @@ body[data-theme="dark"] .stock-interactive-card {
   cursor: default;
 }
 
+/* El contador queda rojo cuando su fila tiene un mínimo mayor. */
+.contador-wrapper.is-stock-low .contador-input {
+  color: var(--error);
+}
+
 .unidad-label {
   display: flex;
   align-items: center;
