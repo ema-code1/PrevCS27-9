@@ -1181,7 +1181,6 @@
 
       input.classList.add('kb-inline');
       input.readOnly = true;
-      input.title = 'Doble clic para editar';
       autoSize(input);
 
       function beginEdit() {
@@ -2473,17 +2472,26 @@
       /* Despliegue: se mide el contenido, se anima hasta ese alto y al
          terminar se suelta en auto, para que el campo pueda seguir
          creciendo mientras se escribe. */
+      /* El recorte del cajón solo hace falta mientras el alto viaja. Ya
+         desplegado se suelta, si no le corta el halo de foco al campo y el
+         borde de los botones contra el filo del panel. */
+      function settle() {
+        panel.style.height = 'auto';
+        panel.style.overflow = 'visible';
+      }
+
       function expand() {
         window.clearTimeout(heightTimer);
-        if (reduceMotion.matches) { panel.style.height = 'auto'; return; }
+        if (reduceMotion.matches) { settle(); return; }
         panel.style.height = inner.offsetHeight + 'px';
         heightTimer = window.setTimeout(function () {
-          if (open) panel.style.height = 'auto';
+          if (open) settle();
         }, 280);
       }
 
       function collapse() {
         window.clearTimeout(heightTimer);
+        panel.style.overflow = '';
         if (reduceMotion.matches) { panel.style.height = ''; return; }
         // De 'auto' no se puede animar: primero se fija el alto real y
         // recién en el cuadro siguiente se lo lleva a cero.
@@ -2531,7 +2539,9 @@
 
       function submit() {
         var value = field.value.trim();
-        if (!value && !options.allowEmpty) { field.focus(); return; }
+        // Confirmar sin haber escrito nada equivale a cancelar: se cierra
+        // el cajón en vez de dejar al usuario trabado en un campo vacío.
+        if (!value && !options.allowEmpty) { hide(); return; }
 
         if (options.keepOpen) {
           field.value = '';
