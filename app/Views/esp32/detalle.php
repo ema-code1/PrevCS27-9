@@ -316,7 +316,7 @@
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
 <script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260820-1" defer></script>
 <script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260612-1" defer></script>
-<script src="<?= base_url('js/kanban.js') ?>?v=20260820-1" defer></script>
+<script src="<?= base_url('js/kanban.js') ?>?v=20260831-2" defer></script>
 <script src="<?= base_url('js/qrcode.min.js') ?>"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {

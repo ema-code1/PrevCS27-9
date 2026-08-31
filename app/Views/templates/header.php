@@ -20,8 +20,14 @@ foreach (array_slice(preg_split('/\s+/', trim($menuDisplay), -1, PREG_SPLIT_NO_E
     $avatarInitials .= mb_strtoupper(mb_substr($part, 0, 1));
 }
 
-// Notificaciones: la vista/controller puede pasarlas; sin datos el panel
-// muestra su estado vacio. Cada item: title, text, date, read.
+// Notificaciones: la vista/controller puede pasarlas; si no, se cargan aca
+// mismo (mismo patron que el avatar de arriba) para que el panel llegue
+// poblado en el primer render de cualquier pagina, sin tocar cada controller.
+// Cada item: level, title, text, date, read.
+if (! isset($notifications) && $isLoggedIn) {
+    $notifications = (new \App\Models\NotificationModel())->feedFor((int) session('user_id'));
+}
+
 $notifications = array_values($notifications ?? []);
 $notifUnread   = 0;
 foreach ($notifications as $notification) {
@@ -29,6 +35,10 @@ foreach ($notifications as $notification) {
         $notifUnread++;
     }
 }
+
+// El nivel decide el color del punto: 1 agotado, 2 bajo el minimo, 3 aviso
+// propio del usuario.
+$notifClass = static fn ($level): string => 'notif-item--' . ([1 => 'error', 2 => 'warning', 3 => 'info'][(int) $level] ?? 'warning');
 ?>
 <header class="topbar">
     <?php if ($isLoggedIn): ?>
@@ -63,9 +73,7 @@ foreach ($notifications as $notification) {
                 <div class="user-menu__panel notif-panel">
                     <div class="notif-panel__head">
                         <span class="notif-panel__title">Notificaciones</span>
-                        <?php if ($notifications !== []): ?>
-                            <button type="button" class="notif-panel__action" data-notif-read-all>Marcar todo como leído</button>
-                        <?php endif; ?>
+                        <button type="button" class="notif-panel__action" data-notif-read-all<?= $notifications === [] ? ' hidden' : '' ?>>Marcar todo como leído</button>
                     </div>
 
                     <div class="notif-panel__list">
@@ -74,7 +82,7 @@ foreach ($notifications as $notification) {
                         <?php else: ?>
                             <?php foreach ($notifications as $notification): ?>
                                 <?php $isUnread = empty($notification['read']); ?>
-                                <div class="user-menu__item notif-item<?= $isUnread ? ' is-unread' : '' ?>">
+                                <div class="user-menu__item notif-item <?= $notifClass($notification['level'] ?? 2) ?><?= $isUnread ? ' is-unread' : '' ?>" data-notif-id="<?= esc($notification['id'] ?? '') ?>">
                                     <span class="notif-item__dot" aria-hidden="true"></span>
                                     <span class="notif-item__body">
                                         <span class="notif-item__head">

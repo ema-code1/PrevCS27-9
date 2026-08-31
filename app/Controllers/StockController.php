@@ -2,8 +2,10 @@
 
 namespace App\Controllers;
 
+use App\Libraries\StockRowAlerts;
 use App\Models\IndustryModel;
 use App\Models\IndustryUserModel;
+use App\Models\NotificationModel;
 use App\Models\StockCellModel;
 use App\Models\StockColumnModel;
 use App\Models\StockRowModel;
@@ -164,6 +166,13 @@ class StockController extends BaseController
         }
 
         $columnModel = new StockColumnModel();
+        if (
+            StockColumnModel::isExclusiveType($type)
+            && $columnModel->countTypeForTable((int) $table['id'], $type) > 0
+        ) {
+            return $this->fail($this->exclusiveTypeMessage($type));
+        }
+
         $ultima      = $columnModel->nextPosition((int) $table['id']);
 
         // La posición 0 es de la columna del ítem: cualquier inserción arranca
@@ -181,6 +190,9 @@ class StockController extends BaseController
             'name'     => $name,
             'type'     => $type,
             'unit'     => $this->unitFor($type, $data['unit'] ?? null),
+            'settings' => $type === StockColumnModel::TYPE_AVISO
+                ? json_encode($this->avisoSettings($data['settings'] ?? null))
+                : null,
             'position' => $position,
         ]);
 
@@ -227,6 +239,13 @@ class StockController extends BaseController
             }
 
             if ($type !== $column['type']) {
+                if (
+                    StockColumnModel::isExclusiveType($type)
+                    && $columnModel->countTypeForTable((int) $table['id'], $type, (int) $column['id']) > 0
+                ) {
+                    return $this->fail($this->exclusiveTypeMessage($type));
+                }
+
                 // Los valores se trasladan al tipo nuevo en vez de perderse.
                 (new StockCellModel())->convertColumn((int) $column['id'], (string) $column['type'], $type);
                 $changes['type'] = $type;
@@ -236,6 +255,23 @@ class StockController extends BaseController
         if (! $esItem && array_key_exists('unit', $data)) {
             $type            = $changes['type'] ?? (string) $column['type'];
             $changes['unit'] = $this->unitFor($type, $data['unit']);
+        }
+
+        // La config de notificaciones solo vive en la columna de aviso: si la
+        // columna deja de serlo, se limpia para no dejar datos muertos.
+        if (! $esItem) {
+            $tipoFinal = $changes['type'] ?? (string) $column['type'];
+
+            if ($tipoFinal === StockColumnModel::TYPE_AVISO) {
+                if (array_key_exists('settings', $data) || isset($changes['type'])) {
+                    $base                = StockColumnModel::settingsFor($column);
+                    $changes['settings'] = json_encode(
+                        $this->avisoSettings(($data['settings'] ?? null) ?: $base)
+                    );
+                }
+            } elseif ($column['settings'] !== null) {
+                $changes['settings'] = null;
+            }
         }
 
         if ($changes !== []) {
@@ -349,17 +385,61 @@ class StockController extends BaseController
             return $this->fail('Esa celda no existe en esta tabla.', 404);
         }
 
-        $data  = $this->payload();
-        $type  = (string) $column['type'];
-        $value = StockColumnModel::isNumericType($type)
-            ? $this->number($data['value'] ?? 0)
-            : $this->text($data['value'] ?? '', 2000);
+        $data = $this->payload();
+        $type = (string) $column['type'];
 
-        (new StockCellModel())->put((int) $row['id'], (int) $column['id'], $type, $value);
+        if (! StockColumnModel::isNumericType($type)) {
+            $value = $this->text($data['value'] ?? '', 2000);
+        } elseif (StockColumnModel::isNullableType($type)) {
+            $value = $this->numberOrNull($data['value'] ?? null);
+        } else {
+            $value = $this->number($data['value'] ?? 0);
+        }
+
+        $cells   = new StockCellModel();
+        $columns = (new StockColumnModel())->forTable((int) $table['id']);
+
+        // Estado de la fila antes y después de escribir. Se notifica solo en la
+        // transición de nivel: bajar 12 → 11 → 10 con mínimo 10 avisa una vez, y
+        // vuelve a avisar recién si el stock sube y baja de nuevo. Como el
+        // "antes" sale de la base y no del navegador, la transición vale para
+        // todo el espacio y no solo para quien está mirando la tabla.
+        $antes = StockRowAlerts::evaluate($columns, $cells->forRow((int) $row['id'], $columns));
+
+        $cells->put((int) $row['id'], (int) $column['id'], $type, $value);
+
+        $despues = StockRowAlerts::evaluate($columns, $cells->forRow((int) $row['id'], $columns));
+
+        $alert = null;
+        if ($despues['level'] !== StockRowAlerts::LEVEL_NONE && $despues['level'] !== $antes['level']) {
+            $alert = $this->notifyRow($table, (int) $row['id'], $despues);
+        }
 
         // La celda no devuelve la tabla entera: es el endpoint más caliente
         // (una escritura por edición) y el cliente ya tiene el valor.
-        return $this->ok(['value' => $value]);
+        return $this->ok(['value' => $value, 'state' => $despues['state'], 'alert' => $alert]);
+    }
+
+    /**
+     * Reparte la alerta de una fila entre todos los miembros del espacio y
+     * devuelve el mensaje para que el cliente lo muestre como toast.
+     */
+    private function notifyRow(array $table, int $rowId, array $alert): ?array
+    {
+        $item    = (new StockCellModel())->itemLabel($rowId);
+        $message = StockRowAlerts::message($alert, $item, (string) $table['title']);
+
+        if ($message === null) {
+            return null;
+        }
+
+        (new NotificationModel())->fanOut((int) $this->industry['id'], $message + [
+            'source'     => NotificationModel::SOURCE_STOCK,
+            'source_key' => 'stock:' . $rowId,
+            'link'       => 'espacios/' . (int) $this->industry['id'] . '/stock',
+        ]);
+
+        return $message;
     }
 
     /* =================================================================
@@ -520,17 +600,50 @@ class StockController extends BaseController
 
     /**
      * La unidad solo tiene sentido en los tipos numéricos; en el resto se
-     * guarda null para no arrastrar datos muertos.
+     * guarda null para no arrastrar datos muertos. La columna de aviso queda
+     * afuera a propósito: su umbral se expresa en la unidad del contador.
      */
     private function unitFor(string $type, $unit): ?string
     {
-        if (! StockColumnModel::isNumericType($type)) {
+        if (! StockColumnModel::isNumericType($type) || $type === StockColumnModel::TYPE_AVISO) {
             return null;
         }
 
         $unit = $this->text($unit ?? '', 40);
 
         return $unit !== '' ? $unit : 'unidades';
+    }
+
+    /**
+     * Config de la columna "Notificarme". Se normaliza acá y no se confía en lo
+     * que mande el cliente: es lo que decide si una alerta se dispara o no.
+     */
+    private function avisoSettings($raw): array
+    {
+        $raw        = is_array($raw) ? $raw : [];
+        $defaults   = StockColumnModel::AVISO_DEFAULTS;
+        $comparator = (string) ($raw['comparator'] ?? $defaults['comparator']);
+
+        return [
+            'label'      => $this->text($raw['label'] ?? '', 60) ?: $defaults['label'],
+            'comparator' => in_array($comparator, StockColumnModel::COMPARATORS, true)
+                ? $comparator
+                : $defaults['comparator'],
+            'zero'       => (bool) ($raw['zero'] ?? $defaults['zero']),
+            'minimo'     => (bool) ($raw['minimo'] ?? $defaults['minimo']),
+        ];
+    }
+
+    private function exclusiveTypeMessage(string $type): string
+    {
+        switch ($type) {
+            case StockColumnModel::TYPE_MINIMO:
+                return 'La tabla ya tiene una columna de mínimo tolerable.';
+            case StockColumnModel::TYPE_AVISO:
+                return 'La tabla ya tiene una columna de Notificarme.';
+            default:
+                return 'La tabla ya tiene una columna de contador.';
+        }
     }
 
     /** Cuerpo de la petición, venga como JSON o como POST clásico. */
@@ -561,6 +674,19 @@ class StockController extends BaseController
     {
         if (! is_numeric($value)) {
             return 0.0;
+        }
+
+        return max(0.0, round((float) $value, 3));
+    }
+
+    /**
+     * Igual que number(), pero el vacío se conserva como null. Lo usa la columna
+     * de aviso, donde "sin umbral" y "umbral en 0" son cosas distintas.
+     */
+    private function numberOrNull($value): ?float
+    {
+        if ($value === null || $value === '' || ! is_numeric($value)) {
+            return null;
         }
 
         return max(0.0, round((float) $value, 3));

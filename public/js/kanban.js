@@ -327,10 +327,12 @@
        ═════════════════════════════════════════════════════════════════ */
 
     var api = {
-      token: root.getAttribute('data-kb-token'),
-      chain: Promise.resolve(),
       inFlight: 0
     };
+
+    /* El CSRF es compartido con el resto de la pagina: la campana del header
+       tambien postea, y cada POST invalida el hash anterior. */
+    window.PrevcsCsrf.seed(root.getAttribute('data-kb-token'));
 
     function markSaving(on, ok) {
       if (!dom.saving) return;
@@ -345,9 +347,9 @@
 
       if (method !== 'GET') {
         // El CSRF se regenera en cada POST: siempre mandamos el último.
-        options.headers['X-CSRF-TOKEN'] = api.token;
+        options.headers['X-CSRF-TOKEN'] = window.PrevcsCsrf.get();
         if (isForm) {
-          body.append(tokenName, api.token);
+          body.append(tokenName, window.PrevcsCsrf.get());
           options.body = body;
         } else {
           options.headers['Content-Type'] = 'application/json';
@@ -357,7 +359,7 @@
 
       return fetch(baseUrl + path, options).then(function (response) {
         return response.json().catch(function () { return {}; }).then(function (data) {
-          if (data && data.csrf) api.token = data.csrf;
+          if (data && data.csrf) window.PrevcsCsrf.set(data.csrf);
           if (!response.ok || !data || data.ok === false) {
             var error = new Error((data && data.error) || 'No se pudieron guardar los cambios.');
             error.status = response.status;
@@ -379,9 +381,8 @@
       var run = function () {
         return send(method, path, body, isForm);
       };
-      var task = api.chain.then(run, run);
-
-      api.chain = task.catch(function () { /* la cadena sigue viva tras un error */ });
+      // La cola es la global: la cadena sigue viva tras un error.
+      var task = window.PrevcsCsrf.queue(run);
 
       return task.then(function (data) {
         if (--api.inFlight === 0) {
@@ -704,7 +705,6 @@
         cta.addEventListener('click', function () { startColumnCompose(); });
         empty.appendChild(cta);
         dom.board.appendChild(empty);
-        dom.board.appendChild(buildAddColumn());
         return;
       }
 

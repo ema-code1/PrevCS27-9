@@ -54,9 +54,8 @@ class StockTableModel extends Model
     }
 
     /**
-     * Crea una tabla vacía con su columna de ítem. Toda tabla nace con la
-     * columna de ítem en la posición 0, un contador y una fila, para que nunca
-     * exista una tabla sin forma.
+     * Crea una tabla vacía con columna de ítem, contador, mínimo tolerable y
+     * una fila, para que nunca exista una tabla sin forma.
      *
      * @return int id de la tabla creada
      */
@@ -85,6 +84,14 @@ class StockTableModel extends Model
             'type'     => StockColumnModel::TYPE_CONTADOR,
             'unit'     => 'unidades',
             'position' => 1,
+        ]);
+
+        $columnModel->insert([
+            'table_id' => $tableId,
+            'name'     => 'Mínimo tolerable',
+            'type'     => StockColumnModel::TYPE_MINIMO,
+            'unit'     => 'unidades',
+            'position' => 2,
         ]);
 
         (new StockRowModel())->insert([
@@ -116,7 +123,11 @@ class StockTableModel extends Model
             'type'       => (string) $column['type'],
             'unit'       => (string) ($column['unit'] ?? ''),
             'isItem'     => (bool) $column['is_item_column'],
-            'settings'   => $column['settings'] !== null ? json_decode($column['settings'], true) : null,
+            // Solo la columna de aviso lleva config, y sale siempre normalizada
+            // con sus defaults para que el JS no tenga que repetir esa lógica.
+            'settings'   => $column['type'] === StockColumnModel::TYPE_AVISO
+                ? StockColumnModel::settingsFor($column)
+                : null,
         ], $columns);
 
         $rowsPayload = [];
@@ -125,9 +136,18 @@ class StockTableModel extends Model
             foreach ($columns as $column) {
                 $cell    = $cells[$row['id'] . ':' . $column['id']] ?? null;
                 $numeric = StockColumnModel::isNumericType($column['type']);
+                $numero  = $cell['value_number'] ?? null;
+
+                // En los tipos nulables el vacío viaja como null, para que el JS
+                // pueda distinguir "sin umbral" de "umbral en 0".
+                if ($numeric && StockColumnModel::isNullableType($column['type'])) {
+                    $values[(int) $column['id']] = $numero === null ? null : (float) $numero;
+
+                    continue;
+                }
 
                 $values[(int) $column['id']] = $numeric
-                    ? (float) ($cell['value_number'] ?? 0)
+                    ? (float) ($numero ?? 0)
                     : (string) ($cell['value_text'] ?? '');
             }
 

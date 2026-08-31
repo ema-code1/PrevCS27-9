@@ -3,7 +3,7 @@
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/standalone.css') ?>?v=20260807-3">
-<link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260825-1">
+<link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260831-2">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -189,6 +189,20 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
                                 <span class="stock-type-card__hint">Stock de referencia</span>
                             </span>
                         </label>
+
+                        <label class="stock-type-card">
+                            <input type="radio" name="stock-col-tipo" value="aviso">
+                            <span class="stock-type-card__icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M18 9a6 6 0 1 0-12 0c0 4.2-1 5.6-1.7 6.4a.8.8 0 0 0 .6 1.3h14.2a.8.8 0 0 0 .6-1.3C19 14.6 18 13.2 18 9Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+                                    <path d="M10 20a2.2 2.2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                            <span class="stock-type-card__text">
+                                <span class="stock-type-card__title">Notificarme</span>
+                                <span class="stock-type-card__hint">Avisos de la tabla</span>
+                            </span>
+                        </label>
                     </div>
                 </fieldset>
 
@@ -196,6 +210,45 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
                     <label class="stock-fieldset__label" for="input-unidad">Etiqueta de unidad</label>
                     <input class="stock-input" type="text" id="input-unidad" value="unidades" autocomplete="off">
                     <p class="stock-fieldset__help">Esta etiqueta se mostrara junto al valor numérico.</p>
+                </div>
+
+                <!-- La columna "Notificarme" es el panel de avisos de la tabla:
+                     define el aviso propio del usuario y concentra los
+                     interruptores de los dos automaticos. -->
+                <div id="config-aviso" hidden>
+                    <div class="stock-fieldset">
+                        <label class="stock-fieldset__label" for="input-aviso-label">Mi aviso</label>
+                        <input class="stock-input" type="text" id="input-aviso-label" value="Reponer pronto" maxlength="60" autocomplete="off">
+                        <div class="stock-aviso-regla">
+                            <span>Avisarme cuando el contador sea</span>
+                            <select class="stock-input stock-input--select" id="input-aviso-comparador">
+                                <option value="lte">menor o igual que</option>
+                                <option value="lt">menor que</option>
+                                <option value="eq">igual a</option>
+                            </select>
+                        </div>
+                        <p class="stock-fieldset__help">El número de esta columna en cada fila. Dejalo vacío en los ítems que no quieras que avisen.</p>
+                    </div>
+
+                    <div class="stock-fieldset">
+                        <span class="stock-fieldset__label">Avisos automáticos de esta tabla</span>
+                        <label class="stock-switch">
+                            <input type="checkbox" id="input-aviso-zero" checked>
+                            <span class="stock-switch__track" aria-hidden="true"><span class="stock-switch__thumb"></span></span>
+                            <span class="stock-switch__text">
+                                <span class="stock-switch__title">Cuando el stock llega a 0</span>
+                                <span class="stock-switch__hint">El más urgente</span>
+                            </span>
+                        </label>
+                        <label class="stock-switch">
+                            <input type="checkbox" id="input-aviso-minimo" checked>
+                            <span class="stock-switch__track" aria-hidden="true"><span class="stock-switch__thumb"></span></span>
+                            <span class="stock-switch__text">
+                                <span class="stock-switch__title">Cuando toca el mínimo tolerable</span>
+                                <span class="stock-switch__hint" data-aviso-minimo-hint>Urgente</span>
+                            </span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -219,7 +272,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260820-1" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260831-1" defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script>
 (function () {
@@ -242,6 +295,12 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
     var propSubtitle = modal.querySelector('[data-prop-subtitle]');
     var configContador = document.getElementById('config-contador');
     var inputUnidad = document.getElementById('input-unidad');
+    var configAviso = document.getElementById('config-aviso');
+    var inputAvisoLabel = document.getElementById('input-aviso-label');
+    var inputAvisoComparador = document.getElementById('input-aviso-comparador');
+    var inputAvisoZero = document.getElementById('input-aviso-zero');
+    var inputAvisoMinimo = document.getElementById('input-aviso-minimo');
+    var avisoMinimoHint = modal.querySelector('[data-aviso-minimo-hint]');
     var guardarProp = document.getElementById('btn-guardar-prop');
     var cancelarProp = document.getElementById('btn-cancelar-prop');
     var cerrarProp = document.getElementById('btn-cerrar-prop');
@@ -263,10 +322,13 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
        endpoints que tocan la estructura devuelven la tabla entera, asi el
        cliente nunca queda desincronizado de la base. */
     var api = {
-        base: tablasContainer.dataset.stockBase || '',
-        token: tablasContainer.dataset.stockToken || '',
-        chain: Promise.resolve()
+        base: tablasContainer.dataset.stockBase || ''
     };
+
+    /* El CSRF es compartido con el resto de la pagina (la campana del header
+       tambien postea, y cada POST invalida el hash anterior). PrevcsCsrf vive
+       inline en el head del layout, asi que ya esta cuando esto corre. */
+    window.PrevcsCsrf.seed(tablasContainer.dataset.stockToken || '');
 
     var puedeEditar = tablasContainer.dataset.stockCanEdit === '1';
 
@@ -275,14 +337,14 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         options.headers['X-Requested-With'] = 'XMLHttpRequest';
 
         if (method !== 'GET') {
-            options.headers['X-CSRF-TOKEN'] = api.token;
+            options.headers['X-CSRF-TOKEN'] = window.PrevcsCsrf.get();
             options.headers['Content-Type'] = 'application/json';
             options.body = JSON.stringify(body || {});
         }
 
         return fetch(api.base + path, options).then(function (response) {
             return response.json().catch(function () { return {}; }).then(function (data) {
-                if (data && data.csrf) api.token = data.csrf;
+                if (data && data.csrf) window.PrevcsCsrf.set(data.csrf);
 
                 if (!response.ok || !data || data.ok === false) {
                     throw new Error((data && data.error) || 'No se pudo guardar el cambio.');
@@ -294,13 +356,12 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
     }
 
     /* El CSRF se regenera en cada POST validado, asi que dos peticiones en
-       paralelo harian fallar a la segunda: van encadenadas una atras de otra. */
+       paralelo harian fallar a la segunda: van encadenadas una atras de otra.
+       La cola es la global, para no pisarse con los POST de la campana. */
     function guardar(path, body) {
-        var tarea = api.chain.then(function () {
+        var tarea = window.PrevcsCsrf.queue(function () {
             return send('POST', path, body);
         });
-
-        api.chain = tarea.catch(function () {});
 
         return tarea.catch(function (error) {
             mostrarPopup(error.message || 'No se pudo guardar el cambio.', 'error');
@@ -333,11 +394,63 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
     function iconoTipo(tipo) {
         if (tipo === 'contador') return '#';
         if (tipo === 'minimo') return 'M';
+        if (tipo === 'aviso') return '!';
         return 'T';
     }
 
     function esTipoNumerico(tipo) {
-        return tipo === 'contador' || tipo === 'minimo';
+        return tipo === 'contador' || tipo === 'minimo' || tipo === 'aviso';
+    }
+
+    /* En la columna de aviso la celda vacia significa "esta fila no avisa", que
+       no es lo mismo que avisar cuando llega a cero. */
+    function esTipoVaciable(tipo) {
+        return tipo === 'aviso';
+    }
+
+    function esTipoUnico(tipo) {
+        return tipo === 'contador' || tipo === 'minimo' || tipo === 'aviso';
+    }
+
+    function mensajeTipoUnico(tipo) {
+        if (tipo === 'minimo') return 'La tabla ya tiene una columna de mínimo tolerable';
+        if (tipo === 'aviso') return 'La tabla ya tiene una columna de Notificarme';
+
+        return 'La tabla ya tiene una columna de contador';
+    }
+
+    /* Config de notificaciones de la tabla. Sin columna "Notificarme" valen los
+       defaults: los avisos automaticos de cero y de minimo van prendidos. */
+    var AVISO_DEFAULTS = { label: 'Reponer pronto', comparator: 'lte', zero: true, minimo: true };
+
+    function settingsDeTabla(tabla) {
+        var th = tabla ? tabla.querySelector('thead th[data-type="aviso"]') : null;
+        if (!th || !th.dataset.settings) return AVISO_DEFAULTS;
+
+        try {
+            var parsed = JSON.parse(th.dataset.settings);
+            return {
+                label: parsed.label || AVISO_DEFAULTS.label,
+                comparator: parsed.comparator || AVISO_DEFAULTS.comparator,
+                zero: parsed.zero !== false,
+                minimo: parsed.minimo !== false
+            };
+        } catch (e) {
+            return AVISO_DEFAULTS;
+        }
+    }
+
+    function comparar(valor, umbral, comparator) {
+        if (comparator === 'lt') return valor < umbral;
+        if (comparator === 'eq') return valor === umbral;
+
+        return valor <= umbral;
+    }
+
+    function tablaTieneTipo(tabla, tipo, exceptColumnId) {
+        if (!tabla || !esTipoUnico(tipo)) return false;
+
+        return !!tabla.querySelector('thead th[data-type="' + tipo + '"]:not([data-column-id="' + exceptColumnId + '"])');
     }
 
     /* ── Capas modales ────────────────────────────────────────────────────
@@ -498,9 +611,20 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             accion = { label: accionTexto, onClick: accionCallback };
         }
 
-        // El toast compartido solo distingue error de exito.
-        var esError = tipo === 'error' || tipo === 'warning';
-        toast.show(mensaje, esError ? 'error' : 'success', TOAST_MS, accion);
+        toast.show(mensaje, tipo || 'success', TOAST_MS, accion);
+    }
+
+    /* La alerta la arma y la persiste el servidor (StockRowAlerts + fan-out a
+       todos los miembros del espacio). Acá solo se muestra el toast y se le
+       pide a la campana que se ponga al día. */
+    function mostrarAlertaStock(alerta) {
+        var tipos = { 1: 'error', 2: 'warning', 3: 'info' };
+
+        mostrarPopup(alerta.text || alerta.title, tipos[alerta.level] || 'warning');
+
+        if (window.PrevcsNotifications && typeof window.PrevcsNotifications.refresh === 'function') {
+            window.PrevcsNotifications.refresh();
+        }
     }
 
     function chevronSvg(direction) {
@@ -525,6 +649,16 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         '</svg>';
     }
 
+    function warningSvg() {
+        return '<span class="stock-row-warning" title="Stock en o por debajo del mínimo tolerable" aria-label="Stock en o por debajo del mínimo tolerable">' +
+            '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+                '<circle cx="12" cy="12" r="10"/>' +
+                '<path d="M12 6.5v7" />' +
+                '<circle class="stock-row-warning__dot" cx="12" cy="17.5" r="1.3"/>' +
+            '</svg>' +
+        '</span>';
+    }
+
     /* Los generadores reciben la columna tal como la devuelve el servidor:
        {id, name, type, unit, isItem}. El id viaja en el DOM porque es lo que
        hace direccionable cada celda a la hora de guardarla. */
@@ -535,6 +669,9 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             '<th data-column-id="' + (col.id || '') + '"' +
                 ' data-type="' + escapeHtml(tipo) + '"' +
                 ' data-unit="' + escapeHtml(col.unit || '') + '"' +
+                // La config de notificaciones viaja en el th: es donde la buscan
+                // el repintado de avisos y el modal de propiedades.
+                (col.settings ? ' data-settings="' + escapeHtml(JSON.stringify(col.settings)) + '"' : '') +
                 (col.isItem ? ' data-item-column="true"' : '') + '>' +
                 '<div class="col-header-content">' +
                     '<span class="column-kind" data-col-icon>' + iconoTipo(tipo) + '</span>' +
@@ -544,18 +681,24 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             '</th>';
     }
 
-    function generarHtmlContador(unidad, valor, claseAlerta) {
-        var label = unidad || 'unidades';
-        var numero = Math.max(0, Math.round(Number(valor) || 0));
+    /* permitirVacio: en la columna de aviso el umbral en blanco significa "esta
+       fila no avisa", asi que el vacio no se puede aplastar a 0. */
+    function generarHtmlContador(unidad, valor, claseAlerta, permitirVacio) {
+        var vacio = permitirVacio && (valor === null || valor === undefined || valor === '');
+        var numero = vacio ? '' : Math.max(0, Math.round(Number(valor) || 0));
+        var etiqueta = permitirVacio
+            ? '<span class="unidad-label unidad-label--fija">umbral</span>'
+            : '<span class="unidad-label" data-editable-unidad="true">' + escapeHtml(unidad || 'unidades') + '</span>';
 
         return '' +
             '<div class="contador-wrapper' + (claseAlerta || '') + '">' +
                 '<div class="contador-controls">' +
                     '<button class="contador-btn" type="button" data-counter-delta="1" aria-label="Sumar">' + chevronSvg('up') + '</button>' +
-                    '<input type="text" inputmode="numeric" pattern="[0-9]*" class="contador-input" value="' + numero + '" autocomplete="off">' +
+                    '<input type="text" inputmode="numeric" pattern="[0-9]*" class="contador-input" value="' + numero + '"' +
+                        (permitirVacio ? ' placeholder="—" data-permite-vacio="true"' : '') + ' autocomplete="off">' +
                     '<button class="contador-btn" type="button" data-counter-delta="-1" aria-label="Restar">' + chevronSvg('down') + '</button>' +
                 '</div>' +
-                '<span class="unidad-label" data-editable-unidad="true">' + escapeHtml(label) + '</span>' +
+                etiqueta +
             '</div>';
     }
 
@@ -584,13 +727,13 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         });
     }
 
-    function generarTd(col, valor, stockBajo) {
+    function generarTd(col, valor, estadoStock, filaBaja) {
         var tipo = col.type || 'texto';
         var attrs = ' data-column-id="' + (col.id || '') + '"';
 
         if (esTipoNumerico(tipo)) {
-            var claseAlerta = tipo === 'contador' && stockBajo ? ' is-stock-low' : '';
-            return '<td' + attrs + '>' + generarHtmlContador(col.unit, valor, claseAlerta) + '</td>';
+            var claseAlerta = tipo === 'contador' && estadoStock ? ' is-stock-' + estadoStock : '';
+            return '<td' + attrs + '>' + generarHtmlContador(col.unit, valor, claseAlerta, esTipoVaciable(tipo)) + '</td>';
         }
 
         // La celda de la columna de item es el nombre del item: se avisa con el
@@ -602,6 +745,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
                 '<div class="cell-content" data-editable="true" data-placeholder="' + escapeHtml(placeholder) + '">' +
                     escapeHtml(valor === null || valor === undefined ? '' : valor) +
                 '</div>' +
+                (col.isItem && filaBaja ? warningSvg() : '') +
             '</td>';
     }
 
@@ -661,19 +805,60 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         }).join('');
     }
 
+    /* Estado de alerta de una fila. Es el espejo en JS de StockRowAlerts.php:
+       el servidor decide a quien notificar, esto solo pinta. Los umbrales de
+       referencia son el minimo mas alto y el umbral propio de la fila. */
+    function estadoDeFila(columns, values) {
+        var minimos = [];
+        var contadores = [];
+        var umbral = null;
+
+        columns.forEach(function (col) {
+            var crudo = values[col.id];
+
+            if (col.type === 'contador') contadores.push(Number(crudo) || 0);
+            else if (col.type === 'minimo') minimos.push(Number(crudo) || 0);
+            else if (col.type === 'aviso') umbral = (crudo === null || crudo === undefined || crudo === '') ? null : Number(crudo);
+        });
+
+        return calcularEstado(contadores, minimos, umbral, settingsDeColumnas(columns));
+    }
+
+    function settingsDeColumnas(columns) {
+        var col = columns.filter(function (c) { return c.type === 'aviso'; })[0];
+
+        return col && col.settings ? col.settings : AVISO_DEFAULTS;
+    }
+
+    /* Con mas de un contador manda el mas bajo y con mas de un minimo el mas
+       alto, asi ningun nivel de referencia queda sin respetar. */
+    function calcularEstado(contadores, minimos, umbral, settings) {
+        if (!contadores.length) return { state: 'ok', minimo: null };
+
+        var contador = Math.min.apply(null, contadores);
+        var minimo = minimos.length ? Math.max.apply(null, minimos) : null;
+        var state = 'ok';
+
+        if (contador === 0) state = 'zero';
+        else if (minimo !== null && contador <= minimo) state = contador === minimo ? 'equal' : 'low';
+        else if (umbral !== null && comparar(contador, umbral, settings.comparator)) state = 'notice';
+
+        return { state: state, minimo: minimo };
+    }
+
     function cuerpoHtml(data) {
         return data.rows.map(function (row) {
-            var minimos = data.columns
-                .filter(function (col) { return col.type === 'minimo'; })
-                .map(function (col) { return Number(row.values[col.id]) || 0; });
-            var minimoReferencia = minimos.length ? Math.max.apply(null, minimos) : null;
+            var estado = estadoDeFila(data.columns, row.values);
+            // El icono de la fila marca lo urgente: agotado o bajo el minimo.
+            var filaBaja = estado.state === 'zero' || estado.state === 'low' || estado.state === 'equal';
+
             var celdas = data.columns.map(function (col) {
-                var valor = Number(row.values[col.id]) || 0;
-                var stockBajo = minimoReferencia !== null && valor < minimoReferencia;
-                return generarTd(col, row.values[col.id], stockBajo);
+                var estadoStock = col.type === 'contador' && estado.state !== 'ok' ? estado.state : null;
+
+                return generarTd(col, row.values[col.id], estadoStock, filaBaja);
             }).join('');
 
-            return '<tr data-row-id="' + row.id + '">' + celdas + '</tr>';
+            return '<tr data-row-id="' + row.id + '"' + (filaBaja ? ' class="is-stock-low-row"' : '') + '>' + celdas + '</tr>';
         }).join('');
     }
 
@@ -756,11 +941,23 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
         var input = td.querySelector('.contador-input');
         var contenido = td.querySelector('.cell-content');
-        var valor = input
-            ? (parseInt(input.value, 10) || 0)
-            : (contenido ? contenido.textContent.trim() : '');
+        var valor;
 
-        guardar('/tablas/' + tableId + '/celdas/' + rowId + '/' + columnId, { value: valor });
+        if (input) {
+            var crudo = input.value.trim();
+            // El umbral en blanco viaja vacio: es "esta fila no avisa", no un 0.
+            valor = (crudo === '' && input.dataset.permiteVacio) ? '' : (parseInt(crudo, 10) || 0);
+        } else {
+            valor = contenido ? contenido.textContent.trim() : '';
+        }
+
+        guardar('/tablas/' + tableId + '/celdas/' + rowId + '/' + columnId, { value: valor })
+            .then(function (data) {
+                // El servidor es el que decide si hubo alerta: ya la repartio
+                // entre todos los miembros del espacio.
+                if (data && data.alert) mostrarAlertaStock(data.alert);
+            })
+            .catch(function () { /* el error ya se mostro en guardar() */ });
     }
 
     /* Un solo POST por celda aunque el usuario tipee rapido: el temporizador
@@ -955,6 +1152,43 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         }, 420);
     }
 
+    function enfocarEditable(elemento, seleccionar) {
+        if (!elemento) return;
+
+        window.requestAnimationFrame(function () {
+            elemento.setAttribute('contenteditable', 'true');
+            elemento.focus();
+
+            var range = document.createRange();
+            range.selectNodeContents(elemento);
+            if (!seleccionar) range.collapse(false);
+
+            var selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+        });
+    }
+
+    function enfocarFilaNueva(wrapper, previos) {
+        if (!wrapper || !previos) return;
+
+        var nueva = Array.prototype.find.call(wrapper.querySelectorAll('tbody tr'), function (tr) {
+            return previos.rows.indexOf(tr.dataset.rowId) === -1;
+        });
+
+        enfocarEditable(nueva ? nueva.querySelector('td:first-child .cell-content') : null, false);
+    }
+
+    function enfocarColumnaNueva(wrapper, previos) {
+        if (!wrapper || !previos) return;
+
+        var nueva = Array.prototype.find.call(wrapper.querySelectorAll('thead th'), function (th) {
+            return previos.cols.indexOf(th.dataset.columnId) === -1;
+        });
+
+        enfocarEditable(nueva ? nueva.querySelector('.col-name') : null, true);
+    }
+
     /* Los cambios de estructura van al servidor primero y la tabla se repinta
        con la respuesta. Es lo que mantiene los ids del DOM pegados a los de la
        base sin tener que adivinarlos desde el cliente. */
@@ -964,6 +1198,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
         return guardarEstructura('/tablas/' + tablaIdDe(tabla) + '/filas', {}).then(function (data) {
             pintarTabla(wrapper, data.table, previos);
+            enfocarFilaNueva(wrapper, previos);
         });
     }
 
@@ -1004,6 +1239,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             type: 'texto'
         }).then(function (data) {
             pintarTabla(wrapper, data.table, previos);
+            enfocarColumnaNueva(wrapper, previos);
         });
     }
 
@@ -1020,6 +1256,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             position: index
         }).then(function (data) {
             pintarTabla(wrapper, data.table, previos);
+            enfocarColumnaNueva(wrapper, previos);
         });
     }
 
@@ -1173,6 +1410,12 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
     function cambiarContador(button) {
         var input = button.parentElement.querySelector('input');
         var delta = parseInt(button.dataset.counterDelta, 10) || 0;
+        var vacio = input.value.trim() === '';
+
+        // Bajar desde un umbral en blanco no lo convierte en 0: seguiria sin
+        // avisar, pero 0 significa otra cosa. Subir si lo estrena en 1.
+        if (vacio && input.dataset.permiteVacio && delta < 0) return;
+
         var value = parseInt(input.value, 10) || 0;
 
         value += delta;
@@ -1197,6 +1440,18 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         (raiz || document).querySelectorAll('.contador-input').forEach(ajustarAnchoContador);
     }
 
+    function actualizarIconoFila(tr, bajo) {
+        var itemCell = tr ? tr.firstElementChild : null;
+        if (!itemCell) return;
+
+        var icono = itemCell.querySelector('.stock-row-warning');
+        if (bajo && !icono) {
+            itemCell.insertAdjacentHTML('beforeend', warningSvg());
+        } else if (!bajo && icono) {
+            icono.remove();
+        }
+    }
+
     function validarContador(input) {
         var crudo = input.value;
         var caret = input.selectionStart;
@@ -1204,7 +1459,9 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         // Solo digitos. Y el cero inicial se va en cuanto se tipea encima:
         // arrancando de "0", escribir 1 dejaba "01" en pantalla.
         var limpio = crudo.replace(/[^0-9]/g, '').replace(/^0+(?=\d)/, '');
-        if (limpio === '') limpio = '0';
+        // En la columna de aviso el campo se puede dejar en blanco: es "esta
+        // fila no avisa". En el resto, vacio vuelve a 0.
+        if (limpio === '' && !input.dataset.permiteVacio) limpio = '0';
 
         if (limpio !== crudo) {
             var quitados = crudo.length - limpio.length;
@@ -1220,30 +1477,55 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         actualizarAvisosFila(input.closest('tr'));
     }
 
-    /* Un mínimo de la fila sirve como referencia. Si hay más de uno, se toma
-       el mayor: así ningún nivel de referencia queda sin respetar. */
+    /* Lee los valores de una fila del DOM, para reevaluar el estado sin esperar
+       la respuesta del servidor mientras el usuario tipea. */
+    function valoresDeFila(tabla, tr, tipo) {
+        var valores = [];
+
+        Array.prototype.forEach.call(tabla.querySelectorAll('thead th[data-type="' + tipo + '"]'), function (th) {
+            var index = Array.prototype.indexOf.call(th.parentElement.children, th);
+            var celda = tr.children[index];
+            var input = celda ? celda.querySelector('.contador-input') : null;
+            if (!input) return;
+
+            var crudo = input.value.trim();
+            valores.push(crudo === '' ? null : (parseInt(crudo, 10) || 0));
+        });
+
+        return valores;
+    }
+
+    /* Repinta los avisos de una fila. Ya no dispara notificaciones: eso lo
+       decide el servidor en updateCell, que es el unico que ve el estado real
+       de la base y puede avisarle a todo el espacio y no solo a quien tipea. */
     function actualizarAvisosFila(tr) {
         if (!tr) return;
 
         var tabla = tr.closest('table');
         if (!tabla) return;
 
-        var minimos = [];
-        Array.prototype.forEach.call(tabla.querySelectorAll('thead th[data-type="minimo"]'), function (th, index) {
-            var celda = tr.children[index];
-            var input = celda ? celda.querySelector('.contador-input') : null;
-            if (input) minimos.push(parseInt(input.value, 10) || 0);
-        });
+        var minimos = valoresDeFila(tabla, tr, 'minimo').filter(function (v) { return v !== null; });
+        var contadores = valoresDeFila(tabla, tr, 'contador').map(function (v) { return v === null ? 0 : v; });
+        var umbrales = valoresDeFila(tabla, tr, 'aviso');
+        var umbral = umbrales.length ? umbrales[0] : null;
 
-        var minimoReferencia = minimos.length ? Math.max.apply(null, minimos) : null;
-        Array.prototype.forEach.call(tabla.querySelectorAll('thead th[data-type="contador"]'), function (th, index) {
+        var estado = calcularEstado(contadores, minimos, umbral, settingsDeTabla(tabla));
+        var filaBaja = estado.state === 'zero' || estado.state === 'low' || estado.state === 'equal';
+
+        Array.prototype.forEach.call(tabla.querySelectorAll('thead th[data-type="contador"]'), function (th) {
+            var index = Array.prototype.indexOf.call(th.parentElement.children, th);
             var celda = tr.children[index];
             var wrapper = celda ? celda.querySelector('.contador-wrapper') : null;
-            var input = celda ? celda.querySelector('.contador-input') : null;
-            if (wrapper && input) {
-                wrapper.classList.toggle('is-stock-low', minimoReferencia !== null && (parseInt(input.value, 10) || 0) < minimoReferencia);
-            }
+            if (!wrapper) return;
+
+            wrapper.classList.toggle('is-stock-zero', estado.state === 'zero');
+            wrapper.classList.toggle('is-stock-low', estado.state === 'low');
+            wrapper.classList.toggle('is-stock-equal', estado.state === 'equal');
+            wrapper.classList.toggle('is-stock-notice', estado.state === 'notice');
         });
+
+        tr.classList.toggle('is-stock-low-row', filaBaja);
+        actualizarIconoFila(tr, filaBaja);
     }
 
     function tipoSeleccionado() {
@@ -1251,6 +1533,29 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             if (tipoRadios[i].checked) return tipoRadios[i].value;
         }
         return 'texto';
+    }
+
+    /* Muestra el panel que corresponde al tipo elegido. El interruptor del
+       minimo se apaga si la tabla no tiene columna de minimo: sin ella ese
+       aviso no puede dispararse nunca. */
+    function sincronizarConfigAviso(tipo) {
+        var esAviso = tipo === 'aviso';
+
+        configAviso.hidden = !esAviso;
+        // La unidad no aplica al umbral: se expresa en la del contador.
+        configContador.hidden = !esTipoNumerico(tipo) || esAviso;
+
+        if (!esAviso) return;
+
+        var tabla = colActiva ? colActiva.closest('table') : null;
+        var hayMinimo = !!(tabla && tabla.querySelector('thead th[data-type="minimo"]'));
+
+        inputAvisoMinimo.disabled = !hayMinimo;
+        if (avisoMinimoHint) {
+            avisoMinimoHint.textContent = hayMinimo
+                ? 'Urgente'
+                : 'La tabla todavía no tiene columna de mínimo';
+        }
     }
 
     function abrirModalPropiedades(button) {
@@ -1262,7 +1567,17 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         var nombreCol = colActiva.querySelector('.col-name');
 
         tipoRadios.forEach(function (radio) {
+            var ocupado = tablaTieneTipo(colActiva.closest('table'), radio.value, colActiva.dataset.columnId);
+            var bloqueado = radio.value !== tipoActual && ocupado;
+            var card = radio.closest('.stock-type-card');
+
             radio.checked = radio.value === tipoActual;
+            radio.disabled = bloqueado;
+            radio.title = bloqueado ? mensajeTipoUnico(radio.value) : '';
+            if (card) {
+                card.classList.toggle('is-disabled', bloqueado);
+                card.title = bloqueado ? mensajeTipoUnico(radio.value) : '';
+            }
         });
 
         if (propSubtitle) {
@@ -1273,7 +1588,16 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         }
 
         inputUnidad.value = unidadActual;
-        configContador.hidden = !esTipoNumerico(tipoActual);
+
+        // La config de aviso se siembra con la que ya tenga la tabla, aunque la
+        // columna todavia no sea de ese tipo: asi cambiarle el tipo a una
+        // columna no resetea los interruptores.
+        var settings = settingsDeTabla(colActiva.closest('table'));
+        inputAvisoLabel.value = settings.label;
+        inputAvisoComparador.value = settings.comparator;
+        inputAvisoZero.checked = settings.zero;
+        inputAvisoMinimo.checked = settings.minimo;
+        sincronizarConfigAviso(tipoActual);
         abrirCapa(modal);
     }
 
@@ -1291,11 +1615,28 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         var tabla = colActiva.closest('table');
         var wrapper = colActiva.closest('.tabla-wrapper');
         var columnId = colActiva.dataset.columnId;
+        var tipo = tipoSeleccionado();
 
-        guardarEstructura('/tablas/' + tablaIdDe(tabla) + '/columnas/' + columnId, {
-            type: tipoSeleccionado(),
+        if (tablaTieneTipo(tabla, tipo, columnId)) {
+            mostrarPopup(mensajeTipoUnico(tipo), 'error');
+            return;
+        }
+
+        var cambios = {
+            type: tipo,
             unit: inputUnidad.value.trim() || 'unidades'
-        }).then(function (data) {
+        };
+
+        if (tipo === 'aviso') {
+            cambios.settings = {
+                label: inputAvisoLabel.value.trim() || 'Reponer pronto',
+                comparator: inputAvisoComparador.value,
+                zero: inputAvisoZero.checked,
+                minimo: inputAvisoMinimo.checked
+            };
+        }
+
+        guardarEstructura('/tablas/' + tablaIdDe(tabla) + '/columnas/' + columnId, cambios).then(function (data) {
             pintarTabla(wrapper, data.table);
         });
 
@@ -1378,7 +1719,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
     tipoRadios.forEach(function (radio) {
         radio.addEventListener('change', function () {
-            configContador.hidden = !esTipoNumerico(tipoSeleccionado());
+            sincronizarConfigAviso(tipoSeleccionado());
         });
     });
 

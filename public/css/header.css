@@ -419,7 +419,6 @@ body[data-theme="dark"] .theme-switch__moon,
 .notif-bell__icon { display: inline-grid; place-items: center; }
 .notif-bell__icon svg { width: 19px; height: 19px; }
 
-/* Contador: rojo apagado (contraste bajo) para que avise sin gritar. */
 .notif-bell__badge {
   position: absolute;
   top: -3px; right: -3px;
@@ -429,7 +428,7 @@ body[data-theme="dark"] .theme-switch__moon,
   place-items: center;
   border-radius: var(--radius-pill);
   border: 2px solid var(--bg);
-  background: color-mix(in oklab, var(--error) 62%, var(--bg-card));
+  background: var(--error);
   color: #fff;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -521,9 +520,11 @@ body[data-theme="dark"] .theme-switch__moon,
   margin-top: 7px;
   flex: none;
   border-radius: var(--radius-pill);
-  background: color-mix(in oklab, var(--error) 62%, var(--bg-card));
+  background: var(--error);
   opacity: 0;
 }
+.notif-item--warning .notif-item__dot { background: var(--warning); }
+.notif-item--error .notif-item__dot { background: var(--error); }
 .notif-item.is-unread .notif-item__dot { opacity: 1; }
 .notif-item__body {
   flex: 1;
@@ -547,6 +548,8 @@ body[data-theme="dark"] .theme-switch__moon,
   text-overflow: ellipsis;
 }
 .notif-item.is-unread .notif-item__title { color: var(--text-primary); }
+.notif-item--warning.is-unread .notif-item__title { color: var(--warning); }
+.notif-item--error.is-unread .notif-item__title { color: var(--error); }
 .notif-item__date {
   flex: none;
   font-family: var(--font-mono);
@@ -575,3 +578,8 @@ body[data-theme="dark"] .theme-switch__moon,
 @media (max-width: 480px) {
   .notif-panel { width: calc(100vw - 32px); }
 }
+
+/* Nivel 3: el aviso propio del usuario (columna "Notificarme"). Es el menos
+   urgente de los tres, asi que va en el color de informacion y no en ambar. */
+.notif-item--info .notif-item__dot { background: var(--info); }
+.notif-item--info.is-unread .notif-item__title { color: var(--info); }

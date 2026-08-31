@@ -82,7 +82,18 @@
   animation-fill-mode: forwards;
 }
 
+.pv-toast--error {
+  border-color: color-mix(in oklab, var(--error) 44%, var(--hair));
+}
+.pv-toast--warning {
+  border-color: color-mix(in oklab, var(--warning) 44%, var(--hair));
+}
+.pv-toast--info {
+  border-color: color-mix(in oklab, var(--info) 44%, var(--hair));
+}
 .pv-toast--error .pv-toast__bar { background: var(--error); }
+.pv-toast--warning .pv-toast__bar { background: var(--warning); }
+.pv-toast--info .pv-toast__bar { background: var(--info); }
 
 @keyframes pvToastBar {
   from { transform: scaleX(0); }

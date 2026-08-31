@@ -29,7 +29,7 @@ class StockCellModel extends Model
     public function put(int $rowId, int $columnId, string $type, $value): void
     {
         $data = StockColumnModel::isNumericType($type)
-            ? ['value_text' => null, 'value_number' => $this->toNumber($value)]
+            ? ['value_text' => null, 'value_number' => $this->toNumber($value, StockColumnModel::isNullableType($type))]
             : ['value_text' => $value === null ? null : (string) $value, 'value_number' => null];
 
         $existing = $this->where('row_id', $rowId)
@@ -62,6 +62,38 @@ class StockCellModel extends Model
         }
 
         return $indexed;
+    }
+
+    /**
+     * Valores de una sola fila, indexados por id de columna. Es lo que consume
+     * StockRowAlerts para evaluar si hay que notificar; va apuntado a la fila en
+     * vez de traer la tabla entera porque corre en el endpoint más caliente.
+     */
+    public function forRow(int $rowId, array $columns): array
+    {
+        $cells = [];
+        foreach ($this->where('row_id', $rowId)->findAll() as $cell) {
+            $cells[(int) $cell['column_id']] = $cell;
+        }
+
+        $values = [];
+        foreach ($columns as $column) {
+            $id      = (int) $column['id'];
+            $cell    = $cells[$id] ?? null;
+            $numeric = StockColumnModel::isNumericType($column['type']);
+
+            if ($numeric && StockColumnModel::isNullableType($column['type'])) {
+                $values[$id] = ($cell['value_number'] ?? null) === null ? null : (float) $cell['value_number'];
+
+                continue;
+            }
+
+            $values[$id] = $numeric
+                ? (float) ($cell['value_number'] ?? 0)
+                : (string) ($cell['value_text'] ?? '');
+        }
+
+        return $values;
     }
 
     /**
@@ -103,9 +135,11 @@ class StockCellModel extends Model
             return;
         }
 
+        $nullable = StockColumnModel::isNullableType($toType);
+
         foreach ($this->where('column_id', $columnId)->findAll() as $cell) {
             $data = $isNumeric
-                ? ['value_number' => $this->toNumber($cell['value_text']), 'value_text' => null]
+                ? ['value_number' => $this->toNumber($cell['value_text'], $nullable), 'value_text' => null]
                 : ['value_text' => $this->numberToText($cell['value_number']), 'value_number' => null];
 
             $this->update((int) $cell['id'], $data);
@@ -115,17 +149,24 @@ class StockCellModel extends Model
     /**
      * Cualquier cosa → número. Lo que no se pueda interpretar vale 0, así una
      * columna de texto convertida en contador nunca queda con celdas vacías.
+     *
+     * En los tipos nulables (`aviso`) lo ilegible se guarda como null en vez de
+     * 0: ahí "vacío" significa "esta fila no avisa", no "avisar en cero".
      */
-    private function toNumber($value): float
+    private function toNumber($value, bool $nullable = false): ?float
     {
         if (is_numeric($value)) {
             return (float) $value;
         }
 
-        // "12 cajas" → 12; "" o "sin stock" → 0.
+        // "12 cajas" → 12; "" o "sin stock" → 0 (o null si el tipo lo admite).
         $limpio = preg_replace('/[^0-9.\-]/', '', (string) $value);
 
-        return is_numeric($limpio) ? (float) $limpio : 0.0;
+        if (is_numeric($limpio)) {
+            return (float) $limpio;
+        }
+
+        return $nullable ? null : 0.0;
     }
 
     /**

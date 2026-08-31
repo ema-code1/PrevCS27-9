@@ -134,8 +134,9 @@
        que aparecen después de mover, archivar o eliminar algo. */
     function showToast(message, type, duration, action) {
       duration = duration || 3500;
+      type = ['success', 'error', 'warning', 'info'].indexOf(type) === -1 ? 'success' : type;
       var toast = document.createElement('div');
-      toast.className = 'pv-toast pv-toast--' + (type === 'error' ? 'error' : 'success');
+      toast.className = 'pv-toast pv-toast--' + type;
       toast.setAttribute('role', 'status');
 
       var text = document.createElement('div');

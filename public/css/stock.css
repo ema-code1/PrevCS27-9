@@ -1007,6 +1007,9 @@ body[data-theme="dark"] .stock-interactive-card {
   color: var(--stock-text);
   transition: color 150ms ease;
 }
+.stock-interactive-card td:has(.stock-row-warning) .cell-content {
+  padding-right: 42px;
+}
 .cell-content:empty::before {
   content: attr(data-placeholder);
   color: var(--stock-muted);
@@ -1101,6 +1104,42 @@ body[data-theme="dark"] .stock-interactive-card {
 /* El contador queda rojo cuando su fila tiene un mínimo mayor. */
 .contador-wrapper.is-stock-low .contador-input {
   color: var(--error);
+}
+.contador-wrapper.is-stock-zero .contador-input {
+  color: var(--error);
+}
+.contador-wrapper.is-stock-equal .contador-input {
+  color: var(--warning);
+}
+
+.stock-row-warning {
+  position: absolute;
+  top: 50%;
+  right: 26px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  color: var(--warning);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.stock-row-warning svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+.stock-row-warning circle {
+  fill: currentColor;
+}
+.stock-row-warning path {
+  fill: none;
+  stroke: var(--stock-bg);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.stock-row-warning .stock-row-warning__dot {
+  fill: var(--stock-bg);
 }
 
 .unidad-label {
@@ -1283,7 +1322,7 @@ body[data-theme="dark"] .stock-interactive-card {
 /* Tipo de columna: dos tarjetas radio, la elegida se tinta de acento. */
 .stock-type-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 10px;
 }
 .stock-type-card {
@@ -1338,6 +1377,14 @@ body[data-theme="dark"] .stock-interactive-card {
   white-space: nowrap;
 }
 .stock-type-card:hover { border-color: var(--hair-2, #d0d0d0); background: var(--bg-card-soft, #fafafa); }
+.stock-type-card.is-disabled {
+  opacity: .48;
+  cursor: not-allowed;
+}
+.stock-type-card.is-disabled:hover {
+  border-color: var(--hair-2, #e0e0e0);
+  background: var(--bg-card, #fff);
+}
 .stock-type-card:has(input:checked) {
   border-color: var(--accent, #007bff);
   background: var(--accent-soft, rgba(0,123,255,.08));
@@ -1605,3 +1652,94 @@ body[data-theme="dark"] .stock-interactive-card {
     transition-duration: 1ms !important;
   }
 }
+
+/* El contador cruzo el umbral propio de la fila (columna "Notificarme"): es un
+   aviso anticipado, todavia esta por encima del minimo tolerable. */
+.contador-wrapper.is-stock-notice .contador-input {
+  color: var(--info);
+}
+
+/* ── Columna "Notificarme" ───────────────────────────────────────────────
+   El panel de avisos de la tabla: la regla propia del usuario arriba y los
+   interruptores de los dos avisos automaticos abajo. */
+.stock-aviso-regla {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--text-secondary, #666);
+  font-size: var(--font-size-sm, 14px);
+}
+.stock-input--select {
+  width: auto;
+  min-width: 170px;
+  padding-right: 10px;
+  cursor: pointer;
+}
+
+.stock-switch {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.stock-switch input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.stock-switch__track {
+  position: relative;
+  flex: none;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--hair-2, #e0e0e0);
+  transition: background var(--transition-fast, 190ms ease);
+}
+.stock-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .22);
+  transition: transform var(--transition-fast, 190ms ease);
+}
+.stock-switch input:checked + .stock-switch__track {
+  background: var(--accent, #007bff);
+}
+.stock-switch input:checked + .stock-switch__track .stock-switch__thumb {
+  transform: translateX(16px);
+}
+.stock-switch input:focus-visible + .stock-switch__track {
+  box-shadow: 0 0 0 3px var(--accent-ring, rgba(0, 123, 255, .18));
+}
+.stock-switch input:disabled ~ .stock-switch__text,
+.stock-switch input:disabled + .stock-switch__track {
+  opacity: .5;
+}
+.stock-switch:has(input:disabled) { cursor: not-allowed; }
+
+.stock-switch__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.stock-switch__title {
+  color: var(--text-primary, #333);
+  font-size: var(--font-size-sm, 14px);
+}
+.stock-switch__hint {
+  color: var(--text-faint, #999);
+  font-size: var(--font-size-xs, 12px);
+}
+
+/* La etiqueta del umbral no se edita: no es una unidad, es un rotulo fijo. */
+.unidad-label--fija { cursor: default; }

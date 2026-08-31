@@ -74,6 +74,10 @@ $routes->post('espacios/(:num)/stock/tablas/(:num)/filas', 'StockController::cre
 $routes->post('espacios/(:num)/stock/tablas/(:num)/filas/(:num)/eliminar', 'StockController::deleteRow/$1/$2/$3');
 $routes->post('espacios/(:num)/stock/tablas/(:num)/celdas/(:num)/(:num)', 'StockController::updateCell/$1/$2/$3/$4');
 
+// Campana del header. El feed es GET para que el polling no rote el CSRF.
+$routes->get('notificaciones', 'NotificationController::feed');
+$routes->post('notificaciones/leidas', 'NotificationController::markAllRead');
+
 // Centro de ayuda (publico, se abre en pestaña nueva desde el sidebar)
 $routes->get('ayuda', 'AyudaController::index');
 

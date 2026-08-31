@@ -3,7 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-hash" content="<?= csrf_hash() ?>">
     <title><?= esc($title ?? 'PrevCS · Preventive Control System') ?></title>
+
+    <script>
+    /* ─── CSRF compartido ───────────────────────────────────────────────
+       Security.php tiene $regenerate = true: cada POST invalida el hash
+       anterior. Con un token cacheado por módulo, la campana del header le
+       pisaba el suyo a stock y a kanban y el guardado siguiente fallaba.
+       Acá vive el único hash vigente de la página, y queue() serializa
+       TODAS las mutaciones: dos POST en paralelo harían fallar el segundo.
+
+       Va inline en el head y no en prevcs-ui.js porque ese archivo es
+       defer y el JS de stock es inline: correría antes. ────────────── */
+    (function () {
+        var meta = document.querySelector('meta[name="csrf-hash"]');
+        var token = meta ? (meta.getAttribute('content') || '') : '';
+        var chain = Promise.resolve();
+
+        window.PrevcsCsrf = {
+            get: function () { return token; },
+
+            set: function (hash) {
+                if (!hash) return token;
+                token = hash;
+                if (meta) meta.setAttribute('content', hash);
+                return token;
+            },
+
+            /* Semilla desde un data-* de la vista. No pisa un hash más nuevo
+               que ya haya llegado por respuesta. */
+            seed: function (hash) {
+                if (hash && !token) window.PrevcsCsrf.set(hash);
+                return token;
+            },
+
+            /* fn devuelve una promesa; se encola detrás de lo pendiente y la
+               cadena sobrevive a los errores. */
+            queue: function (fn) {
+                var task = chain.then(fn);
+                chain = task.catch(function () {});
+                return task;
+            }
+        };
+    })();
+    </script>
 
     <link rel="icon" type="image/png" sizes="32x32" href="<?= base_url('images/prevcs-favicon-32-32x32.png') ?>">
     <link rel="icon" type="image/png" sizes="16x16" href="<?= base_url('images/prevcs-favicon-32-32x32.png') ?>">
@@ -14,10 +58,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>?v=20260820-1">
-    <link rel="stylesheet" href="<?= base_url('css/header.css') ?>?v=20260821-1">
+    <link rel="stylesheet" href="<?= base_url('css/header.css') ?>?v=20260831-2">
     <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>?v=20260807-4">
     <link rel="stylesheet" href="<?= base_url('css/password-toggle.css') ?>?v=20260612-1">
-    <link rel="stylesheet" href="<?= base_url('css/toast.css') ?>?v=20260612-1">
+    <link rel="stylesheet" href="<?= base_url('css/toast.css') ?>?v=20260831-2">
     <?= $this->renderSection('pageStyles') ?>
 
     <!-- Lenis — smooth scroll global para todas las vistas -->
@@ -284,20 +328,178 @@
         });
     })();
 
-    /* ─── Notificaciones: marcar todas como leídas ────────────────────── */
+    /* ─── Notificaciones ──────────────────────────────────────────────── */
     (function () {
         const menu = document.querySelector('.notif-menu');
         if (!menu) return;
         const button = menu.querySelector('[data-notif-read-all]');
-        if (!button) return;
+        const list = menu.querySelector('.notif-panel__list');
+        const summary = menu.querySelector('.notif-bell');
+        const feedUrl = '<?= base_url('notificaciones') ?>';
+        const readUrl = '<?= base_url('notificaciones/leidas') ?>';
 
-        button.addEventListener('click', function () {
+        function unreadCount() {
+            return menu.querySelectorAll('.notif-item.is-unread').length;
+        }
+
+        function updateBadge(count) {
+            if (!summary) return;
+
+            if (typeof count !== 'number') count = unreadCount();
+            let badge = summary.querySelector('.notif-bell__badge');
+
+            if (count <= 0) {
+                if (badge) badge.remove();
+                return;
+            }
+
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'notif-bell__badge';
+                summary.appendChild(badge);
+            }
+
+            badge.textContent = count > 99 ? '99+' : String(count);
+            badge.setAttribute('aria-label', count + ' notificaciones sin leer');
+        }
+
+        function updateEmpty() {
+            if (!list) return;
+
+            const hasItems = !!list.querySelector('.notif-item');
+            let empty = list.querySelector('.notif-empty');
+
+            if (hasItems) {
+                if (empty) empty.remove();
+                if (button) button.hidden = false;
+                return;
+            }
+
+            if (!empty) {
+                empty = document.createElement('p');
+                empty.className = 'notif-empty';
+                empty.textContent = 'No hay notificaciones';
+                list.appendChild(empty);
+            }
+            if (button) button.hidden = true;
+        }
+
+        /* El nivel decide el color: 1 agotado, 2 bajo el minimo, 3 aviso propio. */
+        function levelClass(level) {
+            return { 1: 'error', 2: 'warning', 3: 'info' }[Number(level)] || 'warning';
+        }
+
+        function createItem(notification) {
+            const item = document.createElement('div');
+            item.className = 'user-menu__item notif-item notif-item--' + levelClass(notification.level) + (notification.read ? '' : ' is-unread');
+            item.dataset.notifId = notification.id || '';
+
+            const dot = document.createElement('span');
+            dot.className = 'notif-item__dot';
+            dot.setAttribute('aria-hidden', 'true');
+
+            const body = document.createElement('span');
+            body.className = 'notif-item__body';
+
+            const head = document.createElement('span');
+            head.className = 'notif-item__head';
+
+            const title = document.createElement('span');
+            title.className = 'notif-item__title';
+            title.textContent = notification.title || 'Notificación';
+
+            const date = document.createElement('span');
+            date.className = 'notif-item__date';
+            date.textContent = notification.date || '';
+
+            const text = document.createElement('span');
+            text.className = 'notif-item__text';
+            text.textContent = notification.text || '';
+
+            head.appendChild(title);
+            head.appendChild(date);
+            body.appendChild(head);
+            if (notification.text) body.appendChild(text);
+            item.appendChild(dot);
+            item.appendChild(body);
+
+            return item;
+        }
+
+        /* Repinta el panel con lo que dice el servidor. El primer render ya
+           viene poblado desde header.php; esto lo mantiene al día para que una
+           baja de stock hecha por otro miembro del espacio también aparezca. */
+        function render(items, unread) {
+            if (!list) return;
+
+            list.querySelectorAll('.notif-item').forEach(function (node) { node.remove(); });
+            items.forEach(function (notification) {
+                list.appendChild(createItem(notification));
+            });
+
+            updateEmpty();
+            updateBadge(unread);
+        }
+
+        let refreshing = false;
+
+        function refresh() {
+            if (refreshing) return Promise.resolve();
+            refreshing = true;
+
+            // GET a propósito: no pasa por el filtro CSRF, así el polling no le
+            // rota el token a la página que esté abierta.
+            return fetch(feedUrl, {
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function (response) {
+                return response.ok ? response.json() : null;
+            }).then(function (data) {
+                if (data && data.ok) render(data.items || [], data.unread || 0);
+            }).catch(function () {
+                /* Sin conexión el panel se queda con lo último que tenía. */
+            }).then(function () {
+                refreshing = false;
+            });
+        }
+
+        updateEmpty();
+        updateBadge();
+
+        if (button) button.addEventListener('click', function () {
             menu.querySelectorAll('.notif-item.is-unread').forEach(function (item) {
                 item.classList.remove('is-unread');
             });
-            const badge = menu.querySelector('.notif-bell__badge');
-            if (badge) badge.remove();
+            updateBadge(0);
+
+            window.PrevcsCsrf.queue(function () {
+                return fetch(readUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': window.PrevcsCsrf.get(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: '{}'
+                }).then(function (response) {
+                    return response.json().catch(function () { return {}; });
+                }).then(function (data) {
+                    // El hash nuevo se publica para todos: sin esto, el próximo
+                    // guardado de stock o kanban fallaría.
+                    if (data && data.csrf) window.PrevcsCsrf.set(data.csrf);
+                });
+            }).catch(function () { refresh(); });
         });
+
+        // Cada minuto, y al volver a la pestaña: es lo que hace que te llegue el
+        // aviso de otro miembro sin recargar.
+        window.setInterval(refresh, 60000);
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden) refresh();
+        });
+
+        window.PrevcsNotifications = { refresh: refresh, updateBadge: updateBadge };
     })();
     </script>
 </body>
