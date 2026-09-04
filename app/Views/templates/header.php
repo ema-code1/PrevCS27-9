@@ -73,7 +73,12 @@ $notifClass = static fn ($level): string => 'notif-item--' . ([1 => 'error', 2 =
                 <div class="user-menu__panel notif-panel">
                     <div class="notif-panel__head">
                         <span class="notif-panel__title">Notificaciones</span>
-                        <button type="button" class="notif-panel__action" data-notif-read-all<?= $notifications === [] ? ' hidden' : '' ?>>Marcar todo como leído</button>
+                        <div class="notif-panel__actions">
+                            <button type="button" class="notif-panel__action" data-notif-read-all<?= $notifications === [] ? ' hidden' : '' ?>>Marcar todo como leído</button>
+                            <button type="button" class="notif-panel__clear" data-notif-clear-all<?= $notifications === [] ? ' hidden' : '' ?> aria-label="Borrar todo el historial de notificaciones" title="Borrar todo el historial de notificaciones">
+                                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="notif-panel__list">

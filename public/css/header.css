@@ -477,6 +477,11 @@ body[data-theme="dark"] .theme-switch__moon,
   color: var(--text-primary);
   letter-spacing: var(--letter-spacing-normal);
 }
+.notif-panel__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 .notif-panel__action {
   border: 0;
   padding: 0;
@@ -488,6 +493,22 @@ body[data-theme="dark"] .theme-switch__moon,
   transition: color var(--transition-fast);
 }
 .notif-panel__action:hover { color: var(--text-primary); }
+.notif-panel__clear {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+.notif-panel__clear:hover { background: var(--hair); color: var(--text-primary); }
+.notif-panel__clear:disabled { cursor: wait; opacity: .6; }
+.notif-panel__clear svg { width: 15px; height: 15px; }
 
 .notif-panel__list {
   position: relative;

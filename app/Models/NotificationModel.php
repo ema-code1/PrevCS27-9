@@ -96,6 +96,13 @@ class NotificationModel extends Model
             ->update(['read_at' => date('Y-m-d H:i:s')]);
     }
 
+    public function clearAll(int $userId): void
+    {
+        $this->db->table($this->table)
+            ->where('user_id', $userId)
+            ->delete();
+    }
+
     /**
      * "14:32" si es de hoy, "28/08" si es más vieja.
      */

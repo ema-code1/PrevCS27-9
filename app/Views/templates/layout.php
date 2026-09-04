@@ -333,10 +333,12 @@
         const menu = document.querySelector('.notif-menu');
         if (!menu) return;
         const button = menu.querySelector('[data-notif-read-all]');
+        const clearButton = menu.querySelector('[data-notif-clear-all]');
         const list = menu.querySelector('.notif-panel__list');
         const summary = menu.querySelector('.notif-bell');
         const feedUrl = '<?= base_url('notificaciones') ?>';
         const readUrl = '<?= base_url('notificaciones/leidas') ?>';
+        const clearUrl = '<?= base_url('notificaciones/borrar') ?>';
 
         function unreadCount() {
             return menu.querySelectorAll('.notif-item.is-unread').length;
@@ -372,6 +374,7 @@
             if (hasItems) {
                 if (empty) empty.remove();
                 if (button) button.hidden = false;
+                if (clearButton) clearButton.hidden = false;
                 return;
             }
 
@@ -382,6 +385,7 @@
                 list.appendChild(empty);
             }
             if (button) button.hidden = true;
+            if (clearButton) clearButton.hidden = true;
         }
 
         /* El nivel decide el color: 1 agotado, 2 bajo el minimo, 3 aviso propio. */
@@ -490,6 +494,36 @@
                     if (data && data.csrf) window.PrevcsCsrf.set(data.csrf);
                 });
             }).catch(function () { refresh(); });
+        });
+
+        if (clearButton) clearButton.addEventListener('click', function () {
+            clearButton.disabled = true;
+
+            window.PrevcsCsrf.queue(function () {
+                return fetch(clearUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': window.PrevcsCsrf.get(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: '{}'
+                }).then(function (response) {
+                    return response.json().catch(function () { return {}; });
+                }).then(function (data) {
+                    if (data && data.csrf) window.PrevcsCsrf.set(data.csrf);
+                    if (!data || !data.ok) throw new Error('No se pudieron borrar las notificaciones.');
+
+                    list.querySelectorAll('.notif-item').forEach(function (item) { item.remove(); });
+                    updateEmpty();
+                    updateBadge(0);
+                });
+            }).catch(function () {
+                refresh();
+            }).then(function () {
+                clearButton.disabled = false;
+            });
         });
 
         // Cada minuto, y al volver a la pestaña: es lo que hace que te llegue el

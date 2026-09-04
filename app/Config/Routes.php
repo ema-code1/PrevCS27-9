@@ -77,6 +77,7 @@ $routes->post('espacios/(:num)/stock/tablas/(:num)/celdas/(:num)/(:num)', 'Stock
 // Campana del header. El feed es GET para que el polling no rote el CSRF.
 $routes->get('notificaciones', 'NotificationController::feed');
 $routes->post('notificaciones/leidas', 'NotificationController::markAllRead');
+$routes->post('notificaciones/borrar', 'NotificationController::clearAll');
 
 // Centro de ayuda (publico, se abre en pestaña nueva desde el sidebar)
 $routes->get('ayuda', 'AyudaController::index');

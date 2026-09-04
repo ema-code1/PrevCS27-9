@@ -45,4 +45,18 @@ class NotificationController extends BaseController
         // para que el siguiente POST de la página no falle.
         return $this->response->setJSON(['ok' => true, 'unread' => 0, 'csrf' => csrf_hash()]);
     }
+
+    public function clearAll(): ResponseInterface
+    {
+        $userId = (int) session('user_id');
+        if ($userId <= 0) {
+            return $this->response
+                ->setStatusCode(401)
+                ->setJSON(['ok' => false, 'error' => 'Sesión vencida.', 'csrf' => csrf_hash()]);
+        }
+
+        (new NotificationModel())->clearAll($userId);
+
+        return $this->response->setJSON(['ok' => true, 'unread' => 0, 'csrf' => csrf_hash()]);
+    }
 }
