@@ -69,6 +69,22 @@
   }
 }
 
+/* Una sola familia adentro de la ventana.
+
+   La mezcla venía de piezas que traían mono por su cuenta: las etiquetas y
+   los iconos de .auth-field (pensados para el login), el contador de
+   miembros y los tokens de las ESP. Tres familias en una caja de 560px se
+   leían como tres pantallas distintas pegadas. Acá manda Inter y las
+   diferencias las hace el tamaño y el peso, no la familia. */
+.space-modal,
+.space-modal input,
+.space-modal select,
+.space-modal textarea,
+.space-modal code,
+.space-modal .mono {
+  font-family: var(--font-sans);
+}
+
 .space-modal__head {
   display: flex;
   align-items: flex-start;
@@ -135,6 +151,14 @@
   gap: 8px;
 }
 
+/* Título a la izquierda y la acción de la sección a la derecha. */
+.space-modal__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
 .space-modal__count {
   min-width: 22px;
   height: 22px;
@@ -144,11 +168,210 @@
   border-radius: var(--radius-pill);
   background: var(--accent-soft);
   color: var(--accent);
-  font-family: var(--font-mono);
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
 }
 
 .space-modal__form { gap: var(--space-sm); }
+
+/* ── Campos ────────────────────────────────────────────────────────
+   .auth-field viene del login, donde cada campo lleva una letra suelta a
+   la izquierda ("E", "#", "S"). Adentro del modal esas letras no nombraban
+   nada —ya está el label arriba— y encima eran monoespaciadas. Se quitaron
+   del marcado; acá se recupera el padding normal del input y el label pasa
+   a ser texto común, un escalón más chico que el contenido. */
+.space-modal .auth-field { gap: 5px; }
+
+.space-modal .auth-field__label {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-xs);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-secondary);
+  padding-left: 0;
+}
+
+.space-modal .auth-field input,
+.space-modal .auth-field select {
+  padding: 10px 12px;
+  font-size: var(--font-size-sm);
+}
+
+/* El ojo de password-toggle.js necesita lugar del lado derecho. */
+.space-modal .auth-field .pcs-pw-wrap { width: 100%; }
+.space-modal .auth-field input[type="password"] { padding-right: 40px; }
+
+/* [hidden] no gana solo contra el display:flex de .auth-field. */
+.space-modal .auth-field[hidden] { display: none !important; }
+
+/* ── Botón fantasma (desplegar un bloque) ──────────────────────────
+   Para acciones que abren algo, no que guardan: pesa menos que .btn y por
+   eso no compite con "Guardar cambios" ni con "Enviar invitación". */
+.space-ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius-md);
+  background: var(--bg-card-soft);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.space-ghost-btn svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.space-ghost-btn:hover {
+  border-color: var(--hair-2);
+  background: var(--bg-card);
+}
+
+.space-ghost-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+/* Abierto: el botón queda marcado para que se lea como "esto está desplegado". */
+.space-ghost-btn.is-open {
+  background: var(--accent-soft);
+  border-color: color-mix(in oklab, var(--accent) 30%, var(--hair-2));
+  color: var(--accent);
+}
+.space-ghost-btn.is-open svg { color: var(--accent); }
+
+.space-ghost-btn--compact {
+  padding: 7px 11px;
+  font-size: var(--font-size-xs);
+}
+.space-ghost-btn--compact svg { width: 15px; height: 15px; }
+
+/* ── Bloque desplegable ────────────────────────────────────────── */
+.space-disclosure {
+  display: grid;
+  gap: var(--space-sm);
+  justify-items: start;
+}
+
+.space-disclosure__panel {
+  width: 100%;
+  display: grid;
+  gap: var(--space-sm);
+  animation: spaceDisclosureIn 160ms cubic-bezier(.2, .7, .2, 1);
+}
+
+.space-disclosure__panel[hidden] { display: none !important; }
+
+@keyframes spaceDisclosureIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Al contraer, el panel también se anima: antes se le ponía hidden de una y
+   solo se veía animar la apertura, así que cerrar era un corte seco.
+   prevcs-ui.js pone .is-closing y espera al animationend para ocultarlo. */
+.space-disclosure__panel.is-closing,
+.space-invite.is-closing {
+  animation: spaceDisclosureOut 160ms cubic-bezier(.2, .7, .2, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes spaceDisclosureOut {
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .space-disclosure__panel,
+  .space-invite,
+  .space-disclosure__panel.is-closing,
+  .space-invite.is-closing { animation-duration: 1ms; }
+}
+
+/* ── Invitar por correo ────────────────────────────────────────── */
+.space-invite {
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  background: var(--bg-card-soft);
+  animation: spaceDisclosureIn 160ms cubic-bezier(.2, .7, .2, 1);
+}
+
+.space-invite[hidden] { display: none !important; }
+
+.space-invite__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+.space-invite .btn { justify-self: start; }
+
+/* El trigger del select estilizado toma el mismo alto y tipografía que los
+   inputs de al lado: si no, la fila "Rol / Permiso" queda despareja. */
+.space-modal .pv-select__trigger {
+  padding: 10px 34px 10px 12px;
+  font-size: var(--font-size-sm);
+  background: var(--bg-card);
+  border-color: var(--hair-2);
+  border-radius: var(--radius-md);
+}
+
+.space-modal .pv-select__option { font-size: var(--font-size-sm); }
+
+@media (max-width: 480px) {
+  .space-invite__row { grid-template-columns: 1fr; }
+}
+
+/* ── Etiqueta de acceso (rol · permiso, "sos vos", "sin aceptar") ── */
+.space-tag {
+  flex-shrink: 0;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  border: 1px solid var(--hair);
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.space-tag--admin {
+  background: var(--accent-soft);
+  border-color: transparent;
+  color: var(--accent);
+}
+
+.space-tag--pending {
+  background: transparent;
+  border-style: dashed;
+}
+
+/* ── Invitaciones sin aceptar ──────────────────────────────────── */
+.space-pending {
+  display: grid;
+  gap: 8px;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px dashed var(--hair);
+}
+
+.space-pending__title {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
 
 .space-modal__unlock {
   display: flex;

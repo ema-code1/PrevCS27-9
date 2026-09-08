@@ -139,8 +139,11 @@ class Esp32Controller extends BaseController
         unset($sensor);
 
         $usedTypeIds = array_map('intval', array_column($sensors, 'sensor_type_id'));
+        // allTypes alimenta el "Cambiar" de cada sensor de la lista (ahí también
+        // vale el tipo propio); availableTypes, el alta de un sensor nuevo.
+        $allTypes = (new SensorTypeModel())->orderBy('name', 'ASC')->findAll();
         $availableTypes = array_values(array_filter(
-            (new SensorTypeModel())->orderBy('name', 'ASC')->findAll(),
+            $allTypes,
             static fn ($type) => ! in_array((int) $type['id'], $usedTypeIds, true)
         ));
 
@@ -165,15 +168,19 @@ class Esp32Controller extends BaseController
             'device'         => $device,
             'sensors'        => $sensors,
             'availableTypes' => $availableTypes,
+            'allTypes'       => $allTypes,
+            'usedTypeIds'    => $usedTypeIds,
             'isAdmin'        => $isAdmin,
             'canEdit'        => $canEdit,
             'deviceToken'    => $deviceToken,
-            'tokenError'     => session('token_error'),
             'deleteError'    => session('delete_error'),
             'sensorCount'    => session('new_device_sensor_count'),
             // El QR de vinculación solo tiene sentido si la placa aún no se vinculó.
             'setupUrl'       => $isLinked ? null : $this->firmwareSetupUrl($device, $deviceToken),
-            'autoOpenConfig' => $flashToken !== null || session('new_device_sensor_count') || session('token_error') || session('delete_error'),
+            // ?config=1 es la vuelta de las acciones del propio modal (sensores,
+            // borrado fallido): reabrirlo evita tener que buscar el engranaje
+            // otra vez para seguir configurando.
+            'autoOpenConfig' => $flashToken !== null || session('new_device_sensor_count') || session('delete_error') || $this->request->getGet('config') !== null,
         ]);
     }
 
@@ -215,40 +222,10 @@ class Esp32Controller extends BaseController
             ->with('success', 'La ESP32 "' . $device['name'] . '" fue eliminada junto a sus sensores y lecturas.');
     }
 
-    public function revealToken($id = null)
-    {
-        $device = $this->findAccessibleDevice((int) $id);
-        if ($device === null) {
-            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes acceso a esa ESP32.');
-        }
-
-        $industry = (new IndustryModel())->find((int) $device['industry_id']);
-        $password = (string) $this->request->getPost('space_password');
-
-        if ($industry === null || ! password_verify($password, (string) $industry['space_password_hash'])) {
-            // El error se muestra inline bajo el campo (el modal se reabre solo).
-            return redirect()->to(base_url('esp32/' . $device['id']))
-                ->with('token_error', 'Contraseña incorrecta.');
-        }
-
-        $token = Esp32DeviceModel::revealToken($device['token_secret'] ?? null);
-        $message = 'Token visible. Copialo o usa el link listo para la ESP32.';
-
-        if ($token === null) {
-            $token = Esp32DeviceModel::generateToken();
-            (new Esp32DeviceModel())->update((int) $device['id'], [
-                'token_hash'   => Esp32DeviceModel::hashToken($token),
-                'token_secret' => Esp32DeviceModel::protectToken($token),
-            ]);
-            $message = 'Token regenerado. Cargalo de nuevo en la ESP32.';
-        }
-
-        session()->setFlashdata('new_device_token', $token);
-        session()->setFlashdata('new_device_name', $device['name']);
-
-        return redirect()->to(base_url('esp32/' . $device['id']))
-            ->with('success', $message);
-    }
+    /* El token del dispositivo no se muestra más en la vista de la placa: es un
+       secreto del firmware y no tiene por qué pasar por la pantalla. Por eso se
+       fue de acá el "Mostrar token" (y su endpoint), y el modal solo ofrece el
+       QR de vinculación, que ya lleva el token adentro sin exhibirlo. */
 
     public function readings($id = null)
     {

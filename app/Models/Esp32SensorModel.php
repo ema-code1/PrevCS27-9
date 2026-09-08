@@ -38,6 +38,17 @@ class Esp32SensorModel extends Model
     }
 
     /**
+     * Un sensor puntual de una placa. Devuelve null si el id existe pero es de
+     * otra placa: así el modal de configuración no puede tocar sensores ajenos.
+     */
+    public function findForDevice(int $sensorId, int $deviceId): ?array
+    {
+        return $this->where('id', $sensorId)
+            ->where('esp32_device_id', $deviceId)
+            ->first();
+    }
+
+    /**
      * Todos los sensores de una industria/espacio (de todas sus placas),
      * enriquecidos con el tipo y el nombre de la placa. Para Registros IoT.
      */

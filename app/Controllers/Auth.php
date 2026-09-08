@@ -77,7 +77,24 @@ class Auth extends BaseController
 
         $this->completeLogin($user);
 
-        return redirect()->to(base_url('principal'));
+        return redirect()->to($this->afterLoginUrl('principal'));
+    }
+
+    /**
+     * A dónde mandar al usuario recién logueado.
+     *
+     * Si venía de un link de invitación a un espacio (IndustryController lo
+     * guarda en sesión antes de mandarlo a ingresar), se vuelve solo a ese
+     * link para que la invitación se aplique sin que tenga que buscar el
+     * correo de nuevo. El token se consume en acceptInvitation().
+     */
+    private function afterLoginUrl(string $fallback): string
+    {
+        $token = session('pending_invitation');
+
+        return is_string($token) && $token !== ''
+            ? base_url('invitacion/' . $token)
+            : base_url($fallback);
     }
 
     /**
@@ -196,7 +213,7 @@ class Auth extends BaseController
 
         if (! empty($user['email_verified_at'])) {
             $this->completeLogin($user);
-            return redirect()->to(base_url('cuenta-creada'));
+            return redirect()->to($this->afterLoginUrl('cuenta-creada'));
         }
 
         return $this->verificationView(
@@ -236,7 +253,7 @@ class Auth extends BaseController
         $user['email_verified_at'] = $verifiedAt;
         $this->completeLogin($user);
 
-        return redirect()->to(base_url('cuenta-creada'));
+        return redirect()->to($this->afterLoginUrl('cuenta-creada'));
     }
 
     public function resendAccountCode()
@@ -291,7 +308,7 @@ class Auth extends BaseController
 
         $this->completeLogin($user);
 
-        return redirect()->to(base_url('principal'));
+        return redirect()->to($this->afterLoginUrl('principal'));
     }
 
     public function resendTwoFactorCode()

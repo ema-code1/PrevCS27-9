@@ -98,24 +98,346 @@
       .forEach(bindSmoothBox);
 
     /* ── Kebab (menú de opciones por tarjeta) ─────────────────────── */
-    document.querySelectorAll('[data-kebab]').forEach(function (wrap) {
-      var button = wrap.querySelector('[data-kebab-button]');
-      var menu = wrap.querySelector('[data-kebab-menu]');
-      if (!button || !menu) return;
 
-      button.addEventListener('click', function (event) {
-        event.stopPropagation();
-        var willOpen = menu.hidden;
-        document.querySelectorAll('[data-kebab-menu]').forEach(function (m) { m.hidden = true; });
-        document.querySelectorAll('[data-kebab-button]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
-        menu.hidden = !willOpen;
-        button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    /* Un kebab que vive adentro de una caja con scroll (el cuerpo del modal)
+       queda recortado por esa caja: el menú de un miembro mide más que la
+       fila y el navegador lo corta en el borde, así que "Eliminar usuario"
+       no llegaba a verse. Para esos casos el menú se saca del flujo con
+       position:fixed y se lo ancla al botón en coordenadas de pantalla, y
+       si no entra para abajo se abre para arriba. Los kebabs que no están
+       dentro de una caja con scroll siguen con el absolute de la hoja. */
+    function clippingBox(node) {
+      var current = node.parentElement;
+      while (current && current !== document.body) {
+        var overflow = window.getComputedStyle(current).overflowY;
+        if (overflow === 'auto' || overflow === 'scroll') return current;
+        current = current.parentElement;
+      }
+      return null;
+    }
+
+    /* Dónde cae realmente un position:fixed en top:0/left:0 desde acá.
+
+       No siempre es la esquina de la pantalla: cualquier ancestro con
+       transform pasa a ser el bloque contenedor de los fixed, y el diálogo
+       del modal tiene uno mientras corre su animación de entrada. Se mide
+       con un elemento de prueba —y no con el menú— porque el menú trae su
+       propia animación con transform y devolvería una posición corrida. */
+    /* innerWidth puede venir en 0 en contextos sin pintar (una pestaña de
+       fondo, una captura). clientWidth del documento es el que siempre tiene
+       un valor usable, y quedarse con el mayor de los dos evita colocar un
+       menú contra un ancho inexistente. */
+    function viewportWidth() {
+      return Math.max(window.innerWidth || 0, document.documentElement.clientWidth || 0);
+    }
+
+    function fixedOrigin(node) {
+      var probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;pointer-events:none;visibility:hidden;';
+      node.parentNode.appendChild(probe);
+      var rect = probe.getBoundingClientRect();
+      probe.parentNode.removeChild(probe);
+
+      return { x: rect.left, y: rect.top };
+    }
+
+    function placeFloating(button, menu, box) {
+      var anchor = button.getBoundingClientRect();
+      var gap = 6;
+
+      menu.style.position = 'fixed';
+      menu.style.right = 'auto';
+      menu.style.top = '0px';
+      menu.style.left = '0px';
+
+      // offsetWidth/Height y no el rect: el rect incluye la animación de
+      // entrada del propio menú y daría una medida más chica.
+      var height = menu.offsetHeight;
+      var width = menu.offsetWidth;
+      var limit = box.getBoundingClientRect();
+
+      /* Si no hay medidas (la caja todavía no se pintó), colocarlo con esos
+         números lo mandaría a una esquina cualquiera. Se deja el absolute de
+         la hoja, que al menos lo deja pegado a su botón. */
+      if (!width || !height || !limit.width) {
+        menu.style.position = '';
+        menu.style.right = '';
+        menu.style.top = '';
+        menu.style.left = '';
+        return;
+      }
+
+      // Abajo si entra entre el botón y el piso de la caja; si no, arriba.
+      var below = anchor.bottom + gap;
+      var top = below + height <= limit.bottom ? below : anchor.top - gap - height;
+
+      /* El menú se queda adentro de la caja aunque no entre a ninguno de los
+         dos lados: si se lo dejara desbordar, se dibujaría por encima del
+         borde del diálogo y parecería suelto en la página. */
+      top = Math.min(top, limit.bottom - height - gap);
+      top = Math.max(top, limit.top + gap);
+
+      var left = Math.max(gap, Math.min(anchor.right - width, viewportWidth() - width - gap));
+
+      var origin = fixedOrigin(menu);
+      menu.style.top = Math.round(top - origin.y) + 'px';
+      menu.style.left = Math.round(left - origin.x) + 'px';
+    }
+
+    /* Cerrar el submenú lateral de un kebab (el de "Supervisor"). */
+    function closeFlyouts(except) {
+      document.querySelectorAll('[data-kebab-sub].is-open').forEach(function (sub) {
+        if (sub === except) return;
+        sub.classList.remove('is-open', 'is-flipped');
+
+        var flyout = sub.querySelector('[data-kebab-flyout]');
+        if (flyout) {
+          flyout.style.position = '';
+          flyout.style.top = '';
+          flyout.style.left = '';
+          flyout.style.right = '';
+        }
+
+        var button = sub.querySelector('[data-kebab-sub-button]');
+        if (button) button.setAttribute('aria-expanded', 'false');
       });
+    }
+
+    function closeKebabs() {
+      closeFlyouts(null);
+      document.querySelectorAll('[data-kebab-menu]').forEach(function (m) {
+        m.hidden = true;
+        m.style.position = '';
+        m.style.top = '';
+        m.style.left = '';
+        m.style.right = '';
+      });
+      document.querySelectorAll('[data-kebab-button]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+    }
+
+    /* Los kebabs van por delegación y no enganchados uno por uno: las listas
+       del modal se vuelven a dibujar solas cuando se guarda algo, y los nodos
+       nuevos no tendrían los listeners de la carga inicial. */
+    document.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-kebab-button]');
+
+      if (!button) {
+        // Clic afuera: se cierra todo lo que esté abierto.
+        closeKebabs();
+        return;
+      }
+
+      event.stopPropagation();
+
+      var wrap = button.closest('[data-kebab]');
+      var menu = wrap && wrap.querySelector('[data-kebab-menu]');
+      if (!menu) return;
+
+      var willOpen = menu.hidden;
+      closeKebabs();
+      if (!willOpen) return;
+
+      menu.hidden = false;
+      button.setAttribute('aria-expanded', 'true');
+
+      var box = clippingBox(wrap);
+      if (box) placeFloating(button, menu, box);
     });
 
-    document.addEventListener('click', function () {
-      document.querySelectorAll('[data-kebab-menu]').forEach(function (m) { m.hidden = true; });
-      document.querySelectorAll('[data-kebab-button]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+    /* Si la caja con scroll se mueve, el menú flotante se queda donde estaba
+       y pierde de vista a su botón. Se lo vuelve a colocar en vez de
+       cerrarlo: cerrar obligaba a abrirlo de nuevo por un scroll de dos
+       píxeles, y además un evento de scroll encolado justo antes de abrirlo
+       lo cerraba apenas aparecía. Si la fila ya se fue de la caja, ahí sí se
+       cierra. Va en captura para alcanzar cualquier caja sin engancharse a
+       cada una. */
+    document.addEventListener('scroll', function () {
+      var menu = document.querySelector('[data-kebab-menu]:not([hidden])');
+      if (!menu) return;
+
+      var wrap = menu.closest('[data-kebab]');
+      var button = wrap && wrap.querySelector('[data-kebab-button]');
+      var box = wrap && clippingBox(wrap);
+      if (!button || !box) return;
+
+      closeFlyouts(null);
+
+      var anchor = button.getBoundingClientRect();
+      var limit = box.getBoundingClientRect();
+
+      if (anchor.bottom < limit.top || anchor.top > limit.bottom) {
+        closeKebabs();
+        return;
+      }
+
+      placeFloating(button, menu, box);
+    }, true);
+
+    /* ── Submenú lateral del kebab ────────────────────────────────────
+       "Supervisor" abre al costado, como el menú del escritorio de Windows:
+       el rol y su alcance se eligen en un solo gesto. Se abre al pasar por
+       encima y también al hacer clic o con Enter, para que sirva con
+       teclado y en pantallas táctiles, donde no hay hover. */
+    function openFlyout(sub) {
+      if (sub.classList.contains('is-open')) return;
+
+      closeFlyouts(sub);
+      sub.classList.add('is-open');
+
+      var button = sub.querySelector('[data-kebab-sub-button]');
+      if (button) button.setAttribute('aria-expanded', 'true');
+
+      var flyout = sub.querySelector('[data-kebab-flyout]');
+      if (!flyout) return;
+
+      /* Se ancla a la pantalla, igual que el menú padre. Posicionado como
+         hijo quedaba atrapado en el contexto de apilado del menú y lo
+         recortaba la caja con scroll del modal: se dibujaba por detrás de
+         las tarjetas de abajo. En coordenadas de pantalla siempre queda
+         completo y por encima de todo. */
+      var anchor = button ? button.getBoundingClientRect() : sub.getBoundingClientRect();
+      var menu = sub.closest('[data-kebab-menu]');
+      var box = clippingBox(sub) || document.documentElement;
+      var gap = 4;
+
+      flyout.style.position = 'fixed';
+      flyout.style.left = '0px';
+      flyout.style.right = 'auto';
+      flyout.style.top = '0px';
+
+      var width = flyout.offsetWidth;
+      var height = flyout.offsetHeight;
+      var menuRect = menu ? menu.getBoundingClientRect() : anchor;
+      var viewport = viewportWidth();
+
+      // Sin medidas reales no se puede elegir el lado: queda el absolute de
+      // la hoja, que lo pone al costado de su fila.
+      if (!width || !height || !menuRect.width || !viewport) {
+        flyout.style.position = '';
+        flyout.style.left = '';
+        flyout.style.right = '';
+        flyout.style.top = '';
+        return;
+      }
+
+      /* El kebab está pegado al borde derecho de la ventana, así que a la
+         derecha casi nunca hay lugar: se elige el lado que tenga más aire
+         en vez de asumir uno. */
+      var roomRight = viewport - gap - menuRect.right;
+      var roomLeft = menuRect.left - gap;
+      var left;
+
+      if (width <= roomRight || roomRight >= roomLeft) {
+        left = menuRect.right + gap;
+      } else {
+        left = menuRect.left - gap - width;
+        sub.classList.add('is-flipped');
+      }
+
+      left = Math.max(gap, Math.min(left, viewport - width - gap));
+
+      // Alineado con su fila, sin salirse de la caja que lo contiene.
+      var limit = box.getBoundingClientRect();
+      var top = Math.min(anchor.top - 6, limit.bottom - height - gap);
+      top = Math.max(top, limit.top + gap);
+
+      var origin = fixedOrigin(flyout);
+      flyout.style.left = Math.round(left - origin.x) + 'px';
+      flyout.style.top = Math.round(top - origin.y) + 'px';
+    }
+
+    document.addEventListener('mouseover', function (event) {
+      var menu = event.target.closest('[data-kebab-menu]');
+      if (!menu) return;
+
+      var sub = event.target.closest('[data-kebab-sub]');
+      if (sub) openFlyout(sub);
+      else closeFlyouts(null); // otra opción del mismo menú: se repliega
+    });
+
+    document.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-kebab-sub-button]');
+      if (!button) return;
+
+      // El padre del submenú no ejecuta nada: solo abre las opciones.
+      event.preventDefault();
+      event.stopPropagation();
+      openFlyout(button.closest('[data-kebab-sub]'));
+    });
+
+    /* ── Bloques que se despliegan desde un botón ([data-disclosure]) ──
+       Mismo gesto que "Cambiar contraseña" en Administrar cuenta: el panel
+       arranca oculto y sus campos se vacían al cerrarlo, así cerrar equivale
+       a "no lo voy a tocar" y el backend no recibe un cambio a medio hacer.
+
+       Al contraer se espera a que termine la animación de salida antes de
+       ocultarlo: con hidden puesto de una, el panel desaparecía de golpe y
+       solo se veía animar la apertura. */
+    function closeDisclosure(panel, button) {
+      if (panel.hidden || panel.dataset.closing === '1') return;
+
+      button.setAttribute('aria-expanded', 'false');
+      button.classList.remove('is-open');
+
+      var finish = function () {
+        delete panel.dataset.closing;
+        panel.classList.remove('is-closing');
+        panel.hidden = true;
+        panel.querySelectorAll('input').forEach(function (input) {
+          if (input.type !== 'hidden') input.value = '';
+        });
+      };
+
+      if (reduceMotion.matches) {
+        finish();
+        return;
+      }
+
+      panel.dataset.closing = '1';
+      panel.classList.add('is-closing');
+
+      var done = false;
+      panel.addEventListener('animationend', function () {
+        if (done) return;
+        done = true;
+        finish();
+      }, { once: true });
+      // Red de seguridad por si la animación no dispara.
+      window.setTimeout(function () { if (!done) { done = true; finish(); } }, 320);
+    }
+
+    document.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-disclosure]');
+      if (!button) return;
+
+      var panel = document.getElementById(button.getAttribute('data-disclosure'));
+      if (!panel) return;
+
+      event.stopPropagation();
+
+      if (panel.hidden || panel.dataset.closing === '1') {
+        delete panel.dataset.closing;
+        panel.classList.remove('is-closing');
+        panel.hidden = false;
+        button.setAttribute('aria-expanded', 'true');
+        button.classList.add('is-open');
+
+        var first = panel.querySelector('input, select, textarea');
+        if (first) first.focus();
+        return;
+      }
+
+      closeDisclosure(panel, button);
+    });
+
+    /* Un admin no tiene permiso que elegir: manda sobre todo el espacio. */
+    document.addEventListener('change', function (event) {
+      var select = event.target.closest('[data-invite-role]');
+      if (!select) return;
+
+      var form = select.closest('form');
+      var permission = form && form.querySelector('[data-invite-permission]');
+      if (permission) permission.hidden = select.value === 'admin_principal';
     });
 
     /* ── Toasts (esquina superior derecha, con línea de duración) ──── */
@@ -334,16 +656,134 @@
       });
     });
 
-    /* ── Confirmación estilada para forms destructivos ────────────── */
-    document.querySelectorAll('form[data-confirm]').forEach(function (form) {
-      form.addEventListener('submit', function (event) {
-        if (form.dataset.confirmed === '1') return; // ya confirmado
-        event.preventDefault();
-        requestConfirm(form.getAttribute('data-confirm'), function () {
-          form.dataset.confirmed = '1';
-          form.requestSubmit ? form.requestSubmit() : form.submit();
+    /* ── Envío de formularios sin recargar ([data-ajax]) ──────────────
+
+       Antes cada acción del modal terminaba en un redirect: el navegador
+       recargaba la página entera, la ventana se cerraba y volvía a abrirse
+       sola por el ?config=<id>, y en el camino se perdían el scroll y lo
+       que estuviera a medio escribir. Ahora el POST va por fetch y el
+       servidor contesta con las regiones ya dibujadas de nuevo; el modal
+       se queda abierto y solo cambia lo que cambió.
+
+       Va en cola por PrevcsCsrf: Security.php regenera el token en cada
+       POST, así que dos envíos en paralelo harían fallar al segundo. */
+    function regionRoot(name) {
+      return document.querySelector('[data-region="' + name + '"]');
+    }
+
+    function swapRegions(regions) {
+      if (!regions) return;
+
+      Object.keys(regions).forEach(function (name) {
+        var root = regionRoot(name);
+        if (!root) return;
+
+        root.innerHTML = regions[name];
+        enhanceSelects(root);
+      });
+    }
+
+    function applyPatch(patch) {
+      if (!patch) return;
+
+      Object.keys(patch).forEach(function (selector) {
+        document.querySelectorAll(selector).forEach(function (node) {
+          node.textContent = patch[selector];
         });
       });
+    }
+
+    function submitAjax(form) {
+      var submitter = form.querySelector('[type="submit"]');
+      if (form.dataset.sending === '1') return;
+      form.dataset.sending = '1';
+      if (submitter) submitter.disabled = true;
+
+      var body = new FormData(form);
+
+      var run = function () {
+        // El token viaja por header y no solo en el campo oculto: el del
+        // formulario puede haber quedado viejo tras un POST anterior.
+        body.set(csrfField(), window.PrevcsCsrf.get());
+
+        return fetch(form.action, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': window.PrevcsCsrf.get()
+          },
+          body: body
+        }).then(function (response) {
+          return response.json().catch(function () { return {}; }).then(function (data) {
+            if (data && data.csrf) window.PrevcsCsrf.set(data.csrf);
+            if (!response.ok || !data || data.ok === false) {
+              throw new Error((data && data.message) || 'No se pudieron guardar los cambios.');
+            }
+            return data;
+          });
+        });
+      };
+
+      window.PrevcsCsrf.queue(run).then(function (data) {
+        delete form.dataset.sending;
+        delete form.dataset.dirty;
+        if (submitter) submitter.disabled = false;
+
+        // Los campos de contraseña no se dejan escritos después de guardar.
+        form.querySelectorAll('input[type="password"]').forEach(function (input) { input.value = ''; });
+
+        swapRegions(data.regions);
+        applyPatch(data.patch);
+        if (data.message) showToast(data.message, 'success', 3200);
+
+        /* Lo que la página tenga que acomodar fuera de las regiones (las
+           pestañas de sensores de la vista de una placa, por ejemplo) se
+           engancha acá y trabaja con la respuesta ya aplicada. */
+        document.dispatchEvent(new CustomEvent('prevcs:ajax-done', {
+          detail: { form: form, data: data }
+        }));
+      }, function (error) {
+        delete form.dataset.sending;
+        if (submitter) submitter.disabled = false;
+        showToast(error.message, 'error', 5000);
+      });
+    }
+
+    function csrfField() {
+      var meta = document.querySelector('meta[name="csrf-field"]');
+      return meta ? (meta.getAttribute('content') || 'csrf_test_name') : 'csrf_test_name';
+    }
+
+    /* Confirmación estilada + envío por fetch, los dos por delegación: las
+       listas del modal se redibujan y los nodos nuevos tienen que seguir
+       funcionando sin volver a engancharlos. */
+    document.addEventListener('submit', function (event) {
+      var form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+
+      var needsConfirm = form.hasAttribute('data-confirm') && form.dataset.confirmed !== '1';
+      var isAjax = form.hasAttribute('data-ajax');
+
+      if (!needsConfirm && !isAjax) return;
+
+      event.preventDefault();
+
+      if (needsConfirm) {
+        requestConfirm(form.getAttribute('data-confirm'), function () {
+          form.dataset.confirmed = '1';
+          if (isAjax) {
+            delete form.dataset.confirmed;
+            submitAjax(form);
+          } else {
+            form.requestSubmit ? form.requestSubmit() : form.submit();
+          }
+        });
+        return;
+      }
+
+      delete form.dataset.confirmed;
+      submitAjax(form);
     });
 
     if (confirmModal) {
@@ -406,7 +846,10 @@
       });
     }
 
-    document.querySelectorAll('select.esp32-select').forEach(function (select) {
+    function enhanceSelect(select) {
+      if (select.dataset.pvSelectDone === '1') return;
+      select.dataset.pvSelectDone = '1';
+
       var wrap = document.createElement('div');
       wrap.className = 'pv-select';
       select.parentNode.insertBefore(wrap, select);
@@ -470,13 +913,37 @@
         closeAllSelects(null);
         wrap.classList.toggle('is-open', willOpen);
         trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+
+        /* Adentro del modal la caja tiene scroll y recorta lo que se sale:
+           si la lista no entra para abajo, se despliega hacia arriba. */
+        if (!willOpen) {
+          wrap.classList.remove('is-up');
+          return;
+        }
+
+        var box = clippingBox(wrap);
+        if (!box) return;
+
+        wrap.classList.remove('is-up');
+        if (list.getBoundingClientRect().bottom > box.getBoundingClientRect().bottom) {
+          wrap.classList.add('is-up');
+        }
       });
 
       wrap.appendChild(trigger);
       wrap.appendChild(list);
       select.addEventListener('change', syncLabel);
       syncLabel();
-    });
+    }
+
+    /* Se expone para volver a correrlo sobre las regiones que el servidor
+       redibuja: los <select> que llegan en ese HTML todavía son nativos. */
+    function enhanceSelects(root) {
+      (root || document).querySelectorAll('select.esp32-select, select[data-pcs-select]').forEach(enhanceSelect);
+    }
+
+    enhanceSelects(document);
+    window.PrevcsSelect = { enhance: enhanceSelects };
 
     document.addEventListener('click', function () { closeAllSelects(null); });
     document.addEventListener('keydown', function (event) {

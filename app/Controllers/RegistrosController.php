@@ -7,6 +7,7 @@ use App\Models\Esp32SensorModel;
 use App\Models\IndustryModel;
 use App\Models\IndustryUserModel;
 use App\Models\SensorReadingModel;
+use App\Models\SpaceInvitationModel;
 
 /**
  * Registros IoT por-espacio.
@@ -32,19 +33,23 @@ class RegistrosController extends BaseController
         $deviceModel     = new Esp32DeviceModel();
         $sensorModel     = new Esp32SensorModel();
         $membershipModel = new IndustryUserModel();
+        $invitationModel = new SpaceInvitationModel();
         foreach ($industries as &$ind) {
             $devices = $deviceModel->devicesForIndustry((int) $ind['id']);
             $ind['device_count'] = count($devices);
             // Lista de placas del acordeón: visible para cualquier miembro del espacio.
             $ind['devices'] = $devices;
 
-            // El modal de configuración (miembros, tokens, sensores) es solo de admin.
+            // El modal de configuración (miembros, invitaciones, tokens, sensores)
+            // es solo de admin.
             if ($ind['role'] === IndustryUserModel::ROLE_ADMIN) {
-                $ind['members'] = $membershipModel->membersForIndustry((int) $ind['id']);
-                $ind['sensors'] = $sensorModel->sensorsForIndustry((int) $ind['id']);
+                $ind['members']     = $membershipModel->membersForIndustry((int) $ind['id']);
+                $ind['sensors']     = $sensorModel->sensorsForIndustry((int) $ind['id']);
+                $ind['invitations'] = $invitationModel->pendingForIndustry((int) $ind['id']);
             } else {
-                $ind['members'] = [];
-                $ind['sensors'] = [];
+                $ind['members']     = [];
+                $ind['sensors']     = [];
+                $ind['invitations'] = [];
             }
         }
         unset($ind);

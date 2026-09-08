@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-hash" content="<?= csrf_hash() ?>">
+    <?php /* Nombre del campo oculto que escribe csrf_field(). Se publica acá
+            para que al rotar el hash se puedan refrescar de una los inputs
+            de los formularios que quedaron en la página. */ ?>
+    <meta name="csrf-field" content="<?= csrf_token() ?>">
     <title><?= esc($title ?? 'PrevCS · Preventive Control System') ?></title>
 
     <script>
@@ -28,6 +32,18 @@
                 if (!hash) return token;
                 token = hash;
                 if (meta) meta.setAttribute('content', hash);
+
+                /* Los formularios que quedaron en la página traen el hash
+                   viejo en su input oculto. Si no se refrescan, el primer
+                   envío normal después de un POST por fetch se rechaza. */
+                var fieldMeta = document.querySelector('meta[name="csrf-field"]');
+                var field = fieldMeta ? fieldMeta.getAttribute('content') : '';
+                if (field) {
+                    document.querySelectorAll('input[name="' + field + '"]').forEach(function (input) {
+                        input.value = hash;
+                    });
+                }
+
                 return token;
             },
 
