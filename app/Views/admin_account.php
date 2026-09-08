@@ -16,10 +16,6 @@ $email    = $user['email'] ?? '';
 $foto     = trim((string) ($user['foto_perfil'] ?? ''));
 $initials = strtoupper(mb_substr($nombre, 0, 1) . mb_substr($apellido, 0, 1));
 $initials = $initials !== '' ? $initials : 'U';
-
-// El panel de contraseña arranca abierto si el intento anterior falló ahí.
-$passwordKeys  = ['current_password', 'new_password', 'confirm_password'];
-$passwordOpen  = (bool) array_intersect($passwordKeys, array_keys($errors));
 ?>
 <main class="page page--dashboard page--account">
     <?= $this->include('templates/sidebar') ?>
@@ -125,26 +121,19 @@ $passwordOpen  = (bool) array_intersect($passwordKeys, array_keys($errors));
                                 <span class="field__label">Email</span>
                                 <div class="field__row">
                                     <input class="field__email" type="email" value="<?= esc($email) ?>" readonly>
-                                    <span class="field__divider" aria-hidden="true"></span>
-                                    <button
-                                        type="button"
-                                        class="btn btn--secondary"
-                                        data-password-toggle
-                                        aria-expanded="<?= $passwordOpen ? 'true' : 'false' ?>"
-                                        aria-controls="acct-password"
-                                    >Cambiar contraseña</button>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="acct-password" id="acct-password" data-password-panel <?= $passwordOpen ? '' : 'hidden' ?>>
+                        <!-- Panel de contraseña siempre visible -->
+                        <div class="acct-password" id="acct-password">
                             <div class="sec__head">
                                 <h2>Cambiar contraseña</h2>
                             </div>
 
                             <div class="form-grid form-grid--row">
                                 <label class="field">
-                                    <span class="field__label">Contraseña actual <span class="field__hint">Requerido si debes cambiarla</span></span>
+                                    <span class="field__label">Contraseña actual <span class="field__hint">Requerida para guardar cualquier cambio</span></span>
                                     <input type="password" name="current_password" autocomplete="current-password" placeholder="••••••••">
                                     <?php if (isset($errors['current_password'])): ?>
                                         <span class="field__error"><?= esc($errors['current_password']) ?></span>
@@ -198,6 +187,7 @@ $passwordOpen  = (bool) array_intersect($passwordKeys, array_keys($errors));
                             </label>
                         </div>
 
+                        <?php /* Verificación con número de teléfono 
                         <div class="security-control">
                             <div class="security-control__copy">
                                 <strong>Verificación con número de teléfono</strong>
@@ -214,6 +204,7 @@ $passwordOpen  = (bool) array_intersect($passwordKeys, array_keys($errors));
                                 <span class="security-switch__track" aria-hidden="true"></span>
                             </label>
                         </div>
+                            */ ?>
                     </section>
                     </div>
                 </div>
@@ -232,14 +223,14 @@ $passwordOpen  = (bool) array_intersect($passwordKeys, array_keys($errors));
                         <div class="security-control">
                             <div class="security-control__copy">
                                 <strong>Cambiar contraseña</strong>
-                                <span>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</span>
+                                <span>Para cambiar la contraseña debe introducir la actual, crear una nueva y confirmarla</span>
                             </div>
                         </div>
 
                         <div class="security-control">
                             <div class="security-control__copy">
                                 <strong>¿Por qué no puedo cambiar mi email?</strong>
-                                <span>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt</span>
+                                <span>Por razones de seguridad internas de la organización no está disponible esta opción</span>
                             </div>
                         </div>
                     </aside>

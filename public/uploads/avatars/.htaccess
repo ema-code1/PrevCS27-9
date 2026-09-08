@@ -1,5 +1,3 @@
-php_flag engine off
-AddType text/plain .php .phtml .php3 .php4 .php5 .php7 .php8 .phps
-<IfModule mod_php.c>
-  php_admin_flag engine off
-</IfModule>
+<FilesMatch "\.(?i:php|phtml|php3|php4|php5|php7|php8|phps)$">
+  Require all denied
+</FilesMatch>

@@ -431,8 +431,7 @@
 /* ── Protección de la cuenta ──────────────────────────────────────── */
 .sec--security {
   gap: 0;
-  justify-content: space-between;
-  min-height: 330px;
+  justify-content: flex-start;
   padding: 22px 24px;
 }
 
