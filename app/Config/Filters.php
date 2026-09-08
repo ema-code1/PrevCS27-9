@@ -91,6 +91,10 @@ class Filters extends BaseFilters
                 'verificar-cuenta/reenviar',
                 'verificar-login',
                 'verificar-login/reenviar',
+                // Link de invitacion a un espacio: se abre desde el correo, con o
+                // sin sesion. El controlador manda a ingresar si hace falta y se
+                // acuerda del token para volver solo despues del login.
+                'invitacion/*',
                 'api/iot/lectura', // ingesta IoT: auth por MAC + device_token
             ]],
             // 'honeypot',

@@ -2,12 +2,12 @@
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260807-1">
+<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260908-2">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260908-2">
 <link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=wifi_off" />
-<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260820-1">
+<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260908-1">
 <link rel="stylesheet" href="<?= base_url('css/kanban.css') ?>?v=20260820-1">
 <style>
 .esp32-qr{display:flex;flex-direction:column;gap:16px;align-items:center;margin:10px 0}
@@ -188,7 +188,7 @@
                 <header class="space-modal__head">
                     <div>
                         <h3 id="esp32-config-title">Configuración de la placa</h3>
-                        <p class="text-muted mono"><?= esc($device['name']) ?></p>
+                        <p class="text-muted"><?= esc($device['name']) ?></p>
                     </div>
                     <button type="button" class="space-modal__close" data-modal-dismiss aria-label="Cerrar">
                         <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -196,115 +196,119 @@
                 </header>
 
                 <div class="space-modal__body" data-lenis-prevent>
-                    <!-- 1) Datos de configuración -->
+                    <!-- 1) La placa de un vistazo.
+                         Antes era una lista de "Datos de configuración" con un
+                         tooltip explicando la MAC. Adentro de la ventana que
+                         justamente sirve para configurar, ese texto sobraba:
+                         quedan los tres datos que se miran de verdad. -->
                     <section class="space-modal__section">
-                        <h4>Datos de configuración</h4>
-                        <dl class="esp32-sensor-meta">
+                        <dl class="esp32-facts">
                             <div>
-                                <dt>MAC
-                                    <button type="button" class="pv-tip" aria-label="¿Por qué importa la MAC?"
-                                        data-tip="La MAC identifica de forma única a tu placa en la red. Cuando la ESP32 envía su primer dato, el sistema la reconoce por su MAC y queda vinculada sola a este panel.">?</button>
-                                </dt>
-                                <dd class="mono"><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : '<em>No hubo comunicacion con la placa</em>' ?></dd>
+                                <dt>Estado</dt>
+                                <dd>
+                                    <span class="dot <?= ($device['status'] ?? '') === 'online' ? 'dot--live' : '' ?>"></span>
+                                    <?= esc($device['status'] ?? 'offline') ?>
+                                </dd>
                             </div>
-                            <div><dt>Estado</dt><dd><?= esc($device['status'] ?? 'offline') ?></dd></div>
-                            <div><dt>Última lectura</dt><dd class="mono"><?= esc($device['last_seen_at'] ?? '-') ?></dd></div>
+                            <div>
+                                <dt>MAC</dt>
+                                <dd><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : 'Sin vincular' ?></dd>
+                            </div>
+                            <div>
+                                <dt>Última lectura</dt>
+                                <dd><?= esc($device['last_seen_at'] ?? 'Nunca') ?></dd>
+                            </div>
                         </dl>
                     </section>
 
-                    <!-- 2) Token / vinculación con el firmware -->
-                    <section class="space-modal__section">
-                        <h4>Token del dispositivo
-                            <button type="button" class="pv-tip" aria-label="¿Para qué sirve el token?"
-                                data-tip="Configuralo en el firmware. Se envía en cada lectura (header X-Device-Token).">?</button>
-                        </h4>
-                        <?php if (! empty($deviceToken)): ?>
-                            <code class="esp32-token"><?= esc($deviceToken) ?></code>
-
-                            <?php if (! empty($setupUrl)): ?>
-                                <div class="esp32-setup-box">
-                                    <strong>Configurá la placa: conectate a PREVCS-CONFIG</strong>
-                                    <p>Primero conectate al WiFi <code>PREVCS-CONFIG</code> que crea la placa y escaneá el QR (o tocá el botón).</p>
-                                    <div class="esp32-qr" data-qr-url="<?= esc($setupUrl) ?>">
-                                        <div class="esp32-qr__code" data-qr-target></div>
-                                    </div>
-                                    <a class="btn btn--primary" href="<?= esc($setupUrl) ?>">Completar configuracion</a>
+                    <!-- 2) Vinculación con el firmware.
+                         El token viaja adentro del QR y del enlace, pero no se
+                         imprime en pantalla ni se puede pedir con la clave del
+                         espacio: es un secreto del firmware. -->
+                    <?php if (! empty($setupUrl)): ?>
+                        <section class="space-modal__section">
+                            <h4>Vincular la placa</h4>
+                            <div class="esp32-setup-box">
+                                <strong>Conectate al WiFi PREVCS-CONFIG</strong>
+                                <p>Es la red que crea la placa. Con esa red conectada, escaneá el QR o tocá el botón para completar la configuración.</p>
+                                <div class="esp32-qr" data-qr-url="<?= esc($setupUrl) ?>">
+                                    <div class="esp32-qr__code" data-qr-target></div>
                                 </div>
-                            <?php endif; ?>
-                        <?php elseif ($isAdmin): ?>
-                            <form action="<?= base_url('esp32/' . $device['id'] . '/token') ?>" method="post" class="esp32-token-form">
-                                <?= csrf_field() ?>
-                                <label class="auth-field">
-                                    <span class="auth-field__label">Ver token</span>
-                                    <span class="auth-field__control">
-                                        <span class="auth-field__icon">*</span>
-                                        <input type="password" name="space_password" placeholder="Clave del espacio" required>
-                                    </span>
-                                </label>
-                                <button type="submit" class="btn btn--primary">Mostrar token</button>
-                                <?php if (! empty($tokenError)): ?>
-                                    <span class="auth-field__error"><?= esc($tokenError) ?></span>
-                                <?php endif; ?>
-                            </form>
-                        <?php else: ?>
-                            <p class="text-muted">Solo el admin del espacio puede ver el token.</p>
-                        <?php endif; ?>
+                                <a class="btn btn--primary" href="<?= esc($setupUrl) ?>">Completar configuración</a>
+                            </div>
+                        </section>
+                    <?php endif; ?>
+
+                    <!-- 3) Sensores configurados en la placa.
+                         Cada fila tiene su menú (cambiar el tipo / borrar) y el
+                         alta vive detrás del "+" de la esquina: la lista es lo
+                         que se mira, agregar es la excepción.
+
+                         Va como región aparte: las tres acciones viajan por
+                         fetch y el servidor contesta con esta misma parcial ya
+                         dibujada de nuevo, así guardar no recarga la página ni
+                         cierra la ventana. -->
+                    <section class="space-modal__section" data-region="esp32-sensors-<?= (int) $device['id'] ?>">
+                        <?= $this->include('esp32/_config_sensors') ?>
                     </section>
 
-                    <!-- 3) Agregar sensor extra -->
-                    <?php if ($isAdmin): ?>
-                        <section class="space-modal__section">
-                            <h4>Agregar sensor extra</h4>
-                            <?php if ($availableTypes === []): ?>
-                                <p class="text-muted">Todos los tipos de sensor ya están asociados a esta placa.</p>
-                            <?php else: ?>
-                                <form action="<?= base_url('esp32/' . $device['id'] . '/sensores') ?>" method="post" class="esp32-sensor-form esp32-sensor-form--modal">
-                                    <?= csrf_field() ?>
-                                    <select name="sensor_type_id" class="esp32-select" required>
-                                        <option value="" disabled selected>Tipo de sensor</option>
-                                        <?php foreach ($availableTypes as $t): ?>
-                                            <option value="<?= esc($t['id']) ?>"><?= esc($t['name']) ?><?= !empty($t['unit']) ? ' (' . esc($t['unit']) . ')' : '' ?></option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <input type="text" name="label" class="esp32-input" placeholder="Etiqueta (opcional)" maxlength="150">
-                                    <button type="submit" class="btn btn--primary">Agregar</button>
-                                </form>
-                            <?php endif; ?>
-                        </section>
-                    <?php endif; ?>
-
-                    <!-- 4) Eliminar la placa: solo si ya está creada y configurada (tiene MAC)
-                         y el usuario puede editar el espacio (admin o supervisor con permiso). -->
+                    <!-- 4) Zona de peligro: contraída por defecto y desplegable.
+                         Es la única acción sin vuelta atrás de la ventana, así
+                         que no tiene por qué ocupar lugar hasta que la busquen.
+                         Solo si la placa ya está vinculada (tiene MAC) y el
+                         usuario puede editar el espacio. -->
                     <?php if (! empty($canEdit) && ! empty($device['mac_address'])): ?>
-                        <section class="space-modal__section esp32-delete">
-                            <div class="esp32-delete__intro">
-                                <h4>Zona de peligro</h4>
-                                <p class="text-muted">Eliminar la placa borra también sus sensores y todas sus lecturas. Esta acción no se puede deshacer.</p>
+                        <section class="space-modal__section esp32-danger">
+                            <button type="button" class="esp32-danger__toggle" data-danger-toggle
+                                    aria-expanded="<?= ! empty($deleteError) ? 'true' : 'false' ?>" aria-controls="esp32-danger-panel">
+                                <span>Zona de peligro</span>
+                                <svg class="esp32-danger__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </button>
+                            <div class="esp-collapse<?= ! empty($deleteError) ? ' is-open' : '' ?>" id="esp32-danger-panel" data-danger-panel>
+                                <div class="esp-collapse__inner">
+                                    <form action="<?= base_url('esp32/' . $device['id'] . '/eliminar') ?>" method="post" class="esp32-delete__form">
+                                        <?= csrf_field() ?>
+                                        <p class="esp32-delete__note">Eliminar la placa borra también sus sensores y todas sus lecturas. No se puede deshacer.</p>
+                                        <label class="auth-field">
+                                            <span class="auth-field__label">Escribí el nombre exacto de la placa: <strong><?= esc($device['name']) ?></strong></span>
+                                            <input type="text" name="confirm_name" placeholder="<?= esc($device['name']) ?>" autocomplete="off" required data-delete-name data-expected-name="<?= esc($device['name']) ?>">
+                                        </label>
+                                        <label class="auth-field">
+                                            <span class="auth-field__label">Clave del espacio</span>
+                                            <input type="password" name="space_password" placeholder="Clave del espacio" required>
+                                        </label>
+                                        <?php if (! empty($deleteError)): ?>
+                                            <span class="auth-field__error"><?= esc($deleteError) ?></span>
+                                        <?php endif; ?>
+                                        <button type="submit" class="btn btn--danger" disabled data-delete-submit>Eliminar definitivamente</button>
+                                    </form>
+                                </div>
                             </div>
-                            <button type="button" class="btn btn--danger" data-delete-toggle aria-expanded="<?= ! empty($deleteError) ? 'true' : 'false' ?>">Eliminar ESP32</button>
-                            <form action="<?= base_url('esp32/' . $device['id'] . '/eliminar') ?>" method="post" class="esp32-delete__form" data-delete-form<?= ! empty($deleteError) ? '' : ' hidden' ?>>
-                                <?= csrf_field() ?>
-                                <label class="auth-field">
-                                    <span class="auth-field__label">Escribí el nombre exacto de la placa: <strong><?= esc($device['name']) ?></strong></span>
-                                    <span class="auth-field__control">
-                                        <span class="auth-field__icon">E</span>
-                                        <input type="text" name="confirm_name" placeholder="<?= esc($device['name']) ?>" autocomplete="off" required data-delete-name data-expected-name="<?= esc($device['name']) ?>">
-                                    </span>
-                                </label>
-                                <label class="auth-field">
-                                    <span class="auth-field__label">Clave del espacio</span>
-                                    <span class="auth-field__control">
-                                        <span class="auth-field__icon">*</span>
-                                        <input type="password" name="space_password" placeholder="Clave del espacio" required>
-                                    </span>
-                                </label>
-                                <?php if (! empty($deleteError)): ?>
-                                    <span class="auth-field__error"><?= esc($deleteError) ?></span>
-                                <?php endif; ?>
-                                <button type="submit" class="btn btn--danger" disabled data-delete-submit>Eliminar definitivamente</button>
-                            </form>
                         </section>
                     <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmación de acciones destructivas (reemplaza al confirm() nativo).
+             La usa el "Borrar" del menú de cada sensor. -->
+        <div class="space-modal iot-confirm" data-space-modal data-confirm-modal hidden>
+            <div class="space-modal__backdrop" data-modal-dismiss></div>
+            <div class="space-modal__dialog card iot-confirm__dialog" role="alertdialog" aria-modal="true" aria-labelledby="esp32-confirm-title">
+                <header class="space-modal__head">
+                    <div>
+                        <h3 id="esp32-confirm-title">¿Estás seguro?</h3>
+                    </div>
+                    <button type="button" class="space-modal__close" data-modal-dismiss aria-label="Cerrar">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    </button>
+                </header>
+                <div class="space-modal__body" data-lenis-prevent>
+                    <p class="iot-confirm__text" data-confirm-text>Esta acción no se puede deshacer.</p>
+                    <div class="iot-confirm__actions">
+                        <button type="button" class="btn btn--secondary" data-modal-dismiss>Cancelar</button>
+                        <button type="button" class="btn btn--danger" data-confirm-accept>Sí, continuar</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -314,7 +318,7 @@
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260820-1" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260908-2" defer></script>
 <script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260612-1" defer></script>
 <script src="<?= base_url('js/kanban.js') ?>?v=20260831-2" defer></script>
 <script src="<?= base_url('js/qrcode.min.js') ?>"></script>
@@ -333,23 +337,199 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    /* Eliminar ESP32: despliega el form y habilita el submit recién
-       cuando el nombre tipeado coincide exactamente con el de la placa. */
-    var deleteToggle = document.querySelector('[data-delete-toggle]');
-    var deleteForm = document.querySelector('[data-delete-form]');
-    if (deleteToggle && deleteForm) {
-        deleteToggle.addEventListener('click', function () {
-            var willOpen = deleteForm.hidden;
-            deleteForm.hidden = !willOpen;
-            deleteToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-            if (willOpen) deleteForm.querySelector('[data-delete-name]').focus();
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var COLLAPSE_MS = 340;
+
+    /* ── Bloques que crecen y se achican con la altura animada ─────────
+       .esp-collapse va de 0fr a 1fr: el alto se interpola y el card
+       acompaña el movimiento en vez de saltar de un alto al otro.
+
+       Mientras se mueve, el interior queda recortado; cuando termina se
+       libera el overflow para que la lista desplegable de un select pueda
+       salirse del bloque sin que la corten. */
+    function setCollapsed(panel, open) {
+        if (!panel) return;
+
+        var inner = panel.firstElementChild;
+        if (inner) inner.style.overflow = 'hidden';
+        panel.classList.toggle('is-open', open);
+
+        window.clearTimeout(panel.espTimer);
+        if (!open || !inner) return;
+
+        panel.espTimer = window.setTimeout(function () {
+            if (panel.classList.contains('is-open')) inner.style.overflow = 'visible';
+        }, reduceMotion.matches ? 0 : COLLAPSE_MS);
+    }
+
+    function isOpen(panel) {
+        return !!panel && panel.classList.contains('is-open');
+    }
+
+    function focusInside(panel) {
+        if (!panel) return;
+        window.setTimeout(function () {
+            var field = panel.querySelector('.pv-select__trigger') || panel.querySelector('input, select');
+            if (!field) return;
+            try { field.focus({ preventScroll: true }); } catch (err) { field.focus(); }
+        }, reduceMotion.matches ? 0 : COLLAPSE_MS);
+    }
+
+    /* Un solo desplegable abierto en la sección de sensores: con el alta y
+       una fila en edición al mismo tiempo quedaban dos formularios iguales
+       uno encima del otro y no se sabía cuál se estaba tocando. */
+    function closeSensorPanels(except) {
+        document.querySelectorAll('[data-sensor-edit-panel]').forEach(function (panel) {
+            if (panel !== except) setCollapsed(panel, false);
+        });
+        document.querySelectorAll('[data-sensor-item]').forEach(function (item) {
+            if (!except || !item.contains(except)) item.classList.remove('is-editing');
         });
 
-        var nameInput = deleteForm.querySelector('[data-delete-name]');
-        var submitBtn = deleteForm.querySelector('[data-delete-submit]');
-        nameInput.addEventListener('input', function () {
-            submitBtn.disabled = nameInput.value.trim() !== nameInput.dataset.expectedName;
-        });
+        var add = document.querySelector('[data-add-panel]');
+        if (add && add !== except) {
+            setCollapsed(add, false);
+            var btn = document.querySelector('[data-add-toggle]');
+            if (btn) {
+                btn.classList.remove('is-open');
+                btn.setAttribute('aria-expanded', 'false');
+            }
+        }
+    }
+
+    /* Todo por delegación: la lista de sensores se vuelve a dibujar sola
+       cuando se guarda algo, y los nodos nuevos no tendrían los listeners
+       de la carga inicial. */
+    document.addEventListener('click', function (event) {
+        // Ninguno frena la propagación: el click tiene que llegar al documento
+        // para que prevcs-ui cierre los kebabs y las listas de los selects.
+        var add = event.target.closest('[data-add-toggle]');
+        if (add) {
+            var addPanel = document.querySelector('[data-add-panel]');
+            var opening = !isOpen(addPanel);
+
+            closeSensorPanels(opening ? addPanel : null);
+            setCollapsed(addPanel, opening);
+            add.classList.toggle('is-open', opening);
+            add.setAttribute('aria-expanded', opening ? 'true' : 'false');
+            if (opening) focusInside(addPanel);
+            return;
+        }
+
+        var edit = event.target.closest('[data-sensor-edit]');
+        if (edit) {
+            var item = edit.closest('[data-sensor-item]');
+            var panel = item && item.querySelector('[data-sensor-edit-panel]');
+            if (!panel) return;
+
+            closeSensorPanels(panel);
+            item.classList.add('is-editing');
+            setCollapsed(panel, true);
+            focusInside(panel);
+            return;
+        }
+
+        var cancel = event.target.closest('[data-sensor-edit-cancel]');
+        if (cancel) {
+            closeSensorPanels(null);
+            return;
+        }
+
+        var danger = event.target.closest('[data-danger-toggle]');
+        if (danger) {
+            var dangerPanel = document.querySelector('[data-danger-panel]');
+            var showing = !isOpen(dangerPanel);
+
+            setCollapsed(dangerPanel, showing);
+            danger.classList.toggle('is-open', showing);
+            danger.setAttribute('aria-expanded', showing ? 'true' : 'false');
+            if (showing) focusInside(dangerPanel);
+        }
+    });
+
+    /* La zona de peligro llega desplegada si el borrado anterior falló:
+       el toggle tiene que arrancar marcado igual que el panel. */
+    var startDanger = document.querySelector('[data-danger-panel]');
+    var startDangerBtn = document.querySelector('[data-danger-toggle]');
+    if (startDanger && startDangerBtn && isOpen(startDanger)) {
+        startDangerBtn.classList.add('is-open');
+        setCollapsed(startDanger, true);
+    }
+
+    /* Eliminar la placa: el submit se habilita recién cuando el nombre
+       tipeado coincide exactamente con el de la placa. */
+    document.addEventListener('input', function (event) {
+        var field = event.target.closest('[data-delete-name]');
+        if (!field) return;
+
+        var submit = field.closest('form').querySelector('[data-delete-submit]');
+        if (submit) submit.disabled = field.value.trim() !== field.dataset.expectedName;
+    });
+
+    /* ── Sincronizar las pestañas con lo que pasó adentro del modal ─────
+
+       Guardar un sensor ya no recarga la página: la ventana se actualiza
+       sola con la respuesta del servidor. Lo que queda afuera de esa
+       región son las pestañas y los gráficos, así que se acomodan acá:
+
+         · cambió la etiqueta  → se reescribe el nombre de la pestaña;
+         · se borró un sensor  → se sacan su pestaña y su panel;
+         · se agregó uno, o cambió el tipo → hace falta el panel nuevo con
+           su gráfico, que se arma del lado del servidor. Se marca la vista
+           como vencida y se redibuja al cerrar la ventana, nunca en el
+           medio de lo que esté haciendo el usuario. */
+    var modal = document.getElementById('esp32-config-modal');
+    var stale = false;
+
+    function tabInput(id) {
+        return document.querySelector('[data-section-target="sensor-' + id + '"]');
+    }
+
+    function renameTab(id, title) {
+        var input = tabInput(id);
+        var label = input && input.closest('.section-switch__radio');
+        var name = label && label.querySelector('.section-switch__name');
+        if (name) name.textContent = title;
+    }
+
+    function dropTab(id) {
+        var input = tabInput(id);
+        var label = input && input.closest('.section-switch__radio');
+        var pane = document.querySelector('[data-section-pane="sensor-' + id + '"]');
+        var wasActive = !!input && input.checked;
+
+        if (label) label.remove();
+        if (pane) pane.remove();
+
+        var rest = document.querySelectorAll('.section-switch__radio input');
+        if (!rest.length) return true; // sin sensores la vista cambia entera
+
+        if (wasActive) {
+            rest[0].checked = true;
+            rest[0].dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        return false;
+    }
+
+    document.addEventListener('prevcs:ajax-done', function (event) {
+        var data = (event.detail && event.detail.data) || {};
+        var sensor = data.sensor;
+        if (!sensor) return;
+
+        if (sensor.action === 'deleted') stale = dropTab(sensor.id) || stale;
+        else if (sensor.action === 'updated' && !sensor.typeChanged) renameTab(sensor.id, sensor.title);
+        else stale = true;
+    });
+
+    /* Al cerrar la ventana, si quedó algo pendiente de dibujar, se vuelve a
+       pedir la página (sin ?config, para que no se reabra sola). */
+    if (modal) {
+        new MutationObserver(function () {
+            if (modal.hidden && stale) {
+                stale = false;
+                window.location.replace(<?= json_encode(base_url('esp32/' . $device['id'])) ?>);
+            }
+        }).observe(modal, { attributes: true, attributeFilter: ['hidden'] });
     }
 });
 </script>

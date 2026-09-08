@@ -83,6 +83,15 @@
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
+/* Variante con icono: en vez de tres <span> dibujados a mano (que quedaban
+   desparejos y de distinto peso que el resto de la interfaz), el botón lleva
+   un SVG del mismo juego que los demás iconos. */
+.iot-kebab__button--icon { grid-auto-flow: row; }
+.iot-kebab__button--icon svg {
+  width: 18px;
+  height: 18px;
+}
+
 .iot-kebab__button span {
   width: 4px;
   height: 4px;
@@ -119,6 +128,10 @@
   font-size: var(--font-size-sm);
   text-align: left;
   cursor: pointer;
+  /* El hover entraba y salía de golpe: con la transición acompaña al resto
+     de la interfaz. background-color y no el atajo background, que no
+     siempre se interpola. */
+  transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
 .iot-kebab__menu button:hover {
@@ -150,6 +163,88 @@
 .iot-kebab__option--danger { color: var(--error); }
 .iot-kebab__option--danger svg { color: var(--error); }
 .iot-kebab__option--danger:hover { background: var(--error-soft); }
+
+/* Encabezado de grupo adentro del menú ("Rol", "Permiso"): el menú de un
+   miembro tiene dos juegos de opciones excluyentes y sin rótulo se leían
+   como una sola lista de cuatro cosas sueltas. */
+.iot-kebab__label {
+  margin: 6px 0 2px;
+  padding: 0 10px;
+  color: var(--text-faint);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.iot-kebab__label:first-child { margin-top: 2px; }
+
+/* Separa "Eliminar usuario" de las opciones que solo cambian el acceso. */
+.iot-kebab__form--sep {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--hair);
+}
+
+/* ── Submenú lateral ("Supervisor" ▸ permiso) ──────────────────────
+   Como el menú del escritorio de Windows: la opción padre no ejecuta nada,
+   abre al costado las que sí. El permiso deja de ser una decisión suelta y
+   pasa a ser parte de elegir "supervisor", que es lo que realmente es. */
+.iot-kebab__sub { position: relative; }
+
+.iot-kebab__option--parent { padding-right: 8px; }
+.iot-kebab__option--parent > span { flex: 1; }
+
+.iot-kebab__chevron {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: var(--text-faint);
+  transition: color var(--transition-fast), transform var(--transition-fast);
+}
+
+.iot-kebab__sub.is-open > .iot-kebab__option--parent { background: var(--bg-card-soft); }
+.iot-kebab__sub.is-open .iot-kebab__chevron { color: var(--text-secondary); }
+
+.iot-kebab__flyout {
+  position: absolute;
+  top: -6px;
+  left: calc(100% + 4px);
+  z-index: 60;
+  min-width: 170px;
+  padding: 6px;
+  border: 1px solid var(--hair);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-6px);
+  transition:
+    opacity 140ms ease,
+    transform 160ms cubic-bezier(.2, .7, .2, 1),
+    visibility 0s linear 160ms;
+}
+
+.iot-kebab__sub.is-open .iot-kebab__flyout {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: none;
+  transition-delay: 0s;
+}
+
+/* Contra el borde derecho de la pantalla sale para el otro lado. */
+.iot-kebab__sub.is-flipped .iot-kebab__flyout {
+  left: auto;
+  right: calc(100% + 4px);
+  transform: translateX(6px);
+}
+.iot-kebab__sub.is-flipped.is-open .iot-kebab__flyout { transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .iot-kebab__flyout { transition-duration: 1ms; }
+}
 
 .iot-space-editor {
   display: none;
@@ -200,6 +295,21 @@
   border: 1px solid var(--hair);
   border-radius: var(--radius-md);
   background: var(--bg-card-soft);
+}
+
+/* La fila es nombre + etiqueta de acceso + kebab: el nombre se queda con el
+   sobrante y recorta si hace falta, así la etiqueta y el menú no se corren. */
+.iot-space-member__info {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.iot-space-member__info strong,
+.iot-space-member__info small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .iot-space-member strong,

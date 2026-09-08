@@ -2,11 +2,13 @@
 #
 # Conexiones (segun tu armado):
 #   SW-420 (vibracion)  DO  -> GPIO34   (solo-entrada, sin pull interno)
-#   LM393 RPM           DO  -> GPIO26   (cuenta de pulsos por interrupcion)
+#   LM393 RPM           DO  -> GPIO25   (cuenta de pulsos por interrupcion)
 #   LM393 RPM           AO  -> GPIO35   (ADC, solo-entrada)
 #   DS18B20 (temp)      DATA-> GPIO27   (OneWire, con resistencia 4.7k a 3.3V)
 #
 # Todos alimentados a 3.3V.
+#
+# Los numeros de pin viven en pins.py (mapa unico de GPIO de la placa).
 
 import time
 from machine import Pin, ADC
@@ -14,13 +16,9 @@ from machine import Pin, ADC
 import onewire
 import ds18x20
 
-SENSORS_BUILD = "2026-06-09-rpm-both-edges-v3"
+from pins import PIN_VIBRACION, PIN_RPM, PIN_RPM_AO, PIN_TEMP
 
-# --- Pines ---
-PIN_VIBRACION = 34   # SW-420 DO
-PIN_RPM       = 26   # LM393 DO
-PIN_RPM_AO    = 35   # LM393 AO
-PIN_TEMP      = 27   # DS18B20 DATA
+SENSORS_BUILD = "2026-09-04-rpm-gpio25-v4"
 
 # --- Contadores que actualizan las interrupciones (ISR) ---
 _vib_count = 0
@@ -43,6 +41,9 @@ def _rpm_isr(pin):
 class Sensors:
     def __init__(self, pulses_per_rev=1):
         self.pulses_per_rev = max(1, int(pulses_per_rev))
+        # Ultimo problema de sensor detectado, en texto corto para el LCD.
+        # NO forma parte del payload: solo alimenta la capa de estados.
+        self.last_sensor_error = None
 
         # Entradas digitales. GPIO34/35 son solo-entrada (no admiten pull interno);
         # los modulos SW-420 / LM393 ya entregan una salida activa, asi que va bien.
@@ -67,9 +68,11 @@ class Sensors:
                 self.ds_rom = roms[0]
                 print("[sensors] DS18B20 detectado:", _hex(self.ds_rom))
             else:
-                print("[sensors] AVISO: no se detecto ningun DS18B20 en GPIO27.")
+                print("[sensors] AVISO: no se detecto ningun DS18B20 en GPIO{}.".format(PIN_TEMP))
+                self.last_sensor_error = "DS18B20 ausente"
         except Exception as e:
             print("[sensors] AVISO: error iniciando DS18B20:", e)
+            self.last_sensor_error = "DS18B20 init"
 
     def _enable_irqs(self):
         global _vib_count, _rpm_rising_count, _rpm_falling_count
@@ -100,6 +103,8 @@ class Sensors:
         }
         """
         window_ms = int(window_seconds * 1000)
+        # Reevaluamos el diagnostico en cada ventana (solo informativo).
+        self.last_sensor_error = None if (self.ds and self.ds_rom) else "DS18B20 ausente"
 
         # Arrancamos la conversion del DS18B20 al principio de la ventana
         # (tarda ~750ms; al leerlo al final ya esta listo).
@@ -108,6 +113,7 @@ class Sensors:
                 self.ds.convert_temp()
             except Exception as e:
                 print("[sensors] DS18B20 convert_temp fallo:", e)
+                self.last_sensor_error = "DS18B20 convert"
 
         self._enable_irqs()
 
@@ -135,6 +141,7 @@ class Sensors:
             except Exception as e:
                 if adc_error is None:
                     adc_error = repr(e)
+                    self.last_sensor_error = "LM393 AO"
 
             rpm_do = self.pin_rpm.value()
             rpm_do_min = min(rpm_do_min, rpm_do)
@@ -167,6 +174,7 @@ class Sensors:
                     print("[sensors] AVISO: DS18B20 devolvio 85.0C (revisar 4.7k / cableado).")
             except Exception as e:
                 print("[sensors] DS18B20 read_temp fallo:", e)
+                self.last_sensor_error = "DS18B20 lectura"
                 temperature = None
 
         return {

@@ -103,9 +103,11 @@ y queda "candada" a ese token (ver §5.1).
 | Sensor | Pin del sensor | GPIO ESP32 | Notas |
 |---|---|---|---|
 | SW-420 (vibración) | DO | **GPIO34** | Cuenta de eventos por interrupción. GPIO34 es solo-entrada. |
-| LM393 (RPM) | DO | **GPIO26** | Cuenta de pulsos por interrupción → RPM. |
+| LM393 (RPM) | DO | **GPIO25** | Cuenta de pulsos por interrupción → RPM. (Antes GPIO26; se movió al agregar el buzzer.) |
 | LM393 (RPM) | AO | **GPIO35** | Solo **diagnóstico** en consola (no se guarda). |
 | DS18B20 (temperatura) | DATA | **GPIO27** | OneWire. **Requiere resistencia de 4.7 kΩ entre DATA y 3.3 V.** |
+| LCD1602 I2C (5 V) | SDA / SCL | **GPIO21 / GPIO22** | Vía conversor de nivel 3.3 V ↔ 5 V. Estado de la placa. |
+| Buzzer activo | + | **GPIO26** | GPIO26 → 1 kΩ → base BC337. Patrones de aviso. |
 
 - Línea positiva de la protoboard → **3.3 V** del ESP32; línea negativa → **GND**.
 - Todos los sensores VCC → 3.3 V, GND → GND.

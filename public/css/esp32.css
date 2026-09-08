@@ -224,18 +224,6 @@
     padding: var(--space-md);
 }
 
-/* Campo "Clave del espacio" y botón "Mostrar token" en la misma fila. */
-.esp32-token-form {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    gap: var(--space-sm);
-    margin-top: var(--space-sm);
-}
-.esp32-token-form .auth-field { min-width: 0; }
-.esp32-token-form .btn { white-space: nowrap; }
-.esp32-token-form .auth-field__error { grid-column: 1 / -1; }
-
 .esp32-setup-box {
     margin-top: var(--space-sm);
 }
@@ -315,7 +303,7 @@
 .esp32-sensor-form .esp32-select { flex: 1 1 180px; width: auto; }
 .esp32-sensor-form .esp32-input { flex: 1 1 180px; width: auto; }
 
-/* Variante del modal: select, etiqueta y botón "Agregar" en una sola fila. */
+/* Variante del modal: select, etiqueta y botón "Añadir" en una sola fila. */
 .esp32-sensor-form--modal {
     display: grid;
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) auto;
@@ -325,6 +313,198 @@
 .esp32-sensor-form--modal .esp32-select,
 .esp32-sensor-form--modal .esp32-input { width: 100%; min-width: 0; }
 .esp32-sensor-form--modal .btn { white-space: nowrap; }
+/* El alta vive adentro de un .esp-collapse: el aire va en el formulario
+   para que entre en el alto que se anima. */
+[data-add-panel] .esp32-sensor-form--modal { margin-top: var(--space-sm); }
+
+@media (max-width: 520px) {
+    .esp32-sensor-form--modal { grid-template-columns: minmax(0, 1fr); }
+    .esp32-sensor-form--modal .btn { justify-self: start; }
+}
+
+/* ── Datos de la placa (modal) ──────────────────────────────────────
+   Tres datos y nada más: estado, MAC y última lectura. Sin tooltips ni
+   rótulo de sección: la ventana ya dice de qué placa se trata. */
+.esp32-facts {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-sm);
+}
+.esp32-facts > div {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+.esp32-facts dt {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+.esp32-facts dd {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+    .esp32-facts { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ── Botón de icono cuadrado (el "+" de la lista de sensores) ─────── */
+.esp32-icon-btn {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--hair);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card-soft);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color var(--transition-normal), border-color var(--transition-normal), background-color var(--transition-normal);
+}
+.esp32-icon-btn svg { width: 18px; height: 18px; }
+.esp32-icon-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--hair-2);
+    background: var(--bg-card);
+}
+.esp32-icon-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-ring);
+}
+/* Abierto: el botón queda marcado, sin girar. El "+" rotado a "×" mareaba
+   más de lo que explicaba: el panel abierto abajo ya dice que está abierto. */
+.esp32-icon-btn.is-open {
+    background: var(--accent-soft);
+    border-color: color-mix(in oklab, var(--accent) 30%, var(--hair-2));
+    color: var(--accent);
+}
+
+/* ── Bloque que se despliega con la altura animada ──────────────────
+   0fr → 1fr interpola el alto real, así el card crece y se achica en un
+   movimiento continuo en vez de saltar de un alto al otro (que es lo que
+   pasa al poner y sacar [hidden]).
+
+   El interior va recortado mientras se mueve; cuando termina, el script
+   le devuelve el overflow para que la lista de un select pueda salirse
+   del bloque sin quedar cortada. */
+.esp-collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 340ms cubic-bezier(.22, 1, .36, 1);
+}
+.esp-collapse.is-open { grid-template-rows: 1fr; }
+
+/* Sin min-height: 0. El alto de la fila es minmax(auto, Nfr): con el mínimo
+   forzado a 0 el 1fr no tenía de dónde crecer y el bloque quedaba abierto
+   pero vacío. El overflow:hidden ya deja que el 0fr lo cierre del todo. */
+.esp-collapse__inner {
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 200ms ease, visibility 0s linear 340ms;
+}
+.esp-collapse.is-open .esp-collapse__inner {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 260ms ease 80ms, visibility 0s linear 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .esp-collapse,
+    .esp-collapse__inner,
+    .esp-collapse.is-open .esp-collapse__inner { transition-duration: 1ms; }
+}
+
+/* ── Lista de sensores configurados (modal) ────────────────────────── */
+.esp32-sensor-list {
+    display: grid;
+    gap: 6px;
+}
+
+.esp32-sensor-item {
+    display: grid;
+    gap: var(--space-sm);
+    padding: 8px 10px;
+    border: 1px solid var(--hair);
+    border-radius: var(--radius-md);
+    background: var(--bg-card-soft);
+    transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.esp32-sensor-item.is-editing {
+    border-color: color-mix(in oklab, var(--accent) 30%, var(--hair-2));
+    background: var(--bg-card);
+}
+
+.esp32-sensor-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+}
+
+/* Mientras se edita la fila, su menú no pinta nada: las dos acciones que
+   ofrece son entrar a este mismo formulario o borrar el sensor. Se va con
+   una transición y deja el lugar hecho, para que la fila no se corra. */
+.esp32-sensor-item.is-editing .iot-kebab {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(.92);
+    pointer-events: none;
+    transition: opacity 180ms ease, transform 200ms cubic-bezier(.22, 1, .36, 1), visibility 0s linear 200ms;
+}
+.esp32-sensor-item .iot-kebab {
+    transition: opacity 200ms ease 60ms, transform 240ms cubic-bezier(.22, 1, .36, 1) 60ms, visibility 0s linear 0s;
+}
+
+.esp32-sensor-row__info {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+.esp32-sensor-row__info strong {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    overflow-wrap: anywhere;
+}
+.esp32-sensor-row__info small {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+/* El form de "Cambiar" se despliega debajo de su propia fila: tipo y
+   etiqueta arriba, y las acciones abajo a la derecha. En una fila sola no
+   entraban los dos campos más "Cancelar" y "Guardar" sin quedar apretados. */
+.esp32-sensor-edit {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--hair);
+}
+.esp32-sensor-edit .pv-select,
+.esp32-sensor-edit .esp32-select,
+.esp32-sensor-edit .esp32-input { width: 100%; min-width: 0; }
+
+.esp32-sensor-edit__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+@media (max-width: 520px) {
+    .esp32-sensor-edit { grid-template-columns: minmax(0, 1fr); }
+}
 
 .esp32-sensor-meta { margin: 0; display: grid; gap: var(--space-sm); }
 .esp32-sensor-meta > div { display: flex; flex-direction: column; gap: 2px; }
@@ -441,27 +621,63 @@
     transition-delay: 0s;
 }
 
-/* ── Eliminar ESP32 (zona de peligro del modal) ─────────────────────── */
-/* Texto a la izquierda y botón "Eliminar ESP32" a la derecha, en la misma
-   fila; el form de confirmación se despliega abajo a lo ancho. */
-.esp32-delete {
-    grid-template-columns: minmax(0, 1fr) auto;
+/* ── Zona de peligro (modal): apartado contraíble ───────────────────
+   Es la única acción sin vuelta atrás de la ventana. Contraída ocupa una
+   línea; al desplegarla aparece el card rojo con los dos campos. */
+.esp32-danger { gap: 0; }
+
+.esp32-danger__toggle {
+    width: 100%;
+    display: flex;
     align-items: center;
-    column-gap: var(--space-md);
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--error);
+    font: inherit;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    text-align: left;
 }
-.esp32-delete__intro { display: grid; gap: var(--space-sm); min-width: 0; }
-.esp32-delete__intro p { margin: 0; }
-.esp32-delete .btn--danger { justify-self: start; }
-.esp32-delete > [data-delete-toggle] { justify-self: end; }
+.esp32-danger__toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-ring);
+    border-radius: var(--radius-sm);
+}
+
+.esp32-danger__chevron {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    transition: transform 280ms cubic-bezier(.22, 1, .36, 1);
+}
+.esp32-danger__toggle.is-open .esp32-danger__chevron { transform: rotate(180deg); }
+
+/* El panel es un .esp-collapse: el alto lo anima la utilidad de arriba. El
+   aire va adentro del bloque (no en el bloque mismo) para que también
+   crezca y se achique con él, en vez de quedar fijo cuando está cerrado. */
+.esp32-danger .esp32-delete__form { margin-top: var(--space-sm); }
+
+.esp32-delete__note {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.45;
+}
+
 .esp32-delete__form {
-    grid-column: 1 / -1;
     display: grid;
     gap: var(--space-sm);
-    padding: var(--space-sm);
-    border: var(--border-thin) dashed var(--error);
+    padding: var(--space-md);
+    /* Borde lleno: la línea punteada hacía ver el card como un placeholder
+       o una caja para soltar algo, y esto es un formulario común. */
+    border: var(--border-thin) solid color-mix(in oklab, var(--error) 35%, transparent);
     border-radius: var(--radius-md);
     background: var(--error-soft);
-    /* Despliegue suave cada vez que se muestra (al tocar "Eliminar ESP32"). */
+    /* Despliegue suave cada vez que se muestra. */
     transform-origin: top center;
     animation: espDeleteReveal 320ms cubic-bezier(.22, 1, .36, 1);
 }
@@ -485,7 +701,11 @@
 .esp32-sensor-form .pv-select { flex: 1 1 180px; }
 .auth-field__control .pv-select { flex: 1; }
 
-.pv-select .esp32-select {
+/* El <select> nativo sigue en el form (es el que manda el valor) pero no se
+   ve: lo reemplaza el trigger. Se apunta a cualquier select adentro del
+   wrapper y no solo a .esp32-select, porque prevcs-ui.js también estiliza
+   los [data-pcs-select] del modal de configuración del espacio. */
+.pv-select > select {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -571,6 +791,16 @@
     transition-delay: 0s;
 }
 
+/* Cuando la lista no entra para abajo (adentro de una caja con scroll, como
+   el cuerpo del modal), prevcs-ui.js la manda para arriba. */
+.pv-select.is-up .pv-select__list {
+    top: auto;
+    bottom: calc(100% + 6px);
+    transform-origin: bottom center;
+    transform: translateY(8px) scaleY(.94);
+}
+.pv-select.is-up.is-open .pv-select__list { transform: none; }
+
 .pv-select__option {
     display: block;
     width: 100%;
@@ -582,7 +812,10 @@
     padding: 9px 10px;
     border-radius: var(--radius-sm);
     color: var(--text-primary);
-    transition: background var(--transition-fast), color var(--transition-fast);
+    /* background-color y no el atajo background: el atajo no siempre se
+       interpola y el hover entraba de golpe, distinto al del resto de los
+       menús. Misma curva y duración que las opciones del kebab. */
+    transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 .pv-select__option:hover { background: var(--surface-2); }
 .pv-select__option.is-selected {

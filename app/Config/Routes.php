@@ -57,7 +57,14 @@ $routes->post('unirse-espacio', 'IndustryController::join');
 $routes->post('espacios/(:num)/editar', 'IndustryController::update/$1');
 $routes->post('espacios/(:num)/miembros/(:num)/eliminar', 'IndustryController::removeMember/$1/$2');
 $routes->post('espacios/(:num)/miembros/(:num)/permiso', 'IndustryController::updateMemberPermission/$1/$2');
+$routes->post('espacios/(:num)/miembros/(:num)/rol', 'IndustryController::updateMemberRole/$1/$2');
 $routes->post('espacios/(:num)/tokens', 'IndustryController::revealTokens/$1');
+
+// Invitar por correo a un espacio (flujo tipo "compartir documento"): el admin
+// manda el mail y el invitado entra por el link de un solo uso del correo.
+$routes->post('espacios/(:num)/invitaciones', 'IndustryController::invite/$1');
+$routes->post('espacios/(:num)/invitaciones/(:num)/cancelar', 'IndustryController::cancelInvitation/$1/$2');
+$routes->get('invitacion/(:segment)', 'IndustryController::acceptInvitation/$1');
 $routes->post('espacios/(:num)/sensores/(:num)/eliminar', 'SensorController::deleteFromSpace/$1/$2');
 
 // Stock por espacio (una lista independiente por cada espacio)
@@ -86,9 +93,13 @@ $routes->get('ayuda', 'AyudaController::index');
 $routes->get('esp32', 'Esp32Controller::index');
 $routes->get('esp32/agregar', 'Esp32Controller::createForm');
 $routes->post('esp32/agregar', 'Esp32Controller::store');
-$routes->post('esp32/(:num)/token', 'Esp32Controller::revealToken/$1');
 $routes->post('esp32/(:num)/eliminar', 'Esp32Controller::delete/$1');
 $routes->post('esp32/(:num)/sensores', 'SensorController::store/$1');
+// Sensores de una placa desde el modal de configuración: cambiar el tipo/etiqueta
+// y borrar. El primer (:num) es la placa; el controlador valida que el sensor
+// sea de esa placa antes de tocarlo.
+$routes->post('esp32/(:num)/sensores/(:num)', 'SensorController::update/$1/$2');
+$routes->post('esp32/(:num)/sensores/(:num)/eliminar', 'SensorController::deleteFromDevice/$1/$2');
 $routes->get('esp32/(:num)', 'Esp32Controller::show/$1');
 
 // show user
