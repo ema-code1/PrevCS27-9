@@ -30,6 +30,10 @@ PIN_BUZZER  = 26
 # tuya, ponela fija aca para que el arranque sea mas rapido.
 LCD_I2C_ADDRESS = None
 LCD_I2C_CANDIDATES = (0x27, 0x3F, 0x20, 0x38)
-LCD_I2C_FREQ = 100000
+# 50 kHz y no los 100 kHz de siempre: con el conversor de nivel, sus pull-ups
+# de 10k y cables de protoboard, el flanco de subida llega justo y el bus se
+# cuelga con ETIMEDOUT a mitad de una pantalla. A la mitad de velocidad sobra
+# margen, y para dos lineas de texto la diferencia no se nota.
+LCD_I2C_FREQ = 50000
 LCD_COLS = 16
 LCD_ROWS = 2

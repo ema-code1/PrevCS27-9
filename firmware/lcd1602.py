@@ -93,6 +93,32 @@ class Lcd1602:
 
     # --- uso normal ---
 
+    def recover(self):
+        """Destraba el bus y reinicializa el display. Devuelve True si volvio.
+
+        Un ETIMEDOUT no es un corte limpio: el PCF8574 se queda a mitad de un
+        byte sujetando SDA en bajo, y desde ahi TODA escritura siguiente falla
+        igual, aunque el cable este perfecto. La salida es la de manual: pulsos
+        de reloj hasta que el esclavo suelta la linea, rehacer el objeto I2C y
+        arrancar el display de cero."""
+        try:
+            scl = Pin(pins.PIN_LCD_SCL, Pin.OUT, value=1)
+            for _ in range(10):
+                scl.value(0)
+                time.sleep_us(10)
+                scl.value(1)
+                time.sleep_us(10)
+
+            # El pin volvio a ser GPIO comun: hay que devolverselo al I2C.
+            self.i2c = I2C(0, scl=Pin(pins.PIN_LCD_SCL),
+                           sda=Pin(pins.PIN_LCD_SDA), freq=pins.LCD_I2C_FREQ)
+            time.sleep_ms(5)
+            self._init_display()
+            return True
+        except Exception as e:
+            print("[lcd] no se pudo destrabar el bus:", e)
+            return False
+
     def clear(self):
         self._command(_CMD_CLEAR)
         time.sleep_ms(2)
@@ -102,12 +128,31 @@ class Lcd1602:
         self._backlight = _BACKLIGHT if on else 0x00
         self._write_raw(0x00)
 
+    def test_pattern(self):
+        """Llena las dos lineas con bloques solidos (caracter 0xFF).
+
+        Es la prueba de contraste y de tension, y no pasa por _ascii() a
+        proposito: escribe el caracter crudo. Si se ven dos filas de bloques
+        oscuros, el panel esta alimentado y el contraste en su punto, asi que
+        cualquier problema que quede es de texto. Si la pantalla sigue azul y
+        vacia, no es el firmware: es el potenciometro o los 5V."""
+        for row in range(self.rows):
+            self._command(_DDRAM | _ROW_OFFSET[row])
+            for _ in range(self.cols):
+                self._send(0xFF, _RS)
+            self._shown[row] = None   # lo escrito no es texto: forzar reescritura
+
     def write_line(self, row, text):
         """Escribe una linea completa (rellenada a 16 caracteres).
         Si ya dice lo mismo, no hace nada: eso evita el flicker."""
         if row >= self.rows:
             return False
-        text = _ascii(text)[:self.cols].ljust(self.cols)
+        # Relleno a mano: MicroPython no trae str.ljust() (es de CPython), y el
+        # padding no es opcional. Sin el, una linea corta deja a la vista lo que
+        # decia la anterior: "Conectado!" despues de "Conectando WiFi" se leeria
+        # "Conectado!iFi".
+        text = _ascii(text)[:self.cols]
+        text += " " * (self.cols - len(text))
         if self._shown[row] == text:
             return False
         self._command(_DDRAM | _ROW_OFFSET[row])
@@ -117,7 +162,22 @@ class Lcd1602:
         return True
 
     def show(self, line1, line2=""):
-        """Muestra las dos lineas. Devuelve True si algo cambio en pantalla."""
+        """Muestra las dos lineas. Devuelve True si algo cambio en pantalla.
+
+        Un glitch del bus (cable largo, pull-up flojo, bajon de los 5V) tira
+        OSError y deja el display trabado. En vez de dar la pantalla por
+        perdida, se destraba y se reintenta una vez: los cortes de este tipo
+        son transitorios y el usuario no tiene por que quedarse sin cartel."""
+        try:
+            return self._show(line1, line2)
+        except OSError:
+            if not self.recover():
+                raise
+            # El display arranco en blanco: hay que reescribir las dos lineas.
+            self._shown = [None] * self.rows
+            return self._show(line1, line2)
+
+    def _show(self, line1, line2):
         changed = self.write_line(0, line1)
         if self.rows > 1:
             changed = self.write_line(1, line2) or changed

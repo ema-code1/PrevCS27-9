@@ -19,6 +19,11 @@ Subi estos archivos a la ESP32:
 
 No subas `config.example.json` como config real. Es solo ejemplo.
 
+Para probar el armado sin sensores ni WiFi hay dos scripts sueltos:
+`test_lcd_buzzer.py` (pantalla + buzzer, paso a paso) e `i2c_lcd_check.py`
+(solo el scan del bus). No hace falta subirlos: se abren en Thonny y se corren
+con F5.
+
 ## Cableado
 
 | GPIO | Uso |
@@ -48,6 +53,19 @@ El LCD muestra el estado de la placa (`PrevCS / Iniciando...`,
 `Conectando WiFi`, `Conectando API`, `Enviando datos`, `Datos enviados`,
 `ERROR WIFI`, `ERROR API`, `ERROR SENSOR`). Solo se reescribe cuando el texto
 cambia, asi que no parpadea.
+
+**Si la pantalla prende azul pero no muestra letras**, el problema es la
+tension, no el codigo. El chip I2C del backpack (PCF8574) funciona con 3.3V y
+contesta el scan sin drama, pero el panel HD44780 necesita **5V** para que los
+caracteres se vean: a 3.3V no alcanza la tension de contraste y la pantalla
+queda vacia, gires lo que gires el potenciometro. VCC del modulo va a VIN/5V,
+y las senales SDA/SCL pasan por el conversor de nivel.
+
+Si el bus I2C se cuelga (`OSError: 116 ETIMEDOUT`, tipico con cables largos o
+pull-ups flojos), el driver destraba el bus con pulsos de reloj, reinicializa el
+display y reintenta. Si aun asi no vuelve, la placa sigue midiendo y enviando sin
+pantalla, y reintenta tomar el LCD cada 15 segundos. El bus corre a 50 kHz para
+tener margen; esta en `LCD_I2C_FREQ` de `pins.py`.
 
 El buzzer avisa por patrones, una sola vez por episodio de error:
 

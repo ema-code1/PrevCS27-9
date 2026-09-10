@@ -35,6 +35,9 @@ CRITICAL_ERROR = "CRITICAL_ERROR"
 
 TITLE = "PrevCS"
 
+# Cada cuanto se reintenta el LCD despues de un corte del bus.
+LCD_RETRY_MS = 15000
+
 # estado -> (linea 1, linea 2). Maximo 16 caracteres, ASCII simple.
 _TEXTS = {
     BOOTING:         (TITLE, "Iniciando..."),
@@ -75,11 +78,15 @@ class DeviceUI:
         self.buzzer = buzzer_module.Buzzer()
 
         self.lcd = None
+        self._lcd_retry_at = time.ticks_ms()
         try:
             self.lcd = lcd1602.Lcd1602()
             print("[ui] LCD1602 detectado en 0x{:02X}".format(self.lcd.addr))
         except Exception as e:
+            # Si no aparece al arranque tampoco se lo da por perdido: puede ser
+            # que el modulo todavia no tenga los 5V estables.
             print("[ui] AVISO: LCD no disponible:", e)
+            self._lcd_retry_at = time.ticks_add(time.ticks_ms(), LCD_RETRY_MS)
 
     # --- API principal ---
 
@@ -138,11 +145,30 @@ class DeviceUI:
 
     def _write(self, line1, line2):
         if self.lcd is None:
+            self._reconnect()
+        if self.lcd is None:
             return
         try:
             self.lcd.show(line1, line2)
         except Exception as e:
-            print("[ui] LCD sin respuesta, se desactiva:", e)
+            # Antes esto apagaba el LCD para siempre: un solo corte del bus
+            # dejaba la placa sin cartel hasta el proximo reinicio, que es
+            # justo lo que se ve como "la pantalla no anda". Ahora se apaga y
+            # se vuelve a intentar cada LCD_RETRY_MS.
+            print("[ui] LCD sin respuesta, reintento en {}s:".format(LCD_RETRY_MS // 1000), e)
+            self.lcd = None
+            self._lcd_retry_at = time.ticks_add(time.ticks_ms(), LCD_RETRY_MS)
+
+    def _reconnect(self):
+        """Reintenta tomar el LCD, pero no en cada vuelta del loop: un scan I2C
+        por segundo contra un modulo que no esta solo gasta tiempo del ciclo."""
+        if time.ticks_diff(time.ticks_ms(), self._lcd_retry_at) < 0:
+            return
+        self._lcd_retry_at = time.ticks_add(time.ticks_ms(), LCD_RETRY_MS)
+        try:
+            self.lcd = lcd1602.Lcd1602()
+            print("[ui] LCD recuperado en 0x{:02X}".format(self.lcd.addr))
+        except Exception:
             self.lcd = None
 
     def _alert(self, state):
