@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Esp32DeviceModel;
 use App\Models\Esp32SensorModel;
+use App\Models\DeviceAccessModel;
 use App\Models\IndustryUserModel;
 use App\Models\SensorReadingModel;
 
@@ -17,15 +18,32 @@ class Home extends BaseController
         $industries = $industryModel->industriesForUser($userId);
         $industryIds = array_map('intval', array_column($industries, 'id'));
 
-        $devices = (new Esp32DeviceModel())->devicesForUser($userId);
-        $deviceIds = array_map('intval', array_column($devices, 'id'));
-
+        $deviceModel = new Esp32DeviceModel();
+        $accessModel = new DeviceAccessModel();
+        $devices = [];
         $sensors = [];
-        if ($industryIds !== []) {
-            foreach ($industryIds as $industryId) {
-                $sensors = array_merge($sensors, (new Esp32SensorModel())->sensorsForIndustry($industryId));
+        foreach ($industryIds as $industryId) {
+            $spaceDevices = $deviceModel->devicesForIndustry($industryId);
+            if (! $industryModel->canSeeAllDevices($userId, $industryId)) {
+                $membership = $industryModel->membershipFor($userId, $industryId);
+                $allowedIds = $membership !== null
+                    ? $accessModel->allowedDeviceIdsForMembership((int) $membership['id'])
+                    : [];
+                $spaceDevices = array_values(array_filter(
+                    $spaceDevices,
+                    static fn ($device) => in_array((int) $device['id'], $allowedIds, true)
+                ));
             }
+
+            $devices = array_merge($devices, $spaceDevices);
+            $visibleDeviceIds = array_map('intval', array_column($spaceDevices, 'id'));
+            $spaceSensors = (new Esp32SensorModel())->sensorsForIndustry($industryId);
+            $sensors = array_merge($sensors, array_values(array_filter(
+                $spaceSensors,
+                static fn ($sensor) => in_array((int) $sensor['esp32_device_id'], $visibleDeviceIds, true)
+            )));
         }
+        $deviceIds = array_map('intval', array_column($devices, 'id'));
 
         $readingModel = new SensorReadingModel();
         $latestSensors = [];

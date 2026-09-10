@@ -220,7 +220,7 @@ class SensorController extends BaseController
     /**
      * Borra un sensor del espacio desde el modal de configuración.
      * Requiere admin del espacio + espacio "desbloqueado" con la clave hace < 5 min
-     * (el mismo desbloqueo que revela los tokens en IndustryController::revealTokens).
+     * (el mismo desbloqueo de IndustryController::unlockSensors).
      */
     public function deleteFromSpace($industryId = null, $sensorId = null)
     {
@@ -244,14 +244,14 @@ class SensorController extends BaseController
 
         $sensorModel->delete($sensorId);
 
-        // Por fetch (el caso normal) contestamos con la sección de tokens ya
+        // Por fetch (el caso normal) contestamos con la sección de sensores ya
         // dibujada de nuevo, así el modal se actualiza sin recargar la página.
         if ($this->request->isAJAX()) {
             return $this->response->setJSON([
                 'ok'      => true,
                 'message' => 'Sensor eliminado.',
                 'csrf'    => csrf_hash(),
-                'regions' => (new SpaceModalRegions())->render($industryId, [SpaceModalRegions::TOKENS]),
+                'regions' => (new SpaceModalRegions())->render($industryId, [SpaceModalRegions::SENSORS]),
             ]);
         }
 

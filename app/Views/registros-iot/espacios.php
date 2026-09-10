@@ -2,10 +2,10 @@
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260908-2">
+<link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260910-3">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260908-2">
-<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260908-2">
+<link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260910-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -49,7 +49,10 @@
 
             <div class="iot-acc-list">
                 <?php foreach ($industries as $ind): ?>
-                    <?php $isAdmin = $ind['role'] === 'admin_principal'; ?>
+                    <?php
+                    $isAdmin = $ind['role'] === 'admin_principal';
+                    $canManageAccess = ! empty($ind['can_manage_access']);
+                    ?>
                     <article class="esp32-card card iot-space-card iot-acc" data-acc<?= (int) ($openConfigId ?? 0) === (int) $ind['id'] ? ' data-acc-start-open' : '' ?>>
                         <div class="iot-acc__head" data-acc-toggle role="button" tabindex="0" aria-label="Desplegar <?= esc($ind['space_name']) ?>">
                             <div class="iot-acc__info">
@@ -74,7 +77,7 @@
                                 <span class="badge <?= $isAdmin ? 'badge--success' : 'badge--info' ?>">
                                     <?= $isAdmin ? 'Admin' : 'Supervisor' ?>
                                 </span>
-                                <?php if ($isAdmin): ?>
+                                <?php if ($canManageAccess): ?>
                                     <div class="iot-kebab" data-kebab>
                                         <button type="button" class="iot-kebab__button" aria-label="Opciones de <?= esc($ind['space_name']) ?>" aria-expanded="false" data-kebab-button>
                                             <span></span><span></span><span></span>
@@ -124,10 +127,11 @@
             </div>
 
             <?php foreach ($industries as $ind): ?>
-                <?php if ($ind['role'] !== 'admin_principal') { continue; } ?>
+                <?php if (empty($ind['can_manage_access'])) { continue; } ?>
                 <?php
                 $isUnlocked    = (int) ($unlockedSpaceId ?? 0) === (int) $ind['id'];
                 $sessionUserId = (int) session('user_id');
+                $isAdmin       = $ind['role'] === 'admin_principal';
                 ?>
                 <div class="space-modal" id="space-modal-<?= $ind['id'] ?>" data-space-modal<?= (int) ($openConfigId ?? 0) === (int) $ind['id'] ? '' : ' hidden' ?>>
                     <div class="space-modal__backdrop" data-modal-dismiss></div>
@@ -142,34 +146,63 @@
                         </header>
 
                         <div class="space-modal__body" data-lenis-prevent>
-                            <!-- 1) Datos del espacio -->
-                            <section class="space-modal__section">
-                                <h4>Datos del espacio</h4>
-                                <form action="<?= base_url('espacios/' . $ind['id'] . '/editar') ?>" method="post" class="auth-form space-modal__form" data-warn-unsaved data-ajax>
+                            <?php if ($isAdmin): ?>
+                            <section class="space-modal__section space-details" data-space-edit-section>
+                                <div class="space-modal__section-head">
+                                    <h4>Datos del espacio</h4>
+                                    <button type="button" class="esp32-icon-btn" data-edit-toggle aria-label="Editar datos del espacio" title="Editar datos">
+                                        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z"/><path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z"/></svg>
+                                    </button>
+                                </div>
+
+                                <dl class="space-details__list" data-view-panel>
+                                    <div>
+                                        <dt>Empresa / industria</dt>
+                                        <dd data-space-detail-company="<?= $ind['id'] ?>"><?= esc($ind['company_name']) ?></dd>
+                                    </div>
+                                    <div>
+                                        <dt>Nombre del espacio</dt>
+                                        <dd data-space-detail-name="<?= $ind['id'] ?>"><?= esc($ind['space_name']) ?></dd>
+                                    </div>
+                                    <div>
+                                        <dt>Rubro o sector</dt>
+                                        <dd data-space-detail-sector="<?= $ind['id'] ?>"><?= esc($ind['sector'] ?: 'Sin sector') ?></dd>
+                                    </div>
+                                </dl>
+
+                                <form action="<?= base_url('espacios/' . $ind['id'] . '/editar') ?>" method="post" class="auth-form space-modal__form space-details__form" data-edit-panel data-warn-unsaved data-ajax hidden>
                                     <?= csrf_field() ?>
                                     <label class="auth-field">
                                         <span class="auth-field__label">Empresa / industria</span>
-                                        <input type="text" name="company_name" value="<?= esc($ind['company_name']) ?>" required>
+                                        <input type="text" name="company_name" value="<?= esc($ind['company_name']) ?>" required data-space-input-company="<?= $ind['id'] ?>">
                                     </label>
                                     <label class="auth-field">
                                         <span class="auth-field__label">Nombre del espacio</span>
-                                        <input type="text" name="space_name" value="<?= esc($ind['space_name']) ?>" required>
+                                        <input type="text" name="space_name" value="<?= esc($ind['space_name']) ?>" required data-space-input-name="<?= $ind['id'] ?>">
                                     </label>
                                     <label class="auth-field">
                                         <span class="auth-field__label">Rubro o sector</span>
-                                        <input type="text" name="sector" value="<?= esc($ind['sector'] ?? '') ?>">
+                                        <input type="text" name="sector" value="<?= esc($ind['sector'] ?? '') ?>" data-space-input-sector="<?= $ind['id'] ?>">
                                     </label>
 
                                     <?php /* La clave nueva se pide solo si la van a cambiar, igual que en
                                             "Administrar cuenta": el campo aparece recién al tocar el botón. */ ?>
                                     <div class="space-disclosure">
-                                        <button type="button" class="space-ghost-btn"
-                                                data-disclosure="space-pass-<?= $ind['id'] ?>"
-                                                aria-expanded="false" aria-controls="space-pass-<?= $ind['id'] ?>">
-                                            <!-- Heroicons mini · key -->
-                                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 7a5 5 0 1 1 3.61 4.804l-1.903 1.903A1 1 0 0 1 9 14H8v1a1 1 0 0 1-1 1H6v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2a1 1 0 0 1 .293-.707L8.196 8.39A5.002 5.002 0 0 1 8 7Zm5-3a.75.75 0 0 0 0 1.5A1.5 1.5 0 0 1 14.5 7 .75.75 0 0 0 16 7a3 3 0 0 0-3-3Z" clip-rule="evenodd"/></svg>
-                                            Cambiar la clave del espacio
-                                        </button>
+                                        <div class="space-password-actions">
+                                            <button type="button" class="space-ghost-btn"
+                                                    data-disclosure="space-pass-<?= $ind['id'] ?>"
+                                                    aria-expanded="false" aria-controls="space-pass-<?= $ind['id'] ?>">
+                                                <!-- Heroicons mini · key -->
+                                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M8 7a5 5 0 1 1 3.61 4.804l-1.903 1.903A1 1 0 0 1 9 14H8v1a1 1 0 0 1-1 1H6v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2a1 1 0 0 1 .293-.707L8.196 8.39A5.002 5.002 0 0 1 8 7Zm5-3a.75.75 0 0 0 0 1.5A1.5 1.5 0 0 1 14.5 7 .75.75 0 0 0 16 7a3 3 0 0 0-3-3Z" clip-rule="evenodd"/></svg>
+                                                Cambiar clave
+                                            </button>
+                                            <button type="button" class="space-ghost-btn"
+                                                    data-disclosure="space-reset-<?= $ind['id'] ?>"
+                                                    aria-expanded="false" aria-controls="space-reset-<?= $ind['id'] ?>">
+                                                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M2 7a5 5 0 0 1 9.8-1.4.75.75 0 0 1-1.44.42A3.5 3.5 0 1 0 9.5 9.5H8.25a.75.75 0 0 1 0-1.5h3A.75.75 0 0 1 12 8.75v3a.75.75 0 0 1-1.5 0v-1.08A5 5 0 0 1 2 7Zm11.75 1a.75.75 0 0 1 .75.75V10h.75A2.75 2.75 0 0 1 18 12.75v2.5A2.75 2.75 0 0 1 15.25 18h-3.5A2.75 2.75 0 0 1 9 15.25v-2.5A2.75 2.75 0 0 1 11.75 10H13v-1.25a.75.75 0 0 1 .75-.75ZM11.75 11.5c-.69 0-1.25.56-1.25 1.25v2.5c0 .69.56 1.25 1.25 1.25h3.5c.69 0 1.25-.56 1.25-1.25v-2.5c0-.69-.56-1.25-1.25-1.25h-3.5Z" clip-rule="evenodd"/></svg>
+                                                Olvidé la clave
+                                            </button>
+                                        </div>
                                         <div class="space-disclosure__panel" id="space-pass-<?= $ind['id'] ?>" data-disclosure-panel hidden>
                                             <label class="auth-field">
                                                 <span class="auth-field__label">Clave nueva</span>
@@ -184,9 +217,23 @@
                                         <span class="auth-field__label">Clave actual del espacio</span>
                                         <input type="password" name="current_password" placeholder="Requerida para guardar" autocomplete="current-password" required>
                                     </label>
-                                    <button type="submit" class="btn btn--primary">Guardar cambios</button>
+                                    <div class="space-details__actions">
+                                        <button type="button" class="btn btn--secondary" data-edit-cancel>Cancelar</button>
+                                        <button type="submit" class="btn btn--primary">Guardar cambios</button>
+                                    </div>
+                                </form>
+
+                                <form action="<?= base_url('espacios/' . $ind['id'] . '/clave/recuperar') ?>" method="post"
+                                      class="space-invite space-reset-form" id="space-reset-<?= $ind['id'] ?>" data-disclosure-panel data-ajax hidden>
+                                    <?= csrf_field() ?>
+                                    <label class="auth-field">
+                                        <span class="auth-field__label">Contraseña de tu usuario</span>
+                                        <input type="password" name="user_password" placeholder="Tu contraseña de cuenta" autocomplete="current-password" required>
+                                    </label>
+                                    <button type="submit" class="btn btn--primary">Enviar mail</button>
                                 </form>
                             </section>
+                            <?php endif; ?>
 
                             <?php /* Las dos secciones que siguen se vuelven a dibujar solas: cada
                                     acción de adentro viaja por fetch y la respuesta trae la parcial
@@ -199,14 +246,40 @@
                                 ]) ?>
                             </section>
 
-                            <!-- 3) Tokens de las ESP + sensores (se desbloquean con la clave) -->
-                            <section class="space-modal__section" data-region="tokens-<?= $ind['id'] ?>">
-                                <?= view('registros-iot/_space_tokens', [
+                            <?php if ($isAdmin): ?>
+                            <!-- 3) Sensores (se desbloquean con la clave) -->
+                            <section class="space-modal__section" data-region="sensors-<?= $ind['id'] ?>">
+                                <?= view('registros-iot/_space_sensors', [
                                     'ind'            => $ind,
                                     'isUnlocked'     => $isUnlocked,
-                                    'unlockedTokens' => $unlockedTokens ?? [],
                                 ]) ?>
                             </section>
+
+                            <section class="space-modal__section esp32-danger">
+                                <button type="button" class="esp32-danger__toggle" data-danger-toggle
+                                        aria-expanded="false" aria-controls="space-danger-panel-<?= $ind['id'] ?>">
+                                    <span>Zona de peligro</span>
+                                    <svg class="esp32-danger__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                </button>
+                                <div class="esp-collapse" id="space-danger-panel-<?= $ind['id'] ?>" data-danger-panel>
+                                    <div class="esp-collapse__inner">
+                                        <form action="<?= base_url('espacios/' . $ind['id'] . '/eliminar/solicitar') ?>" method="post" class="esp32-delete__form" data-ajax>
+                                            <?= csrf_field() ?>
+                                            <p class="esp32-delete__note">Eliminar el espacio borra sus placas, sensores, lecturas, stock, tareas y miembros. Primero se envía un mail de verificación.</p>
+                                            <label class="auth-field">
+                                                <span class="auth-field__label">Escribí el nombre exacto del espacio: <strong><?= esc($ind['space_name']) ?></strong></span>
+                                                <input type="text" name="confirm_name" placeholder="<?= esc($ind['space_name']) ?>" autocomplete="off" required data-delete-name data-expected-name="<?= esc($ind['space_name']) ?>">
+                                            </label>
+                                            <label class="auth-field">
+                                                <span class="auth-field__label">Clave del espacio</span>
+                                                <input type="password" name="space_password" placeholder="Clave del espacio" required>
+                                            </label>
+                                            <button type="submit" class="btn btn--danger" disabled data-delete-submit>Enviar link de verificación</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </section>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -239,7 +312,7 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('pageScripts') ?>
-<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260908-2" defer></script>
+<script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260910-3" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Si la página volvió con ?config=<id> (desbloqueo / borrado), dejar
@@ -248,6 +321,15 @@ document.addEventListener('DOMContentLoaded', function () {
         acc.classList.add('is-open');
         var chevron = acc.querySelector('[data-acc-chevron]');
         if (chevron) chevron.setAttribute('aria-expanded', 'true');
+    });
+
+    window.addEventListener('pageshow', function () {
+        var deleted = null;
+        try { deleted = localStorage.getItem('prevcs.space.deleted'); } catch (error) {}
+        if (deleted) {
+            try { localStorage.removeItem('prevcs.space.deleted'); } catch (error) {}
+            window.location.reload();
+        }
     });
 });
 </script>

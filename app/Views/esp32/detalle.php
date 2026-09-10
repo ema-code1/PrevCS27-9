@@ -435,35 +435,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        var danger = event.target.closest('[data-danger-toggle]');
-        if (danger) {
-            var dangerPanel = document.querySelector('[data-danger-panel]');
-            var showing = !isOpen(dangerPanel);
-
-            setCollapsed(dangerPanel, showing);
-            danger.classList.toggle('is-open', showing);
-            danger.setAttribute('aria-expanded', showing ? 'true' : 'false');
-            if (showing) focusInside(dangerPanel);
-        }
-    });
-
-    /* La zona de peligro llega desplegada si el borrado anterior falló:
-       el toggle tiene que arrancar marcado igual que el panel. */
-    var startDanger = document.querySelector('[data-danger-panel]');
-    var startDangerBtn = document.querySelector('[data-danger-toggle]');
-    if (startDanger && startDangerBtn && isOpen(startDanger)) {
-        startDangerBtn.classList.add('is-open');
-        setCollapsed(startDanger, true);
-    }
-
-    /* Eliminar la placa: el submit se habilita recién cuando el nombre
-       tipeado coincide exactamente con el de la placa. */
-    document.addEventListener('input', function (event) {
-        var field = event.target.closest('[data-delete-name]');
-        if (!field) return;
-
-        var submit = field.closest('form').querySelector('[data-delete-submit]');
-        if (submit) submit.disabled = field.value.trim() !== field.dataset.expectedName;
     });
 
     /* ── Sincronizar las pestañas con lo que pasó adentro del modal ─────

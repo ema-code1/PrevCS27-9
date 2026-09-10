@@ -10,11 +10,16 @@
  *
  * Variables: $ind (espacio con members e invitations), $sessionUserId.
  */
-$members     = $ind['members'] ?? [];
-$invitations = $ind['invitations'] ?? [];
+$members           = $ind['members'] ?? [];
+$invitations       = $ind['invitations'] ?? [];
+$devices           = $ind['all_devices'] ?? ($ind['devices'] ?? []);
+$deviceAccess      = $ind['device_access'] ?? [];
+$canManageAccess   = ! empty($ind['can_manage_access']);
+$canManageRoles    = array_key_exists('can_manage_roles', $ind) ? ! empty($ind['can_manage_roles']) : true;
 ?>
 <div class="space-modal__section-head">
     <h4>Personas con acceso <span class="space-modal__count"><?= count($members) ?></span></h4>
+    <?php if ($canManageRoles): ?>
     <?php /* Invitar por mail, como compartir un documento: se despliega el
             campo, sale el correo con el link y la persona entra sola. */ ?>
     <button type="button" class="space-ghost-btn space-ghost-btn--compact"
@@ -24,8 +29,10 @@ $invitations = $ind['invitations'] ?? [];
         <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM3.465 14.493a1.23 1.23 0 0 0 .41 1.412A9.957 9.957 0 0 0 10 18c2.31 0 4.438-.784 6.131-2.1.43-.333.604-.903.408-1.41a7.002 7.002 0 0 0-13.074.003ZM17 4.5a.75.75 0 0 0-1.5 0v1h-1a.75.75 0 0 0 0 1.5h1v1a.75.75 0 0 0 1.5 0V7h1a.75.75 0 0 0 0-1.5h-1v-1Z"/></svg>
         Invitar
     </button>
+    <?php endif; ?>
 </div>
 
+<?php if ($canManageRoles): ?>
 <form class="space-invite" id="space-invite-<?= $ind['id'] ?>" data-disclosure-panel hidden
       action="<?= base_url('espacios/' . $ind['id'] . '/invitaciones') ?>" method="post" data-ajax>
     <?= csrf_field() ?>
@@ -51,6 +58,7 @@ $invitations = $ind['invitations'] ?? [];
     </div>
     <button type="submit" class="btn btn--primary">Enviar invitación</button>
 </form>
+<?php endif; ?>
 
 <div class="iot-space-members">
     <?php foreach ($members as $member): ?>
@@ -58,10 +66,14 @@ $invitations = $ind['invitations'] ?? [];
         $memberName       = trim(($member['nombre'] ?? '') . ' ' . ($member['apellido'] ?? '')) ?: $member['email'];
         $memberPermission = $member['permission'] ?? 'read';
         $memberIsAdmin    = $member['role'] === 'admin_principal';
+        $memberCanSeeAll  = $memberIsAdmin || $memberPermission === 'edit';
+        $memberAccessMap  = $deviceAccess[(int) $member['id']] ?? [];
         // El propio acceso no se toca desde acá (ni el rol ni la baja):
         // quedarse sin admin dejaría el espacio sin nadie que lo configure.
         $isSelf           = (int) $member['user_id'] === $sessionUserId;
         $roleUrl          = base_url('espacios/' . $ind['id'] . '/miembros/' . $member['id'] . '/rol');
+        $canEditDevices   = $canManageAccess && ! $isSelf && ! $memberCanSeeAll;
+        $showMenu         = (! $isSelf && $canManageRoles) || $canEditDevices;
         ?>
         <div class="iot-space-member">
             <div class="iot-space-member__info">
@@ -71,7 +83,7 @@ $invitations = $ind['invitations'] ?? [];
             <span class="space-tag<?= $memberIsAdmin ? ' space-tag--admin' : '' ?>">
                 <?= $memberIsAdmin ? 'Admin' : 'Supervisor' ?>
             </span>
-            <?php if (! $isSelf): ?>
+            <?php if ($showMenu): ?>
                 <div class="iot-kebab" data-kebab>
                     <button type="button" class="iot-kebab__button" aria-label="Opciones de <?= esc($memberName) ?>" aria-expanded="false" data-kebab-button>
                         <span></span><span></span><span></span>
@@ -79,6 +91,7 @@ $invitations = $ind['invitations'] ?? [];
                     <div class="iot-kebab__menu" hidden data-kebab-menu>
                         <p class="iot-kebab__label">Rol</p>
 
+                        <?php if ($canManageRoles): ?>
                         <form action="<?= esc($roleUrl, 'attr') ?>" method="post" data-ajax>
                             <?= csrf_field() ?>
                             <input type="hidden" name="role" value="admin_principal">
@@ -88,6 +101,7 @@ $invitations = $ind['invitations'] ?? [];
                                 Admin
                             </button>
                         </form>
+                        <?php endif; ?>
 
                         <?php /* Supervisor abre al costado, como un submenú de Windows: el
                                 permiso no es otra decisión suelta sino la forma de ser
@@ -101,6 +115,7 @@ $invitations = $ind['invitations'] ?? [];
                                 <svg class="iot-kebab__chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd"/></svg>
                             </button>
                             <div class="iot-kebab__flyout" data-kebab-flyout>
+                                <?php if ($canManageRoles): ?>
                                 <form action="<?= esc($roleUrl, 'attr') ?>" method="post" data-ajax>
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="role" value="supervisor">
@@ -121,9 +136,48 @@ $invitations = $ind['invitations'] ?? [];
                                         Puede editar
                                     </button>
                                 </form>
+                                <?php endif; ?>
+
+                                <?php if ($canEditDevices): ?>
+                                    <div class="iot-kebab__sub iot-kebab__sub--devices" data-kebab-sub>
+                                        <button type="button" class="iot-kebab__option iot-kebab__option--parent"
+                                                aria-haspopup="true" aria-expanded="false" data-kebab-sub-button>
+                                            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M6.5 3A2.5 2.5 0 0 0 4 5.5v9A2.5 2.5 0 0 0 6.5 17h7a2.5 2.5 0 0 0 2.5-2.5v-9A2.5 2.5 0 0 0 13.5 3h-7ZM7 6.25a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 7 6.25Zm0 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 7 10Zm0 3.75a.75.75 0 0 1 .75-.75h2.5a.75.75 0 0 1 0 1.5h-2.5A.75.75 0 0 1 7 13.75Z" clip-rule="evenodd"/></svg>
+                                            <span>Permisos</span>
+                                            <svg class="iot-kebab__chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 0 1 .02-1.06L11.168 10 7.23 6.29a.75.75 0 1 1 1.04-1.08l4.5 4.25a.75.75 0 0 1 0 1.08l-4.5 4.25a.75.75 0 0 1-1.06-.02Z" clip-rule="evenodd"/></svg>
+                                        </button>
+                                        <div class="iot-kebab__flyout iot-kebab__flyout--devices" data-kebab-flyout>
+                                            <p class="iot-kebab__label">Placas</p>
+                                            <?php if ($devices === []): ?>
+                                                <p class="iot-device-access__empty">Sin placas</p>
+                                            <?php else: ?>
+                                                <div class="iot-device-access">
+                                                    <?php foreach ($devices as $device): ?>
+                                                        <?php
+                                                        $deviceId = (int) $device['id'];
+                                                        $checked  = $memberCanSeeAll || ! empty($memberAccessMap[$deviceId]);
+                                                        ?>
+                                                        <label class="iot-device-access__row<?= $memberCanSeeAll ? ' is-locked' : '' ?>">
+                                                            <input type="checkbox" class="iot-device-access__checkbox"
+                                                                   data-device-access-toggle
+                                                                   data-device-access-url="<?= base_url('espacios/' . $ind['id'] . '/miembros/' . $member['id'] . '/placas/' . $deviceId) ?>"
+                                                                   <?= $checked ? 'checked' : '' ?>
+                                                                   <?= $memberCanSeeAll ? 'disabled' : '' ?>>
+                                                            <span class="iot-device-access__text">
+                                                                <strong><?= esc($device['name']) ?></strong>
+                                                                <small><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : 'Sin vincular' ?></small>
+                                                            </span>
+                                                        </label>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
 
+                        <?php if ($canManageRoles): ?>
                         <form action="<?= base_url('espacios/' . $ind['id'] . '/miembros/' . $member['id'] . '/eliminar') ?>" method="post"
                               data-confirm="¿Quitar a <?= esc($memberName) ?> del espacio? Va a perder el acceso a los registros."
                               class="iot-kebab__form--sep" data-ajax>
@@ -134,6 +188,7 @@ $invitations = $ind['invitations'] ?? [];
                                 Eliminar usuario
                             </button>
                         </form>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php endif; ?>

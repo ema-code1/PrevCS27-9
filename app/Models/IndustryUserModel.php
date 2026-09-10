@@ -62,12 +62,29 @@ class IndustryUserModel extends Model
         return $row['role'] === self::ROLE_ADMIN || ($row['permission'] ?? self::PERM_READ) === self::PERM_EDIT;
     }
 
+    public function membershipFor(int $userId, int $industryId): ?array
+    {
+        return $this->where('user_id', $userId)
+            ->where('industry_id', $industryId)
+            ->first();
+    }
+
+    public function canSeeAllDevices(int $userId, int $industryId): bool
+    {
+        return $this->canEdit($userId, $industryId);
+    }
+
+    public function canManageDeviceAccess(int $userId, int $industryId): bool
+    {
+        return $this->canEdit($userId, $industryId);
+    }
+
     /**
      * Industrias a las que pertenece el usuario, con su rol.
      */
     public function industriesForUser(int $userId): array
     {
-        return $this->select('industries.*, industry_users.role')
+        return $this->select('industries.*, industry_users.role, industry_users.permission')
             ->join('industries', 'industries.id = industry_users.industry_id')
             ->where('industry_users.user_id', $userId)
             ->orderBy('industries.company_name', 'ASC')

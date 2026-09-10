@@ -185,9 +185,13 @@
     }
 
     /* Cerrar el submenú lateral de un kebab (el de "Supervisor"). */
+    function isFlyoutFamily(sub, except) {
+      return !!sub && !!except && (sub === except || sub.contains(except) || except.contains(sub));
+    }
+
     function closeFlyouts(except) {
       document.querySelectorAll('[data-kebab-sub].is-open').forEach(function (sub) {
-        if (sub === except) return;
+        if (isFlyoutFamily(sub, except)) return;
         sub.classList.remove('is-open', 'is-flipped');
 
         var flyout = sub.querySelector('[data-kebab-flyout]');
@@ -222,6 +226,7 @@
       var button = event.target.closest('[data-kebab-button]');
 
       if (!button) {
+        if (event.target.closest('[data-kebab]')) return;
         // Clic afuera: se cierra todo lo que esté abierto.
         closeKebabs();
         return;
@@ -296,9 +301,9 @@
          las tarjetas de abajo. En coordenadas de pantalla siempre queda
          completo y por encima de todo. */
       var anchor = button ? button.getBoundingClientRect() : sub.getBoundingClientRect();
-      var menu = sub.closest('[data-kebab-menu]');
+      var pane = sub.parentElement ? sub.parentElement.closest('[data-kebab-flyout], [data-kebab-menu]') : null;
       var box = clippingBox(sub) || document.documentElement;
-      var gap = 4;
+      var gap = 10;
 
       flyout.style.position = 'fixed';
       flyout.style.left = '0px';
@@ -307,7 +312,7 @@
 
       var width = flyout.offsetWidth;
       var height = flyout.offsetHeight;
-      var menuRect = menu ? menu.getBoundingClientRect() : anchor;
+      var menuRect = pane ? pane.getBoundingClientRect() : anchor;
       var viewport = viewportWidth();
 
       // Sin medidas reales no se puede elegir el lado: queda el absolute de
@@ -328,9 +333,9 @@
       var left;
 
       if (width <= roomRight || roomRight >= roomLeft) {
-        left = menuRect.right + gap;
+        left = menuRect.right - gap;
       } else {
-        left = menuRect.left - gap - width;
+        left = menuRect.left + gap - width;
         sub.classList.add('is-flipped');
       }
 
@@ -625,6 +630,91 @@
     syncBody();
     window.PrevcsModal = { open: openModal, close: closeModal };
 
+    /* ── Secciones en lectura / edición ([data-space-edit-section]) ─── */
+    function resetForm(form) {
+      form.reset();
+      delete form.dataset.dirty;
+      closeSectionPanels(form);
+    }
+
+    function closeSectionPanels(root) {
+      root.querySelectorAll('[data-disclosure-panel]').forEach(function (panel) {
+        panel.hidden = true;
+        panel.classList.remove('is-closing');
+        delete panel.dataset.closing;
+      });
+      root.querySelectorAll('[data-disclosure]').forEach(function (button) {
+        button.classList.remove('is-open');
+        button.setAttribute('aria-expanded', 'false');
+      });
+    }
+
+    function rememberFormValues(form) {
+      form.querySelectorAll('input, textarea').forEach(function (field) {
+        field.defaultValue = field.value;
+      });
+      form.querySelectorAll('select').forEach(function (field) {
+        Array.prototype.forEach.call(field.options, function (option) {
+          option.defaultSelected = option.selected;
+        });
+      });
+    }
+
+    function setEditMode(section, editing, reset) {
+      var view = section.querySelector('[data-view-panel]');
+      var form = section.querySelector('[data-edit-panel]');
+      var button = section.querySelector('[data-edit-toggle]');
+
+      if (!form || !view) return;
+      if (!editing && reset) resetForm(form);
+      if (!editing) closeSectionPanels(section);
+
+      section.classList.toggle('is-editing', editing);
+      view.hidden = editing;
+      form.hidden = !editing;
+      if (button) {
+        button.classList.toggle('is-open', editing);
+        button.setAttribute('aria-expanded', editing ? 'true' : 'false');
+      }
+
+      if (editing) {
+        window.setTimeout(function () {
+          var first = form.querySelector('input, select, textarea');
+          if (first) first.focus();
+        }, reduceMotion.matches ? 0 : 180);
+      }
+    }
+
+    function closeEditSection(section, reset) {
+      var form = section.querySelector('[data-edit-panel]');
+      if (reset && form && form.dataset.dirty === '1') {
+        requestConfirm('Tenés cambios sin guardar. Si cancelás ahora, se van a perder.', function () {
+          setEditMode(section, false, true);
+        });
+        return;
+      }
+      setEditMode(section, false, reset);
+    }
+
+    document.addEventListener('click', function (event) {
+      var editButton = event.target.closest('[data-edit-toggle]');
+      if (editButton) {
+        var editSection = editButton.closest('[data-space-edit-section]');
+        if (!editSection) return;
+        event.preventDefault();
+        setEditMode(editSection, true, false);
+        return;
+      }
+
+      var cancelButton = event.target.closest('[data-edit-cancel]');
+      if (cancelButton) {
+        var cancelSection = cancelButton.closest('[data-space-edit-section]');
+        if (!cancelSection) return;
+        event.preventDefault();
+        closeEditSection(cancelSection, true);
+      }
+    });
+
     /* ── Cambios sin guardar: marca los forms editados ([data-warn-unsaved]) ── */
     document.querySelectorAll('[data-space-modal] form[data-warn-unsaved]').forEach(function (form) {
       form.addEventListener('input', function () { form.dataset.dirty = '1'; });
@@ -688,7 +778,12 @@
 
       Object.keys(patch).forEach(function (selector) {
         document.querySelectorAll(selector).forEach(function (node) {
-          node.textContent = patch[selector];
+          if ('value' in node) {
+            node.value = patch[selector];
+            node.defaultValue = patch[selector];
+          } else {
+            node.textContent = patch[selector];
+          }
         });
       });
     }
@@ -732,6 +827,13 @@
 
         // Los campos de contraseña no se dejan escritos después de guardar.
         form.querySelectorAll('input[type="password"]').forEach(function (input) { input.value = ''; });
+        if (form.querySelector('[data-delete-submit]')) {
+          form.reset();
+          window.PrevcsCsrf.set(window.PrevcsCsrf.get());
+          form.querySelectorAll('[data-delete-submit]').forEach(function (button) {
+            button.disabled = true;
+          });
+        }
 
         swapRegions(data.regions);
         applyPatch(data.patch);
@@ -743,6 +845,11 @@
         document.dispatchEvent(new CustomEvent('prevcs:ajax-done', {
           detail: { form: form, data: data }
         }));
+
+        if (form.hasAttribute('data-edit-panel')) {
+          rememberFormValues(form);
+          setEditMode(form.closest('[data-space-edit-section]'), false, false);
+        }
       }, function (error) {
         delete form.dataset.sending;
         if (submitter) submitter.disabled = false;
@@ -754,6 +861,48 @@
       var meta = document.querySelector('meta[name="csrf-field"]');
       return meta ? (meta.getAttribute('content') || 'csrf_test_name') : 'csrf_test_name';
     }
+
+    document.addEventListener('change', function (event) {
+      var toggle = event.target.closest('[data-device-access-toggle]');
+      if (!toggle) return;
+
+      var url = toggle.getAttribute('data-device-access-url');
+      if (!url || toggle.disabled) return;
+
+      var previous = !toggle.checked;
+      toggle.disabled = true;
+
+      var run = function () {
+        var body = new FormData();
+        body.set('allowed', toggle.checked ? '1' : '0');
+        body.set(csrfField(), window.PrevcsCsrf.get());
+
+        return fetch(url, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': window.PrevcsCsrf.get()
+          },
+          body: body
+        }).then(function (response) {
+          return response.json().catch(function () { return {}; }).then(function (data) {
+            if (data && data.csrf) window.PrevcsCsrf.set(data.csrf);
+            if (!response.ok || !data || data.ok === false) {
+              throw new Error((data && data.message) || 'No se pudo guardar el permiso.');
+            }
+            return data;
+          });
+        });
+      };
+
+      window.PrevcsCsrf.queue(run).then(function () {
+        toggle.disabled = false;
+      }, function () {
+        toggle.checked = previous;
+        toggle.disabled = false;
+      });
+    });
 
     /* Confirmación estilada + envío por fetch, los dos por delegación: las
        listas del modal se redibujan y los nodos nuevos tienen que seguir
@@ -800,6 +949,67 @@
         el.addEventListener('click', function () { pendingAccept = null; });
       });
     }
+
+    /* ── Zona de peligro reutilizable ─────────────────────────────── */
+    var COLLAPSE_MS = 340;
+
+    function setCollapsed(panel, open) {
+      if (!panel) return;
+
+      var inner = panel.firstElementChild;
+      if (inner) inner.style.overflow = 'hidden';
+      panel.classList.toggle('is-open', open);
+
+      window.clearTimeout(panel.espTimer);
+      if (!open || !inner) return;
+
+      panel.espTimer = window.setTimeout(function () {
+        if (panel.classList.contains('is-open')) inner.style.overflow = 'visible';
+      }, reduceMotion.matches ? 0 : COLLAPSE_MS);
+    }
+
+    function isCollapseOpen(panel) {
+      return !!panel && panel.classList.contains('is-open');
+    }
+
+    document.addEventListener('click', function (event) {
+      var danger = event.target.closest('[data-danger-toggle]');
+      if (!danger) return;
+
+      var modal = danger.closest('[data-space-modal]');
+      var panelId = danger.getAttribute('aria-controls');
+      var panel = panelId ? document.getElementById(panelId) : null;
+      if (!panel && modal) panel = modal.querySelector('[data-danger-panel]');
+      if (!panel) return;
+
+      var showing = !isCollapseOpen(panel);
+      setCollapsed(panel, showing);
+      danger.classList.toggle('is-open', showing);
+      danger.setAttribute('aria-expanded', showing ? 'true' : 'false');
+
+      if (showing) {
+        window.setTimeout(function () {
+          var first = panel.querySelector('input, select, textarea');
+          if (first) first.focus();
+        }, reduceMotion.matches ? 0 : COLLAPSE_MS);
+      }
+    });
+
+    document.querySelectorAll('[data-danger-panel]').forEach(function (panel) {
+      var button = document.querySelector('[aria-controls="' + panel.id + '"]');
+      if (button && isCollapseOpen(panel)) {
+        button.classList.add('is-open');
+        setCollapsed(panel, true);
+      }
+    });
+
+    document.addEventListener('input', function (event) {
+      var field = event.target.closest('[data-delete-name]');
+      if (!field) return;
+
+      var submit = field.closest('form').querySelector('[data-delete-submit]');
+      if (submit) submit.disabled = field.value.trim() !== field.dataset.expectedName;
+    });
 
     /* ── Section-switch: píldora negra deslizante ─────────────────── */
     document.querySelectorAll('.section-switch').forEach(function (sw) {

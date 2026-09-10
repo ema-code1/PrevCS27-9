@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Esp32DeviceModel;
 use App\Models\Esp32SensorModel;
+use App\Models\DeviceAccessModel;
 use App\Models\IndustryMetricModel;
 use App\Models\IndustryModel;
 use App\Models\IndustryUserModel;
@@ -299,7 +300,20 @@ class Esp32Controller extends BaseController
             return null;
         }
 
-        if (! (new IndustryUserModel())->userBelongsTo((int) session('user_id'), (int) $device['industry_id'])) {
+        $userId = (int) session('user_id');
+        $industryId = (int) $device['industry_id'];
+        $membershipModel = new IndustryUserModel();
+        $membership = $membershipModel->membershipFor($userId, $industryId);
+        if ($membership === null) {
+            return null;
+        }
+
+        if ($membershipModel->canSeeAllDevices($userId, $industryId)) {
+            return $device;
+        }
+
+        $allowedIds = (new DeviceAccessModel())->allowedDeviceIdsForMembership((int) $membership['id']);
+        if (! in_array((int) $device['id'], $allowedIds, true)) {
             return null;
         }
 

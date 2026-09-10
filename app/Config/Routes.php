@@ -58,7 +58,14 @@ $routes->post('espacios/(:num)/editar', 'IndustryController::update/$1');
 $routes->post('espacios/(:num)/miembros/(:num)/eliminar', 'IndustryController::removeMember/$1/$2');
 $routes->post('espacios/(:num)/miembros/(:num)/permiso', 'IndustryController::updateMemberPermission/$1/$2');
 $routes->post('espacios/(:num)/miembros/(:num)/rol', 'IndustryController::updateMemberRole/$1/$2');
-$routes->post('espacios/(:num)/tokens', 'IndustryController::revealTokens/$1');
+$routes->post('espacios/(:num)/miembros/(:num)/placas/(:num)', 'IndustryController::updateMemberDeviceAccess/$1/$2/$3');
+$routes->post('espacios/(:num)/sensores/desbloquear', 'IndustryController::unlockSensors/$1');
+$routes->post('espacios/(:num)/clave/recuperar', 'IndustryController::requestPasswordReset/$1');
+$routes->get('espacios/clave/(:segment)', 'IndustryController::spacePasswordResetForm/$1');
+$routes->post('espacios/clave', 'IndustryController::updateSpacePasswordByToken');
+$routes->post('espacios/(:num)/eliminar/solicitar', 'IndustryController::requestDelete/$1');
+$routes->get('espacios/eliminar/(:segment)', 'IndustryController::deleteConfirmForm/$1');
+$routes->post('espacios/eliminar/(:segment)', 'IndustryController::deleteByToken/$1');
 
 // Invitar por correo a un espacio (flujo tipo "compartir documento"): el admin
 // manda el mail y el invitado entra por el link de un solo uso del correo.

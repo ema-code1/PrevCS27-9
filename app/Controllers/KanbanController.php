@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\Esp32DeviceModel;
+use App\Models\DeviceAccessModel;
 use App\Models\IndustryUserModel;
 use App\Models\KanbanActivityModel;
 use App\Models\KanbanAttachmentModel;
@@ -1256,14 +1257,23 @@ class KanbanController extends BaseController
             return $this->fail('Esa placa no existe.', 404);
         }
 
-        // El acceso al tablero es el acceso al espacio de la placa: si el
-        // usuario no es miembro, la placa "no existe" para él.
-        if (! (new IndustryUserModel())->userBelongsTo((int) session('user_id'), (int) $device['industry_id'])) {
+        $userId = (int) session('user_id');
+        $industryId = (int) $device['industry_id'];
+        $membershipModel = new IndustryUserModel();
+        $membership = $membershipModel->membershipFor($userId, $industryId);
+        if ($membership === null) {
             return $this->fail('No tenés acceso a esa placa.', 403);
         }
 
+        if (! $membershipModel->canSeeAllDevices($userId, $industryId)) {
+            $allowedIds = (new DeviceAccessModel())->allowedDeviceIdsForMembership((int) $membership['id']);
+            if (! in_array((int) $device['id'], $allowedIds, true)) {
+                return $this->fail('No tenés acceso a esa placa.', 403);
+            }
+        }
+
         $this->device = $device;
-        $this->board  = (new KanbanBoardModel())->forDevice($deviceId, (int) session('user_id'));
+        $this->board  = (new KanbanBoardModel())->forDevice($deviceId, $userId);
 
         if ($this->board === []) {
             return $this->fail('No se pudo abrir el tablero de la placa.', 500);

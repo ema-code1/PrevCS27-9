@@ -109,8 +109,8 @@
   border: 1px solid var(--hair);
   border-radius: var(--radius-md);
   background: var(--bg-card);
-  box-shadow: var(--shadow-lg);
-  animation: pkrPop 0.13s cubic-bezier(.2,.7,.2,1);
+  box-shadow: var(--shadow);
+  animation: pkrPop 170ms cubic-bezier(.22, 1, .36, 1);
 }
 
 .iot-kebab__menu[hidden] {
@@ -203,30 +203,31 @@
 }
 
 .iot-kebab__sub.is-open > .iot-kebab__option--parent { background: var(--bg-card-soft); }
-.iot-kebab__sub.is-open .iot-kebab__chevron { color: var(--text-secondary); }
+.iot-kebab__sub.is-open > .iot-kebab__option--parent > .iot-kebab__chevron { color: var(--text-secondary); }
 
 .iot-kebab__flyout {
   position: absolute;
   top: -6px;
-  left: calc(100% + 4px);
+  left: calc(100% - 10px);
   z-index: 60;
   min-width: 170px;
   padding: 6px;
   border: 1px solid var(--hair);
   border-radius: var(--radius-md);
   background: var(--bg-card);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateX(-6px);
+  transform: translateX(-4px) scale(.98);
+  transform-origin: top left;
   transition:
-    opacity 140ms ease,
-    transform 160ms cubic-bezier(.2, .7, .2, 1),
-    visibility 0s linear 160ms;
+    opacity 170ms ease,
+    transform 190ms cubic-bezier(.22, 1, .36, 1),
+    visibility 0s linear 190ms;
 }
 
-.iot-kebab__sub.is-open .iot-kebab__flyout {
+.iot-kebab__sub.is-open > .iot-kebab__flyout {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -235,12 +236,91 @@
 }
 
 /* Contra el borde derecho de la pantalla sale para el otro lado. */
-.iot-kebab__sub.is-flipped .iot-kebab__flyout {
+.iot-kebab__sub.is-flipped > .iot-kebab__flyout {
   left: auto;
-  right: calc(100% + 4px);
-  transform: translateX(6px);
+  right: calc(100% - 10px);
+  transform: translateX(4px) scale(.98);
+  transform-origin: top right;
 }
-.iot-kebab__sub.is-flipped.is-open .iot-kebab__flyout { transform: none; }
+.iot-kebab__sub.is-flipped.is-open > .iot-kebab__flyout { transform: none; }
+
+.iot-kebab__flyout--devices {
+  width: max-content;
+  min-width: 190px;
+  max-width: min(290px, calc(100vw - 32px));
+  max-height: min(320px, calc(100vh - 64px));
+  overflow-y: auto;
+}
+
+.iot-device-access {
+  display: grid;
+  gap: 3px;
+}
+
+.iot-device-access__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 16px max-content;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 9px;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+.iot-device-access__row:hover {
+  background: var(--bg-card-soft);
+}
+
+.iot-device-access__checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+}
+
+.iot-device-access__checkbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+
+.iot-device-access__row.is-locked {
+  cursor: default;
+  color: var(--text-muted);
+}
+
+.iot-device-access__text {
+  display: grid;
+  gap: 1px;
+  width: max-content;
+  max-width: 230px;
+}
+
+.iot-device-access__text strong,
+.iot-device-access__text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iot-device-access__text strong {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.iot-device-access__text small,
+.iot-device-access__empty {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.iot-device-access__empty {
+  margin: 4px 10px 8px;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .iot-kebab__flyout { transition-duration: 1ms; }

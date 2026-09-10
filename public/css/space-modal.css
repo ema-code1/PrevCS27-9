@@ -1,6 +1,6 @@
 /* =====================================================================
    PrevCS · Modal de configuración del espacio (ventana emergente)
-   Datos del espacio · miembros · tokens de ESP · sensores.
+   Datos del espacio · miembros · sensores.
    Usa los tokens de diseño globales de styles.css.
    ===================================================================== */
 
@@ -30,7 +30,7 @@
 
 .space-modal__dialog {
   position: relative;
-  width: min(560px, 100%);
+  width: min(620px, 100%);
   max-height: min(86vh, 760px);
   display: flex;
   flex-direction: column;
@@ -72,8 +72,8 @@
 /* Una sola familia adentro de la ventana.
 
    La mezcla venía de piezas que traían mono por su cuenta: las etiquetas y
-   los iconos de .auth-field (pensados para el login), el contador de
-   miembros y los tokens de las ESP. Tres familias en una caja de 560px se
+   los iconos de .auth-field (pensados para el login) y el contador de
+   miembros. Varias familias en una caja de 620px se
    leían como tres pantallas distintas pegadas. Acá manda Inter y las
    diferencias las hace el tamaño y el peso, no la familia. */
 .space-modal,
@@ -173,6 +173,78 @@
 }
 
 .space-modal__form { gap: var(--space-sm); }
+
+/* ── Datos del espacio: lectura primero, edición bajo lápiz ───────── */
+.space-details {
+  transition: background-color 240ms ease;
+}
+
+.space-details__list {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+  animation: spaceDisclosureIn 180ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.space-details__list > div {
+  display: grid;
+  grid-template-columns: minmax(130px, .7fr) minmax(0, 1fr);
+  gap: var(--space-sm);
+  align-items: baseline;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--hair);
+}
+
+.space-details__list > div:last-child { border-bottom: 0; }
+
+.space-details__list dt {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.space-details__list dd {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.space-details__form {
+  animation: spaceDisclosureIn 180ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.space-details__form[hidden],
+.space-details__list[hidden] {
+  display: none !important;
+}
+
+.space-details__actions,
+.space-password-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.space-details__actions {
+  justify-content: flex-end;
+}
+
+.space-reset-form {
+  animation: spaceDisclosureIn 180ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.space-reset-form[hidden] { display: none !important; }
+
+@media (max-width: 520px) {
+  .space-details__list > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+  }
+  .space-details__actions { justify-content: stretch; }
+  .space-details__actions .btn { flex: 1; }
+}
 
 /* ── Campos ────────────────────────────────────────────────────────
    .auth-field viene del login, donde cada campo lleva una letra suelta a
@@ -280,7 +352,8 @@
    solo se veía animar la apertura, así que cerrar era un corte seco.
    prevcs-ui.js pone .is-closing y espera al animationend para ocultarlo. */
 .space-disclosure__panel.is-closing,
-.space-invite.is-closing {
+.space-invite.is-closing,
+.space-reset-form.is-closing {
   animation: spaceDisclosureOut 160ms cubic-bezier(.2, .7, .2, 1) forwards;
   pointer-events: none;
 }
@@ -293,8 +366,10 @@
 @media (prefers-reduced-motion: reduce) {
   .space-disclosure__panel,
   .space-invite,
+  .space-reset-form,
   .space-disclosure__panel.is-closing,
-  .space-invite.is-closing { animation-duration: 1ms; }
+  .space-invite.is-closing,
+  .space-reset-form.is-closing { animation-duration: 1ms; }
 }
 
 /* ── Invitar por correo ────────────────────────────────────────── */
@@ -401,26 +476,6 @@
 .space-modal__group > strong {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-}
-
-.space-modal__token-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  padding: 8px 12px;
-  border: 1px solid var(--hair);
-  border-radius: var(--radius-md);
-  background: var(--bg-card-soft);
-}
-.space-modal__token-row > span {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-.space-modal__token-row .esp32-token {
-  font-size: var(--font-size-xs);
-  word-break: break-all;
-  text-align: right;
 }
 
 /* Bloqueo del scroll de fondo mientras hay un modal abierto.

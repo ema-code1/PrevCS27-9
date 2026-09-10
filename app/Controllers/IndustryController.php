@@ -3,9 +3,11 @@
 namespace App\Controllers;
 
 use App\Libraries\SpaceModalRegions;
+use App\Models\DeviceAccessModel;
 use App\Models\Esp32DeviceModel;
 use App\Models\IndustryModel;
 use App\Models\IndustryUserModel;
+use App\Models\SpaceActionTokenModel;
 use App\Models\SpaceInvitationModel;
 use App\Models\UserModel;
 
@@ -194,10 +196,16 @@ class IndustryController extends BaseController
             return $this->jsonOk($industryId, 'Espacio actualizado.', [], [
                 '[data-space-company="' . $industryId . '"]' => $payload['company_name'],
                 '[data-space-subtitle="' . $industryId . '"]' => $subtitle,
+                '[data-space-detail-company="' . $industryId . '"]' => $payload['company_name'],
+                '[data-space-detail-name="' . $industryId . '"]' => $payload['space_name'],
+                '[data-space-detail-sector="' . $industryId . '"]' => $payload['sector'] ?? 'Sin sector',
+                '[data-space-input-company="' . $industryId . '"]' => $payload['company_name'],
+                '[data-space-input-name="' . $industryId . '"]' => $payload['space_name'],
+                '[data-space-input-sector="' . $industryId . '"]' => $payload['sector'] ?? '',
             ]);
         }
 
-        return redirect()->to(base_url('registros-iot'))->with('success', 'Espacio actualizádo.');
+        return redirect()->to(base_url('registros-iot'))->with('success', 'Espacio actualizado.');
     }
 
     public function removeMember($industryId = null, $membershipId = null)
@@ -364,12 +372,56 @@ class IndustryController extends BaseController
         return redirect()->to(base_url('registros-iot?config=' . $industryId))->with('success', $message);
     }
 
+    public function updateMemberDeviceAccess($industryId = null, $membershipId = null, $deviceId = null)
+    {
+        $userId       = (int) session('user_id');
+        $industryId   = (int) $industryId;
+        $membershipId = (int) $membershipId;
+        $deviceId     = (int) $deviceId;
+
+        $membershipModel = new IndustryUserModel();
+        if (! $membershipModel->canManageDeviceAccess($userId, $industryId)) {
+            return $this->jsonError('No tenes permiso para administrar placas.', 403);
+        }
+
+        $target = $membershipModel->where('id', $membershipId)
+            ->where('industry_id', $industryId)
+            ->first();
+        if ($target === null) {
+            return $this->jsonError('Ese supervisor ya no existe.', 404);
+        }
+
+        if ((int) $target['user_id'] === $userId) {
+            return $this->jsonError('No podés cambiar tus propias placas.', 403);
+        }
+
+        if ($target['role'] === IndustryUserModel::ROLE_ADMIN || ($target['permission'] ?? IndustryUserModel::PERM_READ) === IndustryUserModel::PERM_EDIT) {
+            return $this->jsonError('Ese usuario ya ve todas las placas.', 422);
+        }
+
+        $device = (new Esp32DeviceModel())->where('id', $deviceId)
+            ->where('industry_id', $industryId)
+            ->first();
+        if ($device === null) {
+            return $this->jsonError('Esa placa no existe en este espacio.', 404);
+        }
+
+        $allowed = (string) $this->request->getPost('allowed') === '1';
+        if (! (new DeviceAccessModel())->setAccess($membershipId, $deviceId, $allowed)) {
+            return $this->jsonError('No se pudo guardar el permiso.');
+        }
+
+        return $this->response->setJSON([
+            'ok'      => true,
+            'csrf'    => csrf_hash(),
+            'allowed' => $allowed,
+        ]);
+    }
+
     /**
-     * Desbloquea el espacio con su clave: revela los tokens de TODAS sus ESP y
-     * habilita el borrado de sensores por 5 minutos (modal de configuración).
-     * El estado de desbloqueo vive en sesión (session('space_unlock')).
+     * Desbloquea sensores con la clave del espacio por 5 minutos.
      */
-    public function revealTokens($industryId = null)
+    public function unlockSensors($industryId = null)
     {
         $userId     = (int) session('user_id');
         $industryId = (int) $industryId;
@@ -385,24 +437,208 @@ class IndustryController extends BaseController
             return $this->fail($industryId, 'Clave del espacio incorrecta.');
         }
 
-        $tokens = [];
-        foreach ((new Esp32DeviceModel())->devicesForIndustry($industryId) as $device) {
-            $tokens[(int) $device['id']] = Esp32DeviceModel::revealToken($device['token_secret'] ?? null);
-        }
-
         session()->set('space_unlock', [
-            'id'     => $industryId,
-            'at'     => time(),
-            'tokens' => $tokens,
+            'id' => $industryId,
+            'at' => time(),
         ]);
 
-        $message = 'Espacio desbloqueado: tokens visibles y sensores borrables por 5 minutos.';
+        $message = 'Espacio desbloqueado: sensores borrables por 5 minutos.';
 
         if ($this->wantsJson()) {
-            return $this->jsonOk($industryId, $message, ['tokens']);
+            return $this->jsonOk($industryId, $message, ['sensors']);
         }
 
         return redirect()->to(base_url('registros-iot?config=' . $industryId))->with('success', $message);
+    }
+
+    public function requestPasswordReset($industryId = null)
+    {
+        $userId     = (int) session('user_id');
+        $industryId = (int) $industryId;
+
+        if (! $this->isAdmin($userId, $industryId)) {
+            return $this->fail($industryId, 'No tenes permiso para cambiar la clave de ese espacio.');
+        }
+
+        if (! $this->validate(['user_password' => 'required'])) {
+            return $this->fail($industryId, 'Escribí tu contraseña de usuario.');
+        }
+
+        $user = (new UserModel())->find($userId);
+        if ($user === null || ! password_verify((string) $this->request->getPost('user_password'), (string) $user['password_hash'])) {
+            return $this->fail($industryId, 'Tu contraseña de usuario es incorrecta.');
+        }
+
+        $industry = (new IndustryModel())->find($industryId);
+        if ($industry === null) {
+            return $this->fail($industryId, 'Ese espacio ya no existe.');
+        }
+
+        $tokens = new SpaceActionTokenModel();
+        $token  = $tokens->issue($industryId, $userId, SpaceActionTokenModel::PURPOSE_PASSWORD_RESET);
+        if ($token === null || ! $this->sendSpacePasswordEmail($industry, $user, $token)) {
+            if ($token !== null) {
+                $tokens->where('token_hash', SpaceActionTokenModel::hashToken($token))->delete();
+            }
+
+            return $this->fail($industryId, 'No pudimos enviar el mail. Probá de nuevo.');
+        }
+
+        $message = 'Mail enviado. Abrí el enlace para crear una clave nueva.';
+
+        if ($this->wantsJson()) {
+            return $this->jsonOk($industryId, $message);
+        }
+
+        return redirect()->to(base_url('registros-iot?config=' . $industryId))->with('success', $message);
+    }
+
+    public function spacePasswordResetForm(?string $token = null)
+    {
+        $row = (new SpaceActionTokenModel())->findPending((string) $token, SpaceActionTokenModel::PURPOSE_PASSWORD_RESET);
+        $industry = $row !== null ? (new IndustryModel())->find((int) $row['industry_id']) : null;
+
+        if ($row === null || $industry === null) {
+            return redirect()->to(base_url('login'))->with('error', 'El enlace no es valido o ya vencio.');
+        }
+
+        return view('auth/space_password_reset', [
+            'title'           => 'Cambiar clave del espacio | Preventive Control System',
+            'hideAuthButtons' => true,
+            'token'           => (string) $token,
+            'spaceName'       => (string) $industry['space_name'],
+        ]);
+    }
+
+    public function updateSpacePasswordByToken()
+    {
+        $rules = [
+            'token'                  => 'required',
+            'space_password'         => 'required|min_length[6]|max_length[200]',
+            'space_password_confirm' => 'required|matches[space_password]',
+        ];
+
+        if (! $this->validate($rules, [
+            'space_password_confirm' => ['matches' => 'Las claves no coinciden.'],
+        ])) {
+            $token = (string) $this->request->getPost('token');
+
+            return redirect()->to($token !== '' ? base_url('espacios/clave/' . $token) : base_url('login'))
+                ->withInput()
+                ->with('errors', $this->validator->getErrors());
+        }
+
+        $token = (string) $this->request->getPost('token');
+        $tokens = new SpaceActionTokenModel();
+        $row = $tokens->findPending($token, SpaceActionTokenModel::PURPOSE_PASSWORD_RESET);
+        if ($row === null) {
+            return redirect()->to(base_url('login'))->with('error', 'El enlace no es valido o ya vencio.');
+        }
+
+        (new IndustryModel())->update((int) $row['industry_id'], [
+            'space_password_hash' => (string) $this->request->getPost('space_password'),
+        ]);
+        $tokens->markUsed((int) $row['id']);
+
+        return redirect()->to(base_url('registros-iot'))->with('success', 'Clave del espacio actualizada.');
+    }
+
+    public function requestDelete($industryId = null)
+    {
+        $userId     = (int) session('user_id');
+        $industryId = (int) $industryId;
+
+        if (! $this->isAdmin($userId, $industryId)) {
+            return $this->fail($industryId, 'No tenes permiso para eliminar ese espacio.');
+        }
+
+        $industry = (new IndustryModel())->find($industryId);
+        if ($industry === null) {
+            return $this->fail($industryId, 'Ese espacio ya no existe.');
+        }
+
+        $confirmName = trim((string) $this->request->getPost('confirm_name'));
+        if ($confirmName !== (string) $industry['space_name']) {
+            return $this->fail($industryId, 'El nombre no coincide. No se eliminó nada.');
+        }
+
+        $password = (string) $this->request->getPost('space_password');
+        if (! password_verify($password, (string) $industry['space_password_hash'])) {
+            return $this->fail($industryId, 'Contraseña incorrecta. No se eliminó nada.');
+        }
+
+        $user = (new UserModel())->find($userId);
+        if ($user === null) {
+            return $this->fail($industryId, 'No encontramos tu usuario.');
+        }
+
+        $tokens = new SpaceActionTokenModel();
+        $token  = $tokens->issue($industryId, $userId, SpaceActionTokenModel::PURPOSE_DELETE);
+        if ($token === null || ! $this->sendSpaceDeleteEmail($industry, $user, $token)) {
+            if ($token !== null) {
+                $tokens->where('token_hash', SpaceActionTokenModel::hashToken($token))->delete();
+            }
+
+            return $this->fail($industryId, 'No pudimos enviar el mail de verificación. Probá de nuevo.');
+        }
+
+        $message = 'Te enviamos un mail para confirmar la eliminación.';
+
+        if ($this->wantsJson()) {
+            return $this->jsonOk($industryId, $message);
+        }
+
+        return redirect()->to(base_url('registros-iot?config=' . $industryId))->with('success', $message);
+    }
+
+    public function deleteConfirmForm(?string $token = null)
+    {
+        $row = (new SpaceActionTokenModel())->findPending((string) $token, SpaceActionTokenModel::PURPOSE_DELETE);
+        $industry = $row !== null ? (new IndustryModel())->find((int) $row['industry_id']) : null;
+
+        if ($row === null || $industry === null) {
+            return redirect()->to(base_url('login'))->with('error', 'El enlace no es valido o ya vencio.');
+        }
+
+        return view('auth/space_delete_confirm', [
+            'title'           => 'Eliminar espacio | Preventive Control System',
+            'hideAuthButtons' => true,
+            'token'           => (string) $token,
+            'spaceName'       => (string) $industry['space_name'],
+        ]);
+    }
+
+    public function deleteByToken(?string $token = null)
+    {
+        $tokens = new SpaceActionTokenModel();
+        $row = $tokens->findPending((string) $token, SpaceActionTokenModel::PURPOSE_DELETE);
+        $industry = $row !== null ? (new IndustryModel())->find((int) $row['industry_id']) : null;
+
+        if ($row === null || $industry === null) {
+            return redirect()->to(base_url('login'))->with('error', 'El enlace no es valido o ya vencio.');
+        }
+
+        $industryId = (int) $industry['id'];
+        $db = \Config\Database::connect();
+        $db->transStart();
+        $tokens->markUsed((int) $row['id']);
+        (new IndustryModel())->delete($industryId);
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->to(base_url('espacios/eliminar/' . $token))
+                ->with('error', 'No pudimos eliminar el espacio. Probá de nuevo.');
+        }
+
+        if ((int) session('active_industry_id') === $industryId) {
+            session()->remove(['active_industry_id', 'active_industry_role']);
+        }
+
+        return view('auth/space_deleted', [
+            'title'           => 'Espacio eliminado | Preventive Control System',
+            'hideAuthButtons' => true,
+            'industryId'      => $industryId,
+        ]);
     }
 
     /* ── Invitaciones por correo ──────────────────────────────────────
@@ -602,6 +838,61 @@ class IndustryController extends BaseController
         if (! $mailer->send()) {
             log_message('error', 'Space invitation email failed for {email}: {debug}', [
                 'email' => $email,
+                'debug' => $mailer->printDebugger(['headers', 'subject']),
+            ]);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function sendSpacePasswordEmail(array $industry, array $user, string $token): bool
+    {
+        return $this->sendSpaceActionEmail(
+            (string) $user['email'],
+            'Cambiar clave de ' . $industry['space_name'],
+            view('emails/space_password_reset', [
+                'spaceName' => (string) $industry['space_name'],
+                'resetLink' => base_url('espacios/clave/' . $token),
+            ])
+        );
+    }
+
+    private function sendSpaceDeleteEmail(array $industry, array $user, string $token): bool
+    {
+        return $this->sendSpaceActionEmail(
+            (string) $user['email'],
+            'Confirmar eliminación de ' . $industry['space_name'],
+            view('emails/space_delete_confirmation', [
+                'spaceName'  => (string) $industry['space_name'],
+                'deleteLink' => base_url('espacios/eliminar/' . $token),
+            ])
+        );
+    }
+
+    private function sendSpaceActionEmail(string $to, string $subject, string $body): bool
+    {
+        $config    = config('Email');
+        $fromEmail = $config->fromEmail !== '' ? $config->fromEmail : $config->SMTPUser;
+        $fromName  = $config->fromName !== '' ? $config->fromName : 'Preventive Control System';
+
+        if ($fromEmail === '') {
+            log_message('error', 'Space action email could not be sent: fromEmail/SMTPUser is empty.');
+
+            return false;
+        }
+
+        $mailer = \Config\Services::email();
+        $mailer->setFrom($fromEmail, $fromName);
+        $mailer->setTo($to);
+        $mailer->setSubject($subject);
+        $mailer->setMailType('html');
+        $mailer->setMessage($body);
+
+        if (! $mailer->send()) {
+            log_message('error', 'Space action email failed for {email}: {debug}', [
+                'email' => $to,
                 'debug' => $mailer->printDebugger(['headers', 'subject']),
             ]);
 
