@@ -10,6 +10,11 @@
   overflow: visible;
 }
 
+.iot-space-card:hover {
+  transform: none;
+  box-shadow: var(--card-shadow);
+}
+
 .iot-space-card__top-actions {
   display: inline-flex;
   align-items: center;
