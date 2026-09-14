@@ -50,7 +50,7 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
             <!-- LOGIN -->
             <section class="auth-pane<?= $activeForm === 'login' ? ' is-active' : '' ?>" data-auth-pane="login" aria-hidden="<?= $activeForm === 'login' ? 'false' : 'true' ?>">
                 <div class="auth-pane__header">
-                    <p class="auth-pane__eyebrow">Acceso rápido</p>
+                    <p class="auth-pane__eyebrow"></p>
                     <h1>Entra a tu cuenta</h1>
                     <p>Usa tu email y contraseña para seguir trabajando en el sistema.</p>
                 </div>
@@ -92,7 +92,7 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
             <!-- REGISTER -->
             <section class="auth-pane<?= $activeForm === 'register' ? ' is-active' : '' ?>" data-auth-pane="register" aria-hidden="<?= $activeForm === 'register' ? 'false' : 'true' ?>">
                 <div class="auth-pane__header">
-                    <p class="auth-pane__eyebrow">Primer ingreso</p>
+                    <p class="auth-pane__eyebrow"></p>
                     <h1>Crea tu cuenta</h1>
                     <p>Registrate en pocos pasos y empezá a usar Preventive Control System.</p>
                 </div>

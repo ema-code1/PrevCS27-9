@@ -52,7 +52,6 @@ $notifClass = static fn ($level): string => 'notif-item--' . ([1 => 'error', 2 =
         </span>
         <span class="brand__text">
             <span>PrevCS</span>
-            <span>Preventive Control System</span>
         </span>
     </a>
 

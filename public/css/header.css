@@ -63,23 +63,6 @@
   border-radius: inherit;
 }
 
-.brand__text {
-  display: inline-flex;
-  flex-direction: column;
-  line-height: 1;
-  gap: 1px;
-}
-.brand__text span:first-child { font-size: 17.5px; }
-.brand__text span:nth-child(2),
-.brand__text span:nth-child(3) {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.brand__text span:nth-child(3) { display: none; } /* keep tight */
-
 /* center nav slot (optional) */
 .topbar__nav {
   justify-self: center;

@@ -15,7 +15,6 @@
     <section class="content-area iot-shell">
         <header class="dashboard-head card">
             <div>
-                <p class="dashboard-head__eyebrow">Monitoreo de dispositivos</p>
                 <h1>Mis espacios</h1>
                 <p class="dashboard-head__text">Desplegá un espacio para ver sus ESP32 y entrar a los gráficos de cada placa.</p>
             </div>
@@ -65,7 +64,7 @@
                                 <p class="esp32-card__sub" data-space-subtitle="<?= $ind['id'] ?>">
                                     <?= esc($ind['space_name']) ?><?= ! empty($ind['sector']) ? ' - ' . esc($ind['sector']) : '' ?>
                                 </p>
-                                <p class="text-muted mono"><?= (int) $ind['device_count'] ?> ESP32 - <?= esc($ind['industry_uid']) ?></p>
+                                <p class="text-muted mono">ESP32: <?= (int) $ind['device_count'] ?></p>
                             </div>
                             <div class="iot-space-card__top-actions">
                                 <a class="iot-stock-btn" href="<?= base_url('espacios/' . $ind['id'] . '/stock') ?>"
