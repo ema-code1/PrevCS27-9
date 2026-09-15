@@ -61,22 +61,34 @@ class AdminAccount extends BaseController
         }
 
         // --------------------------------------------------------------------
-        // 1. Reglas de validación - SIEMPRE se requiere la contraseña actual
+        // 1. Reglas de validación
         // --------------------------------------------------------------------
+        $postedNombre     = trim((string) $this->request->getPost('nombre'));
+        $postedApellido   = trim((string) $this->request->getPost('apellido'));
+        $postedTwoFactor  = $this->request->getPost('two_factor_enabled') === '1';
+        $currentTwoFactor = ! empty($user['two_factor_enabled']);
+        $changingProfile = $postedNombre !== trim((string) ($user['nombre'] ?? ''))
+            || $postedApellido !== trim((string) ($user['apellido'] ?? ''))
+            || $postedTwoFactor !== $currentTwoFactor;
+
         $rules = [
-            'nombre'          => 'required|min_length[2]|max_length[150]',
-            'apellido'        => 'required|min_length[2]|max_length[150]',
-            'current_password' => 'required', // <-- SIEMPRE obligatoria
+            'nombre'   => 'required|min_length[2]|max_length[150]',
+            'apellido' => 'required|min_length[2]|max_length[150]',
         ];
 
         $newPassword     = (string) $this->request->getPost('new_password');
         $confirmPassword = (string) $this->request->getPost('confirm_password');
 
         $changingPassword = ($newPassword !== '' || $confirmPassword !== '');
+        $requiresPassword = $changingPassword || $changingProfile;
 
         if ($changingPassword) {
             $rules['new_password']     = 'required|min_length[8]';
             $rules['confirm_password'] = 'required|matches[new_password]';
+        }
+
+        if ($requiresPassword) {
+            $rules['current_password'] = 'required';
         }
 
         $messages = [
@@ -96,10 +108,10 @@ class AdminAccount extends BaseController
         }
 
         // --------------------------------------------------------------------
-        // 2. Verificar que la contraseña actual sea correcta
+        // 2. Verificar contraseña actual cuando corresponde
         // --------------------------------------------------------------------
         $currentPassword = (string) $this->request->getPost('current_password');
-        if (! password_verify($currentPassword, $user['password_hash'])) {
+        if (($requiresPassword || $currentPassword !== '') && ! password_verify($currentPassword, $user['password_hash'])) {
             return redirect()->to(base_url('admin-account'))
                 ->withInput()
                 ->with('errors', ['current_password' => 'La contraseña actual es incorrecta.'])
@@ -110,12 +122,12 @@ class AdminAccount extends BaseController
         // 3. Preparar datos para actualizar (nombre, apellido, opciones de seguridad)
         // --------------------------------------------------------------------
         $update = [
-            'nombre'   => trim((string) $this->request->getPost('nombre')),
-            'apellido' => trim((string) $this->request->getPost('apellido')),
+            'nombre'   => $postedNombre,
+            'apellido' => $postedApellido,
         ];
 
         // Seguridad (2FA, verificación telefónica)
-        $update['two_factor_enabled'] = $this->request->getPost('two_factor_enabled') === '1';
+        $update['two_factor_enabled'] = $postedTwoFactor;
 
         /*
         if (db_connect()->fieldExists('phone_verification_enabled', 'users')) {

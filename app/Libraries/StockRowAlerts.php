@@ -30,10 +30,11 @@ class StockRowAlerts
     /**
      * @param array $columns   Columnas tal como las devuelve StockColumnModel::forTable()
      * @param array $values    Valores de la fila indexados por id de columna
+     * @param array $units     Unidades propias de la fila indexadas por id de columna
      *
      * @return array{level:int,state:string,counter:float|null,minimo:float|null,threshold:float|null,unit:string,settings:array}
      */
-    public static function evaluate(array $columns, array $values): array
+    public static function evaluate(array $columns, array $values, array $units = []): array
     {
         $settings = self::settings($columns);
 
@@ -49,7 +50,7 @@ class StockRowAlerts
             switch ($column['type']) {
                 case StockColumnModel::TYPE_CONTADOR:
                     $contadores[] = (float) ($valor ?? 0);
-                    $unidad       = trim((string) ($column['unit'] ?? '')) ?: 'unidades';
+                    $unidad       = trim((string) ($units[$id] ?? $column['unit'] ?? '')) ?: 'unidades';
                     break;
 
                 case StockColumnModel::TYPE_MINIMO:

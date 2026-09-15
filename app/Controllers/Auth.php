@@ -193,6 +193,13 @@ class Auth extends BaseController
                 ->with('error', 'La cuenta fue creada, pero no pudimos iniciar la verificacion.');
         }
 
+        // Si pagó la suscripción en /pago antes de crear la cuenta, queda vinculada acá.
+        $pendingSubscription = (string) session('pending_subscription_ref');
+        if ($pendingSubscription !== '') {
+            (new \App\Models\SubscriptionModel())->linkToUser($pendingSubscription, (int) $user['id']);
+            session()->remove('pending_subscription_ref');
+        }
+
         session()->regenerate(true);
         $this->startPendingFlow($user, VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);
         $sent = $this->issueAndSend($user, VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);

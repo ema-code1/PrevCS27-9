@@ -133,10 +133,13 @@ class StockTableModel extends Model
         $rowsPayload = [];
         foreach ($rows as $row) {
             $values = [];
+            $units = [];
+            $unitOverrides = [];
             foreach ($columns as $column) {
                 $cell    = $cells[$row['id'] . ':' . $column['id']] ?? null;
                 $numeric = StockColumnModel::isNumericType($column['type']);
                 $numero  = $cell['value_number'] ?? null;
+                $overrideUnit = trim((string) ($cell['value_text'] ?? ''));
 
                 // En los tipos nulables el vacío viaja como null, para que el JS
                 // pueda distinguir "sin umbral" de "umbral en 0".
@@ -149,11 +152,19 @@ class StockTableModel extends Model
                 $values[(int) $column['id']] = $numeric
                     ? (float) ($numero ?? 0)
                     : (string) ($cell['value_text'] ?? '');
+
+                if ($numeric && $column['type'] !== StockColumnModel::TYPE_AVISO) {
+                    $columnUnit = trim((string) ($column['unit'] ?? '')) ?: 'unidades';
+                    $units[(int) $column['id']] = $overrideUnit !== '' ? $overrideUnit : $columnUnit;
+                    $unitOverrides[(int) $column['id']] = $overrideUnit !== '';
+                }
             }
 
             $rowsPayload[] = [
-                'id'     => (int) $row['id'],
-                'values' => $values,
+                'id'            => (int) $row['id'],
+                'values'        => $values,
+                'units'         => $units,
+                'unitOverrides' => $unitOverrides,
             ];
         }
 

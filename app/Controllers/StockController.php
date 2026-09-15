@@ -249,6 +249,13 @@ class StockController extends BaseController
                 // Los valores se trasladan al tipo nuevo en vez de perderse.
                 (new StockCellModel())->convertColumn((int) $column['id'], (string) $column['type'], $type);
                 $changes['type'] = $type;
+
+                if (
+                    ! array_key_exists('name', $data)
+                    && $this->isAutomaticColumnName((string) $column['name'], (string) $column['type'])
+                ) {
+                    $changes['name'] = $this->defaultColumnNameFor($type);
+                }
             }
         }
 
@@ -398,17 +405,33 @@ class StockController extends BaseController
 
         $cells   = new StockCellModel();
         $columns = (new StockColumnModel())->forTable((int) $table['id']);
+        $unit = null;
+        if (
+            StockColumnModel::isNumericType($type)
+            && $type !== StockColumnModel::TYPE_AVISO
+            && array_key_exists('unit', $data)
+        ) {
+            $unit = $this->unitFor($type, $data['unit']);
+        }
 
         // Estado de la fila antes y después de escribir. Se notifica solo en la
         // transición de nivel: bajar 12 → 11 → 10 con mínimo 10 avisa una vez, y
         // vuelve a avisar recién si el stock sube y baja de nuevo. Como el
         // "antes" sale de la base y no del navegador, la transición vale para
         // todo el espacio y no solo para quien está mirando la tabla.
-        $antes = StockRowAlerts::evaluate($columns, $cells->forRow((int) $row['id'], $columns));
+        $antes = StockRowAlerts::evaluate(
+            $columns,
+            $cells->forRow((int) $row['id'], $columns),
+            $cells->unitOverridesForRow((int) $row['id'], $columns)
+        );
 
-        $cells->put((int) $row['id'], (int) $column['id'], $type, $value);
+        $cells->put((int) $row['id'], (int) $column['id'], $type, $value, $unit);
 
-        $despues = StockRowAlerts::evaluate($columns, $cells->forRow((int) $row['id'], $columns));
+        $despues = StockRowAlerts::evaluate(
+            $columns,
+            $cells->forRow((int) $row['id'], $columns),
+            $cells->unitOverridesForRow((int) $row['id'], $columns)
+        );
 
         $alert = null;
         if ($despues['level'] !== StockRowAlerts::LEVEL_NONE && $despues['level'] !== $antes['level']) {
@@ -417,7 +440,7 @@ class StockController extends BaseController
 
         // La celda no devuelve la tabla entera: es el endpoint más caliente
         // (una escritura por edición) y el cliente ya tiene el valor.
-        return $this->ok(['value' => $value, 'state' => $despues['state'], 'alert' => $alert]);
+        return $this->ok(['value' => $value, 'unit' => $unit, 'state' => $despues['state'], 'alert' => $alert]);
     }
 
     /**
@@ -644,6 +667,28 @@ class StockController extends BaseController
             default:
                 return 'La tabla ya tiene una columna de contador.';
         }
+    }
+
+    private function defaultColumnNameFor(string $type): string
+    {
+        switch ($type) {
+            case StockColumnModel::TYPE_CONTADOR:
+                return 'Cantidad';
+            case StockColumnModel::TYPE_MINIMO:
+                return 'Mínimo tolerable';
+            case StockColumnModel::TYPE_AVISO:
+                return 'Notificar';
+            default:
+                return 'Texto';
+        }
+    }
+
+    private function isAutomaticColumnName(string $name, string $currentType): bool
+    {
+        $name = trim($name);
+
+        return (bool) preg_match('/^Columna\s+\d+$/i', $name)
+            || $name === $this->defaultColumnNameFor($currentType);
     }
 
     /** Cuerpo de la petición, venga como JSON o como POST clásico. */

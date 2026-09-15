@@ -432,6 +432,64 @@
 }
 .pay-guarantee svg { width: 17px; height: 17px; flex: 0 0 auto; color: var(--accent); }
 
+/* ─── Tarjeta (Mercado Pago · campos seguros) ─────────── */
+.pay-card { display: flex; flex-direction: column; gap: 16px; }
+.pay-card[hidden] { display: none; }
+.pay-card-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.pay-label {
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+/* Host de un iframe de MercadoPago.js: tiene que quedar vacío, visible e
+   interactivo. El borde es del host, nunca de un overlay encima. */
+.pay-secure-input {
+  position: relative;
+  height: 50px;
+  padding: 0 15px;
+  background: var(--bg-card);
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.pay-secure-input:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
+}
+.pay-secure-input iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ─── Estado del pago (cargando / pendiente / error) ──── */
+.pay-status {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border: 1px solid var(--hair-2);
+  border-radius: var(--radius-md);
+}
+.pay-status[hidden] { display: none; }
+.pay-status-title { font-size: 15px; color: var(--text-primary); }
+.pay-status[data-kind="pending"] {
+  border-color: color-mix(in oklab, var(--accent) 45%, var(--hair-2));
+}
+.pay-status[data-kind="error"] {
+  border-color: color-mix(in oklab, var(--danger, #d4453b) 55%, var(--hair-2));
+  background: color-mix(in oklab, var(--danger, #d4453b) 8%, var(--bg-card));
+}
+
 /* ─── Estado inicial animación GSAP ───────────────────── */
 [data-anim] { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
@@ -446,5 +504,6 @@
 }
 @media (max-width: 480px) {
   .pay-method-grid { grid-template-columns: 1fr; }
+  .pay-card-row { grid-template-columns: 1fr; }
   .pay-method-text small { display: none; }
 }

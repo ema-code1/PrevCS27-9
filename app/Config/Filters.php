@@ -78,6 +78,10 @@ class Filters extends BaseFilters
                 '/',
                 'portfolio',
                 'pago', // vista de pago: ocurre antes del registro -> publica
+                // Suscripción desde /pago (antes del registro). Consultar,
+                // pausar o cancelar (api/subscriptions/*) sigue protegido.
+                'api/mp-config',
+                'api/subscriptions',
                 'ayuda', // centro de ayuda: alcanzable con o sin sesion
                 'usuarios',
                 'api/form-metrics',

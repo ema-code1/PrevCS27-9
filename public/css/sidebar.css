@@ -9,6 +9,8 @@
   --text-on-sidebar: var(--text-primary);
   position: sticky;
   top: calc(var(--header-height) + var(--content-gap));
+  height: calc(100dvh - var(--header-height) - (var(--content-gap) * 2));
+  max-height: calc(100dvh - var(--header-height) - (var(--content-gap) * 2));
   padding: 18px 14px;
   display: flex;
   flex-direction: column;
@@ -124,7 +126,12 @@ body[data-theme="dark"] .sidebar {
 .sidebar__nav {
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
   gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
   position: relative;
 }
 
@@ -279,7 +286,7 @@ body[data-theme="dark"] .sidebar {
    La línea divisoria respira lo mismo arriba que abajo (10px). */
 .sidebar__foot {
   /* Simetrico: la separacion sobre la linea es la misma que debajo. */
-  margin-top: 10px;
+  margin-top: auto;
   padding: 10px 0 0;
   border-top: 1px solid color-mix(in oklab, var(--text-on-sidebar) 12%, transparent);
   display: flex;
@@ -314,6 +321,7 @@ body[data-theme="dark"] .sidebar {
     top: 0;
     left: 0;
     height: 100dvh;
+    max-height: 100dvh;
     width: min(82vw, 304px);
     max-width: 100%;
     padding: 22px 16px;

@@ -137,7 +137,6 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
                 </span>
                 <div class="stock-modal__heading">
                     <h2 id="prop-modal-title">Propiedades de Columna</h2>
-                    <p class="stock-modal__subtitle" data-prop-subtitle>Configurando la columna</p>
                 </div>
                 <button class="stock-modal__close" id="btn-cerrar-prop" type="button" aria-label="Cerrar">
                     <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -227,11 +226,10 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
                                 <option value="eq">igual a</option>
                             </select>
                         </div>
-                        <p class="stock-fieldset__help">El número de esta columna en cada fila. Dejalo vacío en los ítems que no quieras que avisen.</p>
                     </div>
 
                     <div class="stock-fieldset">
-                        <span class="stock-fieldset__label">Avisos automáticos de esta tabla</span>
+                        <span class="stock-fieldset__label">avisos automáticos de esta tabla</span>
                         <label class="stock-switch">
                             <input type="checkbox" id="input-aviso-zero" checked>
                             <span class="stock-switch__track" aria-hidden="true"><span class="stock-switch__thumb"></span></span>
@@ -396,6 +394,20 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         if (tipo === 'minimo') return 'M';
         if (tipo === 'aviso') return '!';
         return 'T';
+    }
+
+    function nombreDefaultTipo(tipo) {
+        if (tipo === 'contador') return 'Cantidad';
+        if (tipo === 'minimo') return 'Mínimo tolerable';
+        if (tipo === 'aviso') return 'Notificar';
+        return 'Texto';
+    }
+
+    function esNombreAutomatico(nombre, tipoActual) {
+        nombre = (nombre || '').trim();
+        if (/^Columna\s+\d+$/i.test(nombre)) return true;
+
+        return nombre === nombreDefaultTipo(tipoActual || '');
     }
 
     function esTipoNumerico(tipo) {
@@ -683,12 +695,12 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
     /* permitirVacio: en la columna de aviso el umbral en blanco significa "esta
        fila no avisa", asi que el vacio no se puede aplastar a 0. */
-    function generarHtmlContador(unidad, valor, claseAlerta, permitirVacio) {
+    function generarHtmlContador(unidad, valor, claseAlerta, permitirVacio, unitOverride) {
         var vacio = permitirVacio && (valor === null || valor === undefined || valor === '');
         var numero = vacio ? '' : Math.max(0, Math.round(Number(valor) || 0));
         var etiqueta = permitirVacio
             ? '<span class="unidad-label unidad-label--fija">umbral</span>'
-            : '<span class="unidad-label" data-editable-unidad="true">' + escapeHtml(unidad || 'unidades') + '</span>';
+            : '<span class="unidad-label" data-editable-unidad="true" data-unit-source="' + (unitOverride ? 'row' : 'column') + '">' + escapeHtml(unidad || 'unidades') + '</span>';
 
         return '' +
             '<div class="contador-wrapper' + (claseAlerta || '') + '">' +
@@ -699,6 +711,31 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
                     '<button class="contador-btn" type="button" data-counter-delta="-1" aria-label="Restar">' + chevronSvg('down') + '</button>' +
                 '</div>' +
                 etiqueta +
+            '</div>';
+    }
+
+    function unidadDeContador(columns, values, units) {
+        var fallback = 'unidades';
+
+        for (var i = 0; i < columns.length; i++) {
+            if (columns[i].type !== 'contador') continue;
+
+            var id = columns[i].id;
+            return (units && units[id]) || columns[i].unit || fallback;
+        }
+
+        return fallback;
+    }
+
+    function generarHtmlAviso(valor, unidad) {
+        var vacio = valor === null || valor === undefined || valor === '';
+        var numero = vacio ? '' : Math.max(0, Math.round(Number(valor) || 0));
+
+        return '' +
+            '<div class="stock-aviso-cell">' +
+                '<span class="stock-aviso-cell__text">Avisarme al llegar a</span>' +
+                '<input type="text" inputmode="numeric" pattern="[0-9]*" class="contador-input stock-aviso-cell__input" value="' + numero + '" placeholder="-" data-permite-vacio="true" autocomplete="off">' +
+                '<span class="stock-aviso-cell__unit" data-aviso-unit="true">' + escapeHtml(unidad || 'unidades') + '</span>' +
             '</div>';
     }
 
@@ -727,13 +764,19 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         });
     }
 
-    function generarTd(col, valor, estadoStock, filaBaja) {
+    function generarTd(col, valor, estadoStock, filaBaja, row, columns) {
         var tipo = col.type || 'texto';
         var attrs = ' data-column-id="' + (col.id || '') + '"';
 
+        if (tipo === 'aviso') {
+            return '<td' + attrs + '>' + generarHtmlAviso(valor, unidadDeContador(columns || [], row ? row.values : {}, row ? row.units : {})) + '</td>';
+        }
+
         if (esTipoNumerico(tipo)) {
             var claseAlerta = tipo === 'contador' && estadoStock ? ' is-stock-' + estadoStock : '';
-            return '<td' + attrs + '>' + generarHtmlContador(col.unit, valor, claseAlerta, esTipoVaciable(tipo)) + '</td>';
+            var unit = row && row.units && row.units[col.id] ? row.units[col.id] : col.unit;
+            var override = !!(row && row.unitOverrides && row.unitOverrides[col.id]);
+            return '<td' + attrs + '>' + generarHtmlContador(unit, valor, claseAlerta, esTipoVaciable(tipo), override) + '</td>';
         }
 
         // La celda de la columna de item es el nombre del item: se avisa con el
@@ -855,7 +898,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             var celdas = data.columns.map(function (col) {
                 var estadoStock = col.type === 'contador' && estado.state !== 'ok' ? estado.state : null;
 
-                return generarTd(col, row.values[col.id], estadoStock, filaBaja);
+                return generarTd(col, row.values[col.id], estadoStock, filaBaja, row, data.columns);
             }).join('');
 
             return '<tr data-row-id="' + row.id + '"' + (filaBaja ? ' class="is-stock-low-row"' : '') + '>' + celdas + '</tr>';
@@ -951,7 +994,11 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             valor = contenido ? contenido.textContent.trim() : '';
         }
 
-        guardar('/tablas/' + tableId + '/celdas/' + rowId + '/' + columnId, { value: valor })
+        var body = { value: valor };
+        var unidad = td.querySelector('.unidad-label[data-unit-source="row"]');
+        if (unidad) body.unit = unidad.textContent.trim() || 'unidades';
+
+        guardar('/tablas/' + tableId + '/celdas/' + rowId + '/' + columnId, body)
             .then(function (data) {
                 // El servidor es el que decide si hubo alerta: ya la repartio
                 // entre todos los miembros del espacio.
@@ -1013,23 +1060,39 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         guardar('/tablas/' + tablaIdDe(tabla) + '/columnas/' + th.dataset.columnId, { name: nombre })
             .then(function () {
                 nombreCol._stockPrev = nombre;
+                th.dataset.nameManual = 'true';
             });
     }
 
     function guardarUnidad(etiqueta) {
         var td = etiqueta.closest('td');
-        var tabla = etiqueta.closest('table');
         var unidad = etiqueta.textContent.trim() || 'unidades';
 
         if (!td || unidad === etiqueta._stockPrev) return;
 
-        // La unidad es de la columna entera, no de la celda: se edita desde
-        // cualquier fila y el repintado la baja al resto.
-        var wrapper = td.closest('.tabla-wrapper');
-        guardarEstructura('/tablas/' + tablaIdDe(tabla) + '/columnas/' + td.dataset.columnId, { unit: unidad })
-            .then(function (data) {
-                pintarTabla(wrapper, data.table);
-            });
+        etiqueta.textContent = unidad;
+        etiqueta.dataset.unitSource = 'row';
+        actualizarUnidadesAvisoFila(td.closest('tr'));
+        guardarCelda(td);
+    }
+
+    function actualizarUnidadesAvisoFila(tr) {
+        if (!tr) return;
+
+        var tabla = tr.closest('table');
+        if (!tabla) return;
+
+        var contadorTh = tabla.querySelector('thead th[data-type="contador"]');
+        if (!contadorTh) return;
+
+        var contadorIndex = Array.prototype.indexOf.call(contadorTh.parentElement.children, contadorTh);
+        var contadorTd = tr.children[contadorIndex];
+        var label = contadorTd ? contadorTd.querySelector('.unidad-label') : null;
+        var unidad = label ? label.textContent.trim() : (contadorTh.dataset.unit || 'unidades');
+
+        Array.prototype.forEach.call(tr.querySelectorAll('[data-aviso-unit="true"]'), function (span) {
+            span.textContent = unidad || 'unidades';
+        });
     }
 
     function crearNuevaTabla() {
@@ -1526,6 +1589,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
         tr.classList.toggle('is-stock-low-row', filaBaja);
         actualizarIconoFila(tr, filaBaja);
+        actualizarUnidadesAvisoFila(tr);
     }
 
     function tipoSeleccionado() {
@@ -1580,13 +1644,6 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             }
         });
 
-        if (propSubtitle) {
-            var nombre = nombreCol ? nombreCol.textContent.trim() : '';
-            propSubtitle.textContent = nombre
-                ? 'Configurando "' + nombre + '"'
-                : 'Configurando la columna';
-        }
-
         inputUnidad.value = unidadActual;
 
         // La config de aviso se siembra con la que ya tenga la tabla, aunque la
@@ -1616,6 +1673,9 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         var wrapper = colActiva.closest('.tabla-wrapper');
         var columnId = colActiva.dataset.columnId;
         var tipo = tipoSeleccionado();
+        var nombreCol = colActiva.querySelector('.col-name');
+        var nombreActual = nombreCol ? nombreCol.textContent.trim() : '';
+        var tipoActual = colActiva.dataset.type || 'texto';
 
         if (tablaTieneTipo(tabla, tipo, columnId)) {
             mostrarPopup(mensajeTipoUnico(tipo), 'error');
@@ -1626,6 +1686,10 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             type: tipo,
             unit: inputUnidad.value.trim() || 'unidades'
         };
+
+        if (tipo !== tipoActual && colActiva.dataset.nameManual !== 'true' && esNombreAutomatico(nombreActual, tipoActual)) {
+            cambios.name = nombreDefaultTipo(tipo);
+        }
 
         if (tipo === 'aviso') {
             cambios.settings = {

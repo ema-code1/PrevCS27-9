@@ -133,7 +133,7 @@ $initials = $initials !== '' ? $initials : 'U';
 
                             <div class="form-grid form-grid--row">
                                 <label class="field">
-                                    <span class="field__label">Contraseña actual <span class="field__hint">Requerida para guardar cualquier cambio</span></span>
+                                    <span class="field__label">Contraseña actual <span class="field__hint">No hace falta para cambiar solo la foto</span></span>
                                     <input type="password" name="current_password" autocomplete="current-password" placeholder="••••••••">
                                     <?php if (isset($errors['current_password'])): ?>
                                         <span class="field__error"><?= esc($errors['current_password']) ?></span>

@@ -26,11 +26,16 @@ class StockCellModel extends Model
      * Guarda el valor de una celda respetando el UNIQUE (row_id, column_id):
      * si ya existe la actualiza, si no la crea.
      */
-    public function put(int $rowId, int $columnId, string $type, $value): void
+    public function put(int $rowId, int $columnId, string $type, $value, ?string $unitOverride = null): void
     {
-        $data = StockColumnModel::isNumericType($type)
-            ? ['value_text' => null, 'value_number' => $this->toNumber($value, StockColumnModel::isNullableType($type))]
-            : ['value_text' => $value === null ? null : (string) $value, 'value_number' => null];
+        if (StockColumnModel::isNumericType($type)) {
+            $data = ['value_number' => $this->toNumber($value, StockColumnModel::isNullableType($type))];
+            if ($type !== StockColumnModel::TYPE_AVISO && $unitOverride !== null) {
+                $data['value_text'] = $unitOverride;
+            }
+        } else {
+            $data = ['value_text' => $value === null ? null : (string) $value, 'value_number' => null];
+        }
 
         $existing = $this->where('row_id', $rowId)
             ->where('column_id', $columnId)
@@ -40,6 +45,10 @@ class StockCellModel extends Model
             $this->update((int) $existing['id'], $data);
 
             return;
+        }
+
+        if (StockColumnModel::isNumericType($type) && ! array_key_exists('value_text', $data)) {
+            $data['value_text'] = null;
         }
 
         $this->insert($data + ['row_id' => $rowId, 'column_id' => $columnId]);
@@ -94,6 +103,30 @@ class StockCellModel extends Model
         }
 
         return $values;
+    }
+
+    public function unitOverridesForRow(int $rowId, array $columns): array
+    {
+        $cells = [];
+        foreach ($this->where('row_id', $rowId)->findAll() as $cell) {
+            $cells[(int) $cell['column_id']] = $cell;
+        }
+
+        $units = [];
+        foreach ($columns as $column) {
+            $type = (string) $column['type'];
+            if (! StockColumnModel::isNumericType($type) || $type === StockColumnModel::TYPE_AVISO) {
+                continue;
+            }
+
+            $id       = (int) $column['id'];
+            $override = trim((string) ($cells[$id]['value_text'] ?? ''));
+            if ($override !== '') {
+                $units[$id] = $override;
+            }
+        }
+
+        return $units;
     }
 
     /**

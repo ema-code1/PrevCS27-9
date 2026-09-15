@@ -28,3 +28,10 @@ Thumbs.db
 # Usá .env.example como plantilla y copiá el .env a mano en cada PC.
 # .env
 .env
+.env.*.local
+
+# Dependencias de Composer (SDK de Mercado Pago): se instalan con `composer install`.
+vendor/
+
+# Checkpoint temporal del asistente de integración de Mercado Pago.
+.mp-integrate-progress.md

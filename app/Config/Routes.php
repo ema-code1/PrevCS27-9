@@ -7,6 +7,16 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Landing::index');
 $routes->get('pago', 'Pago::index');
+
+// === Suscripción PrevCS Pro (Mercado Pago · Suscripciones con plan) ===
+// Public Key para MercadoPago.js (JSON sin cache).
+$routes->get('api/mp-config', 'SubscriptionController::config');
+// Crear la suscripción: publica, porque el pago ocurre antes del registro.
+$routes->post('api/subscriptions', 'SubscriptionController::create');
+// GET /api/subscriptions/:id → estado actual (solo el dueño, logueado).
+$routes->get('api/subscriptions/(:segment)', 'SubscriptionController::show/$1');
+// Pausar / reactivar / cancelar: acciones cerradas, nunca un estado libre.
+$routes->post('api/subscriptions/(:segment)/(pause|reactivate|cancel)', 'SubscriptionController::lifecycle/$1/$2');
 $routes->get('portfolio', 'Portfolio::index');
 $routes->get('portfolio.php', 'Portfolio::index');
 
