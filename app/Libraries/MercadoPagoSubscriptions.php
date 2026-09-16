@@ -23,7 +23,7 @@ use MercadoPago\Resources\PreApprovalPlan;
 final class MercadoPagoSubscriptions
 {
     /** Estados que la app puede pedir por PUT /preapproval/{id}. */
-    private const SETTABLE_STATUSES = ['paused', 'authorized', 'canceled'];
+    private const SETTABLE_STATUSES = ['paused', 'authorized', 'cancelled'];
 
     public function __construct(Subscription $config)
     {

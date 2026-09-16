@@ -23,7 +23,7 @@ class SubscriptionController extends BaseController
     private const LIFECYCLE = [
         'pause'      => 'paused',
         'reactivate' => 'authorized',
-        'cancel'     => 'canceled',
+        'cancel'     => 'cancelled',
     ];
 
     private const STATUS_LABELS = [
@@ -32,7 +32,7 @@ class SubscriptionController extends BaseController
         'pending'    => 'Pendiente',
         'authorized' => 'Activa',
         'paused'     => 'Pausada',
-        'canceled'   => 'Cancelada',
+        'cancelled'  => 'Cancelada',
     ];
 
     /** GET api/mp-config · Public Key para MercadoPago.js, sin cache. */
@@ -166,7 +166,7 @@ class SubscriptionController extends BaseController
         if ($record === null || empty($record['mp_preapproval_id'])) {
             return $this->fail('No encontramos esa suscripción.', 404);
         }
-        if ($record['status'] === 'canceled') {
+        if ($record['status'] === 'cancelled') {
             return $this->fail('La suscripción ya está cancelada. Para volver a usar PrevCS Pro, suscribite de nuevo.', 409);
         }
         if ($record['status'] === $target) {
