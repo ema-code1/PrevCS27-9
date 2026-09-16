@@ -1,0 +1,11 @@
+# Traffic Policy del túnel ngrok (lo usa tunel.cmd).
+# Por el túnel solo se expone el proyecto: cualquier otra ruta de XAMPP
+# (/, /dashboard, /phpmyadmin, otros proyectos) redirige a la app.
+on_http_request:
+  - expressions:
+      - "!req.url.path.startsWith('/PreventiveControlSystem/public')"
+    actions:
+      - type: redirect
+        config:
+          to: "https://moonrise-colt-islamic.ngrok-free.dev/PreventiveControlSystem/public/"
+          status_code: 302

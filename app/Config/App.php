@@ -32,6 +32,13 @@ class App extends BaseConfig
     public array $allowedHostnames = [];
 
     /**
+     * Dominio del túnel ngrok (ej. 'mi-dominio.ngrok-free.dev'), desde .env: app.tunnelHost
+     * Si la petición llega por ese host, el sitio usa https://<host> con la misma ruta
+     * del baseURL; en localhost todo sigue igual.
+     */
+    public string $tunnelHost = '';
+
+    /**
      * --------------------------------------------------------------------------
      * Index File
      * --------------------------------------------------------------------------
@@ -199,4 +206,17 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $tunnelHost = strtolower(trim($this->tunnelHost));
+        [$requestHost] = explode(':', strtolower((string) ($_SERVER['HTTP_HOST'] ?? '')), 2);
+
+        if ($tunnelHost !== '' && $requestHost === $tunnelHost) {
+            $path          = parse_url($this->baseURL, PHP_URL_PATH) ?: '/';
+            $this->baseURL = 'https://' . $tunnelHost . $path;
+        }
+    }
 }
