@@ -3,7 +3,7 @@
 <?php $showHeader = false; ?>
 
 <?= $this->section('pageStyles') ?>
-<link rel="stylesheet" href="<?= base_url('css/pago.css') ?>?v=20260611-3">
+<link rel="stylesheet" href="<?= base_url('css/pago.css') ?>?v=20260915-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -26,7 +26,14 @@
   </a>
 </header>
 
-<main class="pay-main">
+<?php
+  $isLoggedIn = $isLoggedIn ?? false;
+  $userName   = $userName ?? '';
+  $userEmail  = $userEmail ?? '';
+  $planPrice  = $planPrice ?? '';
+  $planAmount = $planAmount ?? '0.00';
+?>
+<main class="pay-main" data-mp-subscriptions-page="with-plan">
   <!-- Indicador de pasos del flujo -->
   <ol class="pay-steps" aria-label="Progreso de la compra">
     <li class="is-active"><span class="pay-step-dot">1</span> Pago</li>
@@ -45,12 +52,13 @@
         <p class="pay-lede">Te toma menos de un minuto. Después creás tu cuenta y entrás al dashboard.</p>
       </div>
 
-<?php
-        $isLoggedIn = $isLoggedIn ?? false;
-        $userName   = $userName ?? '';
-        $userEmail  = $userEmail ?? '';
-      ?>
-      <form id="payForm" class="pay-form" novalidate>
+      <form id="payForm" class="pay-form" novalidate
+            data-mp-config-url="<?= esc(base_url('api/mp-config'), 'attr') ?>"
+            data-subscribe-url="<?= esc(base_url('api/subscriptions'), 'attr') ?>"
+            data-next-url="<?= esc($isLoggedIn ? base_url('principal') : base_url('reg-log') . '?form=register', 'attr') ?>"
+            data-logged-in="<?= $isLoggedIn ? '1' : '0' ?>"
+            data-amount="<?= esc($planAmount, 'attr') ?>"
+            data-price="<?= esc($planPrice, 'attr') ?>">
         <div class="pay-field">
           <label for="pay-name">Nombre completo</label>
           <input type="text" id="pay-name" name="name"
@@ -112,15 +120,58 @@
           </div>
         </fieldset>
 
-        <button type="submit" class="pay-submit" id="payConfirm">
-          <span class="pay-submit-label">Confirmar pago</span>
+        <!-- ───────────── Tarjeta · Mercado Pago (campos seguros) ─────────────
+             Número, vencimiento y código son iframes de MercadoPago.js: la
+             tarjeta nunca pasa por nuestro servidor, solo un token de un uso.
+             Los tres <select> ocultos los necesita CardForm aunque no se vean. -->
+        <div class="pay-card" id="payCardBlock">
+          <span class="section-eyebrow mono">03 · Datos de la tarjeta</span>
+
+          <div class="pay-field" data-mp-field="cardNumber" role="group" aria-labelledby="pay-cardNumber-label">
+            <span id="pay-cardNumber-label" class="pay-label">Número de tarjeta</span>
+            <div id="pay-cardNumber" class="pay-secure-input" data-mp-secure-field="cardNumber"></div>
+          </div>
+
+          <div class="pay-card-row">
+            <div class="pay-field" data-mp-field="expirationDate" role="group" aria-labelledby="pay-expirationDate-label">
+              <span id="pay-expirationDate-label" class="pay-label">Vencimiento (MM/AA)</span>
+              <div id="pay-expirationDate" class="pay-secure-input" data-mp-secure-field="expirationDate"></div>
+            </div>
+            <div class="pay-field" data-mp-field="securityCode" role="group" aria-labelledby="pay-securityCode-label">
+              <span id="pay-securityCode-label" class="pay-label">Código de seguridad</span>
+              <div id="pay-securityCode" class="pay-secure-input" data-mp-secure-field="securityCode"></div>
+            </div>
+          </div>
+
+          <div class="pay-field" data-mp-field="cardholderName">
+            <label for="pay-cardholderName">Nombre como figura en la tarjeta</label>
+            <input type="text" id="pay-cardholderName" autocomplete="cc-name" placeholder="Ej. ANA PEREZ">
+          </div>
+
+          <div class="pay-field" data-mp-field="identificationNumber">
+            <label for="pay-identificationNumber">DNI del titular</label>
+            <input type="text" id="pay-identificationNumber" inputmode="numeric" autocomplete="off" placeholder="Ej. 12345678">
+          </div>
+
+          <select id="pay-issuer" data-mp-sdk-required-field="issuer" hidden aria-hidden="true" tabindex="-1"></select>
+          <select id="pay-installments" data-mp-sdk-required-field="installments" hidden aria-hidden="true" tabindex="-1"></select>
+          <select id="pay-identificationType" data-mp-sdk-required-field="identificationType" hidden aria-hidden="true" tabindex="-1"></select>
+        </div>
+
+        <div class="pay-status" id="payStatus" role="status" aria-live="polite" hidden>
+          <strong class="pay-status-title"></strong>
+          <span class="pay-status-text"></span>
+        </div>
+
+        <button type="submit" class="pay-submit" id="payConfirm" data-mp-subscription-cta="with-plan">
+          <span class="pay-submit-label">Suscribirme</span>
           <span class="pay-spinner" aria-hidden="true"></span>
           <svg class="pay-submit-arrow" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
 
         <p class="pay-secure mono">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 7V5.5a4 4 0 0 1 8 0V7M3.5 7h9A1.5 1.5 0 0 1 14 8.5v4A1.5 1.5 0 0 1 12.5 14h-9A1.5 1.5 0 0 1 2 12.5v-4A1.5 1.5 0 0 1 3.5 7Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Pago simulado · sin cargos reales (demo académica)
+          <span id="paySecureNote">Pago seguro con Mercado Pago · cancelás cuando quieras</span>
         </p>
       </form>
     </section>
@@ -151,11 +202,10 @@
         </ul>
 
         <div class="pay-summary-rows">
-          <div class="pay-row"><span>Subtotal</span><span class="mono">USD $49.00</span></div>
-          <div class="pay-row"><span>Impuestos</span><span class="mono">USD $0.00</span></div>
+          <div class="pay-row"><span>Subtotal</span><span class="mono"><?= esc($planPrice) ?></span></div>
           <div class="pay-row pay-row--total">
             <span>Total <em>/ mes</em></span>
-            <span class="mono pay-total">USD $49.00</span>
+            <span class="mono pay-total"><?= esc($planPrice) ?></span>
           </div>
         </div>
 
@@ -177,7 +227,7 @@
       <svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5 10 17.5 19 6.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </span>
     <h2 class="pay-modal-title" id="payModalTitle">¡Pago confirmado!</h2>
-    <p class="pay-modal-text">Recibimos tu pago de <strong>USD&nbsp;$49.00</strong>. El siguiente paso es crear tu cuenta para entrar al dashboard.</p>
+    <p class="pay-modal-text">Recibimos tu pago de <strong><?= esc($planPrice) ?></strong>. El siguiente paso es crear tu cuenta para entrar al dashboard.</p>
 
     <div class="pay-modal-actions">
       <a class="pay-modal-btn pay-modal-btn--solid" id="payModalContinue" href="<?= base_url('principal') ?>">
@@ -196,5 +246,7 @@
 
 <?= $this->section('pageScripts') ?>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
-<script src="<?= base_url('js/pago.js') ?>?v=20260611-3" defer></script>
+<!-- MercadoPago.js v2: campos seguros de tarjeta (CardForm) -->
+<script src="https://sdk.mercadopago.com/js/v2" defer></script>
+<script src="<?= base_url('js/pago.js') ?>?v=20260916-1" defer></script>
 <?= $this->endSection() ?>

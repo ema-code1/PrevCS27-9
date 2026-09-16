@@ -901,8 +901,8 @@ $trendIcon = static function (string $direction): string {
       </div>
 
       <div class="price-amount">
-        <span class="price-currency">USD&nbsp;$</span>
-        <span class="price-value" data-to="49">49</span>
+        <span class="price-currency"><?= esc($planCurrency ?? 'ARS') ?>&nbsp;$</span>
+        <span class="price-value" data-to="<?= esc((string) (int) round($planAmount ?? 0), 'attr') ?>"><?= esc($planAmountLabel ?? '') ?></span>
         <span class="price-period">/ mes</span>
       </div>
 
