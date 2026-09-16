@@ -8,6 +8,9 @@
 --
 -- El proyecto no usa migraciones de CodeIgniter: correr este archivo a mano y
 -- volcarlo al dump principal (sql/prevcs 25-8-26.sql).
+--
+-- REEMPLAZADO por la migración 2026-09-16-000001_CreateNotificationsTable:
+-- ya no hace falta correrlo, setup.cmd / php spark migrate crean la tabla.
 
 CREATE TABLE IF NOT EXISTS `notifications` (
   `id`          int(11)      NOT NULL AUTO_INCREMENT,

@@ -1,0 +1,2 @@
+# Los .cmd de Windows necesitan CRLF para ejecutarse bien en cualquier PC.
+*.cmd text eol=crlf

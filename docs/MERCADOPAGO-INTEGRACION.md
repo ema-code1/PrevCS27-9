@@ -272,7 +272,7 @@ APP_URL=http://localhost/PreventiveControlSystem/public
 
 - [ ] **Autorizar el conector MCP de Mercado Pago** con `/mcp` en una terminal interactiva de `claude`, para que Claude pueda crear apps, traer credenciales, crear usuarios de prueba, configurar webhooks y buscar documentación actualizada.
 - [ ] **Node.js LTS 20 o superior** (https://nodejs.org), solo para los scripts del plugin.
-- [ ] **En cada PC nueva:** `composer install --no-dev`. Composer necesita `git` o la extensión `zip` de PHP (hoy falta `zip` y lo resolvió clonando con git).
+- [ ] **En cada PC nueva:** doble clic en `setup.cmd` (ver [INSTALACION.md](INSTALACION.md)). Composer necesita `git` o la extensión `zip` de PHP.
 
 ---
 
@@ -345,8 +345,8 @@ APP_URL=http://localhost/PreventiveControlSystem/public
 ### 10.4 Comandos de referencia
 
 ```bash
-composer install --no-dev          # dependencias en una PC nueva
-php spark migrate                  # crea la tabla subscriptions si falta
+setup.cmd                          # PC nueva o después de un pull: vendor, .env, base y migraciones
+php spark prevcs:setup             # lo mismo sin composer install
 php spark mp:plan                  # crea/actualiza el plan con los valores del .env
 php spark routes                   # ver rutas y filtros
 php -l app/Controllers/SubscriptionController.php
