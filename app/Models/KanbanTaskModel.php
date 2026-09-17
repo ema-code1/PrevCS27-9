@@ -154,4 +154,29 @@ class KanbanTaskModel extends Model
             ->orderBy('id', 'DESC')
             ->findAll();
     }
+
+        /**
+     * Tareas completadas que ya superaron los $days días desde su
+     * finalización y siguen activas (no archivadas). Se usan para el
+     * borrado automático del tablero.
+     *
+     * Con $days <= 0 se consideran vencidas TODAS las completadas, sin
+     * filtro de fecha: así el test "borrar al instante" es determinista
+     * y no depende de la precisión al segundo.
+     */
+    public function expiredCompletedForBoard(int $boardId, int $days = 30): array
+    {
+        $builder = $this->where('board_id', $boardId)
+            ->where('is_completed', 1)
+            ->where('is_archived', 0)
+            ->where('completed_at IS NOT NULL', null, false);
+
+        // Solo se aplica el filtro de fecha cuando hay un plazo real.
+        if ($days > 0) {
+            $cutoff = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+            $builder->where('completed_at <', $cutoff);
+        }
+
+        return $builder->findAll();
+    }
 }

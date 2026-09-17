@@ -44,6 +44,10 @@ class KanbanController extends BaseController
     ];
 
     private const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
+        /** Días que una tarea completada se conserva antes de borrarse sola. */
+    private const COMPLETED_TTL_DAYS = 30;
+    // para demostracion cambiar _DAYS = 0; para que la tarea se purgue al instante
+    // p/ello recargar página F5 pq al completar una task con taskAction (JS) no recarga la pág
 
     private ?array $device = null;
     private ?array $board  = null;
@@ -52,12 +56,16 @@ class KanbanController extends BaseController
        Tablero
        ================================================================= */
 
-    /** GET · estado completo del tablero. */
+        /** GET · estado completo del tablero. */
     public function board($deviceId = null)
     {
         if (($error = $this->resolve((int) $deviceId)) !== null) {
             return $error;
         }
+
+        // Aprovechamos la carga del tablero para limpiar las tareas
+        // completadas que ya vencieron (más de COMPLETED_TTL_DAYS días).
+        $this->purgeExpiredCompleted((int) $this->board['id']);
 
         return $this->ok($this->boardPayload());
     }
@@ -1566,6 +1574,53 @@ class KanbanController extends BaseController
 
         return $newId;
     }
+
+        /**
+     * Borra del tablero las tareas completadas hace más de COMPLETED_TTL_DAYS
+     * días, junto con sus adjuntos en disco. Deja un único registro en el
+     * historial con el total, para no ensuciar la actividad del tablero.
+     *
+     * Si no hay nada vencido, no toca la base.
+     */
+    private function purgeExpiredCompleted(int $boardId): void
+    {
+        $taskModel = new KanbanTaskModel();
+        $expired   = $taskModel->expiredCompletedForBoard($boardId, self::COMPLETED_TTL_DAYS);
+
+        if ($expired === []) {
+            return;
+        }
+
+        $db = Database::connect();
+        $db->transStart();
+
+        // Primero los archivos en disco, después las filas: si algo falla
+        // al borrar la fila, el adjunto ya no está huérfano en la carpeta.
+        foreach ($expired as $task) {
+            $this->deleteTaskFiles((int) $task['id']);
+        }
+
+        $ids = array_map('intval', array_column($expired, 'id'));
+        $db->table('kanban_tasks')->whereIn('id', $ids)->delete();
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            log_message('error', 'No se pudieron purgar tareas vencidas del tablero {board}', [
+                'board' => $boardId,
+            ]);
+
+            return;
+        }
+
+        $this->log(
+            null,
+            'tasks_purged',
+            'borró ' . count($expired) . ' tarea(s) completada(s) hace más de '
+                . self::COMPLETED_TTL_DAYS . ' días'
+        );
+    }
+
 
     /** Borra del disco los adjuntos de una tarea antes de eliminarla. */
     private function deleteTaskFiles(int $taskId): void
