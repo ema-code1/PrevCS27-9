@@ -4,6 +4,7 @@
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/standalone.css') ?>?v=20260807-3">
 <link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260831-2">
+<link rel="stylesheet" href="<?= base_url('css/event-manager.css') ?>?v=20260917-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -33,6 +34,19 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             <?php endif; ?>
         </header>
 
+        <?php // Pestañas del espacio. La activa se recuerda en el hash (#calendario) para que F5 vuelva a ella. ?>
+        <div class="section-switch" role="tablist" aria-label="Secciones del espacio">
+            <label class="section-switch__radio" role="tab" aria-selected="true" aria-controls="space-pane-stock">
+                <input type="radio" name="space-tab" value="stock" data-space-tab="stock" checked>
+                <span class="section-switch__name">Stock</span>
+            </label>
+            <label class="section-switch__radio" role="tab" aria-selected="false" aria-controls="space-pane-calendario">
+                <input type="radio" name="space-tab" value="calendario" data-space-tab="calendario">
+                <span class="section-switch__name">Calendario</span>
+            </label>
+        </div>
+
+        <div class="section-pane is-active" id="space-pane-stock" role="tabpanel" data-space-pane="stock">
         <section class="stock-interactive-card" data-stock-app>
             <header class="stock-feature-head">
                 <h2>Control de Stock</h2>
@@ -74,6 +88,16 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
                 <input type="file" id="file-input" accept=".xlsx, .xls">
             </div>
         </section>
+        </div>
+
+        <div class="section-pane" id="space-pane-calendario" role="tabpanel" data-space-pane="calendario">
+            <section class="stock-interactive-card space-calendar-card">
+                <div data-space-calendar
+                     data-calendar-base="<?= base_url('espacios/' . (int) $industry['id'] . '/calendario/eventos') ?>"
+                     data-calendar-can-edit="<?= $canEdit ? '1' : '0' ?>"></div>
+                <script type="application/json" id="calendario-estado"><?= json_encode($calendarState, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
+            </section>
+        </div>
 
         <div class="column-menu" id="column-menu" hidden>
             <button type="button" data-column-action="properties">
@@ -271,6 +295,110 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260831-1" defer></script>
+<script src="<?= base_url('js/event-manager.js') ?>?v=20260917-1"></script>
+<script>
+/* ── Pestañas Stock / Calendario + calendario del espacio ─────────────── */
+(function () {
+    'use strict';
+
+    var inputs = Array.prototype.slice.call(document.querySelectorAll('[data-space-tab]'));
+    var panes = Array.prototype.slice.call(document.querySelectorAll('[data-space-pane]'));
+    var calendar = null;
+
+    function activate(tab, fromHash) {
+        if (!panes.some(function (p) { return p.dataset.spacePane === tab; })) tab = 'stock';
+
+        panes.forEach(function (pane) { pane.classList.toggle('is-active', pane.dataset.spacePane === tab); });
+        inputs.forEach(function (input) {
+            var active = input.dataset.spaceTab === tab;
+            input.checked = active;
+            input.closest('[role="tab"]').setAttribute('aria-selected', active ? 'true' : 'false');
+            // La píldora deslizante (prevcs-ui.js) escucha el change.
+            if (active && fromHash) input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+
+        var hash = tab === 'stock' ? '' : '#' + tab;
+        if (location.hash !== hash) history.replaceState(null, '', location.pathname + location.search + hash);
+
+        if (tab === 'calendario') mountCalendar();
+    }
+
+    inputs.forEach(function (input) {
+        input.addEventListener('change', function () {
+            if (input.checked) activate(input.dataset.spaceTab, false);
+        });
+    });
+
+    /* ── Calendario: se monta la primera vez que se abre la pestaña ── */
+    function mountCalendar() {
+        if (calendar) return;
+        var root = document.querySelector('[data-space-calendar]');
+        var stateEl = document.getElementById('calendario-estado');
+        if (!root || !stateEl || !window.EventManager) return;
+
+        var state = {};
+        try { state = JSON.parse(stateEl.textContent) || {}; } catch (err) { state = {}; }
+
+        var base = root.dataset.calendarBase;
+        var canEdit = root.dataset.calendarCanEdit === '1';
+
+        function post(path, body) {
+            return window.PrevcsCsrf.queue(function () {
+                return fetch(base + path, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': window.PrevcsCsrf.get(),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body || {})
+                }).then(function (response) {
+                    return response.json().catch(function () { return {}; }).then(function (data) {
+                        if (data && data.csrf) window.PrevcsCsrf.set(data.csrf);
+                        if (!response.ok || !data || data.ok === false) {
+                            throw new Error((data && data.error) || 'No se pudo guardar el cambio.');
+                        }
+                        return data;
+                    });
+                });
+            });
+        }
+
+        function toast(message, type) {
+            if (window.PrevcsToast && typeof window.PrevcsToast.show === 'function') {
+                window.PrevcsToast.show(message, type || 'success', 3200);
+            }
+        }
+
+        calendar = new window.EventManager(root, {
+            events: state.events || [],
+            categories: state.categories,
+            availableTags: state.tags,
+            defaultView: 'month',
+            readOnly: !canEdit,
+            onEventCreate: function (data) {
+                return post('', data).then(function (res) { toast('Evento creado.'); return res.event; });
+            },
+            onEventUpdate: function (id, data) {
+                return post('/' + encodeURIComponent(id), data).then(function (res) { return res.event; })
+                    .catch(function (error) { toast(error.message, 'error'); throw error; });
+            },
+            onEventDelete: function (id) {
+                return post('/' + encodeURIComponent(id) + '/eliminar').then(function () { toast('Evento eliminado.'); });
+            }
+        });
+    }
+
+    window.PrevcsCsrf.seed(document.querySelector('meta[name="csrf-hash"]').getAttribute('content'));
+
+    // prevcs-ui.js es defer: la píldora se posiciona después, así que el hash
+    // se aplica cuando el DOM ya está listo.
+    document.addEventListener('DOMContentLoaded', function () {
+        activate(location.hash.replace('#', '') || 'stock', true);
+    });
+})();
+</script>
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script>
 (function () {

@@ -100,6 +100,11 @@ $routes->post('espacios/(:num)/stock/tablas/(:num)/filas', 'StockController::cre
 $routes->post('espacios/(:num)/stock/tablas/(:num)/filas/(:num)/eliminar', 'StockController::deleteRow/$1/$2/$3');
 $routes->post('espacios/(:num)/stock/tablas/(:num)/celdas/(:num)/(:num)', 'StockController::updateCell/$1/$2/$3/$4');
 
+// Calendario por espacio: pestaña "Calendario" de la vista de stock.
+$routes->post('espacios/(:num)/calendario/eventos', 'SpaceEventController::create/$1');
+$routes->post('espacios/(:num)/calendario/eventos/(:num)', 'SpaceEventController::update/$1/$2');
+$routes->post('espacios/(:num)/calendario/eventos/(:num)/eliminar', 'SpaceEventController::delete/$1/$2');
+
 // Campana del header. El feed es GET para que el polling no rote el CSRF.
 $routes->get('notificaciones', 'NotificationController::feed');
 $routes->post('notificaciones/leidas', 'NotificationController::markAllRead');

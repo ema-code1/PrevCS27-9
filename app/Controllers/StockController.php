@@ -6,6 +6,7 @@ use App\Libraries\StockRowAlerts;
 use App\Models\IndustryModel;
 use App\Models\IndustryUserModel;
 use App\Models\NotificationModel;
+use App\Models\SpaceEventModel;
 use App\Models\StockCellModel;
 use App\Models\StockColumnModel;
 use App\Models\StockRowModel;
@@ -63,6 +64,12 @@ class StockController extends BaseController
             'title'                 => 'Stock · ' . esc($this->industry['space_name']) . ' | PrevCS',
             'industry'              => $this->industry,
             'stockState'            => $tableModel->payloadForIndustry($industryId),
+            // Pestaña "Calendario": eventos del espacio + listas válidas.
+            'calendarState'         => [
+                'events'     => (new SpaceEventModel())->payloadForIndustry($industryId),
+                'categories' => SpaceEventModel::CATEGORIES,
+                'tags'       => SpaceEventModel::TAGS,
+            ],
             'canEdit'               => $this->canEdit,
             // El sidebar marca "Stock" abierto y resalta el espacio actual.
             'activeMenu'            => 'stock',
