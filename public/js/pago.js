@@ -323,7 +323,7 @@
         showStatus('pending', 'Suscripción pausada',
           'Mercado Pago pausó la suscripción. Probá con otra tarjeta o escribinos a soporte.');
         break;
-      case 'canceled':
+      case 'cancelled':
         showStatus('error', 'Suscripción cancelada',
           'Mercado Pago no pudo autorizar la tarjeta. Probá con otra e intentá nuevamente.');
         break;

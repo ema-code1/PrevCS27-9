@@ -17,6 +17,8 @@ $routes->post('api/subscriptions', 'SubscriptionController::create');
 $routes->get('api/subscriptions/(:segment)', 'SubscriptionController::show/$1');
 // Pausar / reactivar / cancelar: acciones cerradas, nunca un estado libre.
 $routes->post('api/subscriptions/(:segment)/(pause|reactivate|cancel)', 'SubscriptionController::lifecycle/$1/$2');
+// Webhooks de Mercado Pago: sin sesión ni CSRF, autenticados por firma x-signature.
+$routes->post('api/webhooks/mercadopago', 'WebhookController::receive');
 $routes->get('portfolio', 'Portfolio::index');
 $routes->get('portfolio.php', 'Portfolio::index');
 

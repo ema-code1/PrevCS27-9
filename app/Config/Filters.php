@@ -103,11 +103,13 @@ class Filters extends BaseFilters
                 // acuerda del token para volver solo despues del login.
                 'invitacion/*',
                 'api/iot/lectura', // ingesta IoT: auth por MAC + device_token
+                'api/webhooks/mercadopago', // Mercado Pago: auth por firma x-signature
             ]],
             // 'honeypot',
             // CSRF global, excepto la ingesta IoT (las ESP32 no envian token CSRF).
             'csrf' => ['except' => [
                 'api/iot/lectura',
+                'api/webhooks/mercadopago',
             ]],
             // 'invalidchars',
         ],

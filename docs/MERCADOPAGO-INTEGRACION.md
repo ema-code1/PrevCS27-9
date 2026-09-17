@@ -91,7 +91,7 @@ sequenceDiagram
 
 **Estados de la suscripción:**
 - **Locales:** `creating` (antes de llamar a Mercado Pago) y `failed` (Mercado Pago rechazó o no respondió).
-- **De Mercado Pago:** `pending`, `authorized`, `paused` y `canceled`.
+- **De Mercado Pago:** `pending`, `authorized`, `paused` y `cancelled`.
 
 La UI muestra estos estados:
 
@@ -102,7 +102,7 @@ La UI muestra estos estados:
 | `authorized` | Modal "¡Suscripción activa!" |
 | `pending` | Modal "Suscripción pendiente" |
 | `paused` | Aviso "Suscripción pausada" |
-| `canceled` | Error "Suscripción cancelada" |
+| `cancelled` | Error "Suscripción cancelada" |
 | Error | Mensaje claro de qué hacer, nunca el error crudo de la API |
 
 ---
@@ -148,7 +148,7 @@ Memoria de Claude actualizada: `prevcs-mercadopago.md` y `prevcs-ajax-csrf.md` (
 | `GET api/mp-config` | `SubscriptionController::config` | público | `{ publicKey }` con `Cache-Control: no-store, max-age=0`. Devuelve 503 con `{error}` si falta `MP_PUBLIC_KEY`. |
 | `POST api/subscriptions` | `::create` | público + CSRF | Body JSON `{ token, name, email }`. Devuelve `{ok, csrf, subscription}` o `{ok:false, error, csrf}`. |
 | `GET api/subscriptions/{external_reference}` | `::show` | logueado y **dueño** | Consulta `GET /preapproval/{id}` en Mercado Pago y sincroniza el estado local. |
-| `POST api/subscriptions/{external_reference}/(pause\|reactivate\|cancel)` | `::lifecycle` | logueado, **dueño** y CSRF | Mapea la acción al estado `paused`, `authorized` o `canceled` (lista cerrada). `canceled` es final. |
+| `POST api/subscriptions/{external_reference}/(pause\|reactivate\|cancel)` | `::lifecycle` | logueado, **dueño** y CSRF | Mapea la acción al estado `paused`, `authorized` o `cancelled` (lista cerrada). `cancelled` es final. |
 
 **Códigos de error de `create`:**
 
@@ -176,7 +176,7 @@ Tabla `subscriptions`:
 | `mp_preapproval_id` | VARCHAR(64) NULL, índice | ID de la suscripción en Mercado Pago. |
 | `mp_plan_id` | VARCHAR(64) | Plan usado. |
 | `payer_email` / `payer_name` | VARCHAR | |
-| `status` | VARCHAR(20), default `creating` | `creating`, `failed`, `pending`, `authorized`, `paused` o `canceled`. |
+| `status` | VARCHAR(20), default `creating` | `creating`, `failed`, `pending`, `authorized`, `paused` o `cancelled`. |
 | `amount` / `currency` | DECIMAL(12,2) / CHAR(3) | Foto del precio al suscribirse. |
 | `created_at` / `updated_at` | DATETIME | Timestamps del modelo. |
 
@@ -272,7 +272,7 @@ APP_URL=http://localhost/PreventiveControlSystem/public
 
 - [ ] **Autorizar el conector MCP de Mercado Pago** con `/mcp` en una terminal interactiva de `claude`, para que Claude pueda crear apps, traer credenciales, crear usuarios de prueba, configurar webhooks y buscar documentación actualizada.
 - [ ] **Node.js LTS 20 o superior** (https://nodejs.org), solo para los scripts del plugin.
-- [ ] **En cada PC nueva:** `composer install --no-dev`. Composer necesita `git` o la extensión `zip` de PHP (hoy falta `zip` y lo resolvió clonando con git).
+- [ ] **En cada PC nueva:** doble clic en `setup.cmd` (ver [INSTALACION.md](INSTALACION.md)). Composer necesita `git` o la extensión `zip` de PHP.
 
 ---
 
@@ -345,8 +345,8 @@ APP_URL=http://localhost/PreventiveControlSystem/public
 ### 10.4 Comandos de referencia
 
 ```bash
-composer install --no-dev          # dependencias en una PC nueva
-php spark migrate                  # crea la tabla subscriptions si falta
+setup.cmd                          # PC nueva o después de un pull: vendor, .env, base y migraciones
+php spark prevcs:setup             # lo mismo sin composer install
 php spark mp:plan                  # crea/actualiza el plan con los valores del .env
 php spark routes                   # ver rutas y filtros
 php -l app/Controllers/SubscriptionController.php
@@ -426,7 +426,7 @@ Ver [§8](#8-qué-ya-está-verificado). Repetirla después de cambios grandes.
 | 4.4 | Sin sesión, la misma URL | Redirige a `reg-log` (authGuard) |
 | 4.5 | Pausar (consola del navegador, ver abajo) | `status=paused` en la respuesta, en la BD y en Mercado Pago |
 | 4.6 | Reactivar | `authorized` |
-| 4.7 | Cancelar | `canceled`; volver a cancelar da 409 |
+| 4.7 | Cancelar | `cancelled`; volver a cancelar da 409 |
 | 4.8 | Acción inventada (`api/subscriptions/{ref}/delete`) | 404 de ruta (no existe) |
 | 4.9 | Logueado con suscripción activa: suscribirse otra vez desde `/pago` | 409 "Tu cuenta ya tiene una suscripción…" |
 
@@ -452,7 +452,7 @@ PrevcsCsrf.queue(() => fetch(`api/subscriptions/${ref}/${action}`, {
 
 ### Fase 6 — Webhooks (cuando existan)
 - **Evento de prueba** desde el Dashboard → 200 con firma válida y 401/400 con firma inválida.
-- **Cancelar la suscripción desde Mercado Pago** (no desde la app) → la fila local pasa a `canceled` por webhook.
+- **Cancelar la suscripción desde Mercado Pago** (no desde la app) → la fila local pasa a `cancelled` por webhook.
 - **Mismo evento repetido** → sin efectos duplicados.
 - **Historial de entregas:** `notifications_history` (MCP) o el Dashboard.
 

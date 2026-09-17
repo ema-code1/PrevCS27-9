@@ -1,3 +1,10 @@
+# PrevCS · Preventive Control System
+
+**Instalar o actualizar en una PC:** prender Apache y MySQL en XAMPP y hacer doble clic en `setup.cmd`.
+Guía completa: [docs/INSTALACION.md](docs/INSTALACION.md).
+
+---
+
 # CodeIgniter 4 Framework
 
 ## What is CodeIgniter?

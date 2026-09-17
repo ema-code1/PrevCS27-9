@@ -29,6 +29,7 @@ class Subscription extends BaseConfig
     public int $frequency = 1;
     public string $frequencyType = 'months';
     public string $appUrl = '';
+    public string $webhookSecret = '';
 
     public function __construct()
     {
@@ -40,6 +41,7 @@ class Subscription extends BaseConfig
         $this->amount      = round((float) env('MP_PLAN_AMOUNT', $this->amount), 2);
         $this->currency    = strtoupper(trim((string) env('MP_PLAN_CURRENCY', $this->currency)));
         $this->appUrl      = rtrim(trim((string) env('APP_URL', '')), '/');
+        $this->webhookSecret = trim((string) env('MP_WEBHOOK_SECRET', ''));
     }
 
     /**

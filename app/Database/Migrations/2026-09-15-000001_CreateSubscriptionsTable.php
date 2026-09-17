@@ -15,7 +15,7 @@ use CodeIgniter\Database\Migration;
  * la vincula al crear la cuenta.
  *
  * status: creating / failed son estados locales (antes o en lugar de la
- * respuesta de Mercado Pago); pending / authorized / paused / canceled son los
+ * respuesta de Mercado Pago); pending / authorized / paused / cancelled son los
  * de Mercado Pago.
  */
 class CreateSubscriptionsTable extends Migration

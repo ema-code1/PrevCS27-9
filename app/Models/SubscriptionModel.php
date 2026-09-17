@@ -10,7 +10,7 @@ use CodeIgniter\Model;
 class SubscriptionModel extends Model
 {
     /** Estados que devuelve Mercado Pago para una suscripción. */
-    public const MP_STATUSES = ['pending', 'authorized', 'paused', 'canceled'];
+    public const MP_STATUSES = ['pending', 'authorized', 'paused', 'cancelled'];
 
     /** Estados que cuentan como "ya tiene suscripción" para una cuenta. */
     private const ACTIVE_STATUSES = ['pending', 'authorized', 'paused'];
@@ -67,6 +67,35 @@ class SubscriptionModel extends Model
         return $this->where('user_id', $userId)
             ->whereIn('status', self::ACTIVE_STATUSES)
             ->first();
+    }
+
+    /**
+     * Guarda el estado real de una suscripción consultada en Mercado Pago
+     * (summary de MercadoPagoSubscriptions::find). Busca por preapproval id y,
+     * si todavía no se guardó, por external_reference. Devuelve si hubo fila.
+     */
+    public function syncFromMercadoPago(array $summary): bool
+    {
+        $record = $summary['id'] !== '' ? $this->where('mp_preapproval_id', $summary['id'])->first() : null;
+        if ($record === null && str_starts_with($summary['externalReference'], 'prevcs-sub-')) {
+            $record = $this->findByReference($summary['externalReference']);
+        }
+        if ($record === null) {
+            return false;
+        }
+
+        $changes = [];
+        if (empty($record['mp_preapproval_id']) && $summary['id'] !== '') {
+            $changes['mp_preapproval_id'] = $summary['id'];
+        }
+        if (in_array($summary['status'], self::MP_STATUSES, true) && $summary['status'] !== $record['status']) {
+            $changes['status'] = $summary['status'];
+        }
+        if ($changes !== []) {
+            $this->update($record['id'], $changes);
+        }
+
+        return true;
     }
 
     /** Vincula a la cuenta recién creada la suscripción pagada antes del registro. */
