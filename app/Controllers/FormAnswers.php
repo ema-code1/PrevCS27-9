@@ -23,12 +23,44 @@ class FormAnswers extends BaseController
      */
     public function metrics(): ResponseInterface
     {
+        $this->syncFromSheet();
+
         $model   = new FormAnswerModel();
         $payload = $model->getMetrics();
 
+        // Sin cache: cada recarga del portfolio tiene que ver las respuestas nuevas.
         return $this->response
-            ->setHeader('Cache-Control', 'public, max-age=60')
+            ->setHeader('Cache-Control', 'no-store, max-age=0')
             ->setJSON($payload);
+    }
+
+    /**
+     * Trae las respuestas nuevas del Google Sheet antes de calcular métricas.
+     * Como el import es idempotente, solo inserta lo que falta. Se limita a
+     * una sincronización cada `formImport.syncSeconds` (30 s por defecto) para
+     * no descargar el CSV en cada request ni frenar la página si Google no
+     * responde; un fallo no rompe el endpoint, se sirven los datos que haya.
+     */
+    private function syncFromSheet(): void
+    {
+        $cacheKey = 'form_answers_last_sync';
+        $interval = max(0, (int) env('formImport.syncSeconds', 30));
+
+        if ($interval > 0 && cache($cacheKey) !== null) {
+            return;
+        }
+        if ($interval > 0) {
+            cache()->save($cacheKey, time(), $interval);
+        }
+
+        $url = env('formImport.csvUrl', FormImportService::DEFAULT_CSV_URL);
+        // Parámetro descartable para que la caché de Google no devuelva un CSV viejo.
+        $url .= (str_contains($url, '?') ? '&' : '?') . '_=' . time();
+
+        $result = (new FormImportService())->importFromUrl($url);
+        if (! $result['ok']) {
+            log_message('warning', 'Sync de respuestas del formulario: ' . implode(' | ', $result['errors']));
+        }
     }
 
     /**

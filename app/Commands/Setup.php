@@ -57,6 +57,12 @@ class Setup extends BaseCommand
         $this->call('migrate', ['all' => null]);
         CLI::newLine();
 
+        // Sin respuestas importadas los gráficos del portfolio quedan vacíos.
+        // El import es idempotente, así que se puede repetir en cada setup.
+        CLI::write('Respuestas de la encuesta', 'yellow');
+        $this->call('form:import');
+        CLI::newLine();
+
         $this->summary();
 
         return 0;
