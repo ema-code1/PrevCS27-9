@@ -300,34 +300,24 @@
       });
     }
 
-    /* Result stack: cards enter from the right and settle over the previous one */
-    const resultStack = document.querySelector('[data-stack]');
-    if (resultStack) {
-      gsap.from(resultStack.querySelectorAll('.pf-stack-card'), {
-        scrollTrigger: { trigger: resultStack, start: 'top 78%', once: true },
-        x: 70, y: 18, opacity: 0,
-        duration: 1.05, stagger: 0.13, ease: 'power3.out'
-      });
-    }
-
-    /* 6.4 / 6.5 / 6.6 — stackable deck (desktop only ≥1024px). */
-    const PEEK_PX = 14;
-    const SCALE_STEP = 0.025;
-    const OPACITY_STEP = 0.18;
-    const stackState = (i, active, n) => {
-      const d = i - active;
-      const ad = Math.abs(d);
-      if (d === 0) {
-        return { xPercent: -50, yPercent: -50, y: 0, scale: 1, opacity: 1, zIndex: n + 10 };
+    /* 6.4 / 6.5 / 6.6 — scroll reveal apilado (desktop only ≥1024px).
+       Cada carta sube desde abajo y se apoya sobre la anterior; las de atrás
+       se achican y asoman por arriba, como un mazo que crece hacia el fondo. */
+    const PEEK_PX = 30;
+    const SCALE_STEP = 0.06;
+    const stackState = (i, active, stageEl, card) => {
+      const depth = active - i;
+      if (depth < 0) {
+        // Todavía no entró: esperando abajo, invisible para no pisar la sección siguiente.
+        return {
+          xPercent: -50, yPercent: -50, scale: 1, opacity: 0, zIndex: i + 1,
+          y: () => Math.max(window.innerHeight * 0.55, stageEl.clientHeight / 2 + card.offsetHeight / 2)
+        };
       }
-      const dir = d < 0 ? -1 : 1;
       return {
-        xPercent: -50,
-        yPercent: -50,
-        y: dir * (PEEK_PX * ad),
-        scale: Math.max(0.86, 1 - ad * SCALE_STEP),
-        opacity: Math.max(0.22, 1 - ad * OPACITY_STEP),
-        zIndex: Math.max(1, n - ad)
+        xPercent: -50, yPercent: -50, opacity: 1, zIndex: i + 1,
+        y: -depth * PEEK_PX,
+        scale: Math.max(0.8, 1 - depth * SCALE_STEP)
       };
     };
 
@@ -335,27 +325,85 @@
       const cards = Array.from(stageEl.querySelectorAll(cardSelector));
       if (!cards.length) return;
       const n = cards.length;
-      cards.forEach((c, i) => gsap.set(c, stackState(i, 0, n)));
+      cards.forEach((c, i) => gsap.set(c, stackState(i, 0, stageEl, c)));
 
       const tl = gsap.timeline({
-        defaults: { ease: 'power2.inOut' },
-        scrollTrigger: {
-          trigger: rootEl,
-          start: 'top top+=92',
-          end: () => `+=${(n - 1) * Math.max(window.innerHeight * 0.42, 280)}`,
-          pin: stageEl,
-          pinSpacing: true,
-          scrub: 0.5,
-          anticipatePin: 1,
-          invalidateOnRefresh: true
-        }
+        // sine.inOut arranca y frena despacio: sin tirón al engancharse el pin.
+        defaults: { ease: 'sine.inOut' },
+        scrollTrigger: deckScrollTrigger(rootEl, stageEl, n, 0.7)
       });
 
+      tl.to({}, { duration: DECK_HOLD });
       for (let active = 1; active < n; active++) {
-        cards.forEach((c, i) => {
-          tl.to(c, { ...stackState(i, active, n), duration: 1 }, active - 1);
+        const at = DECK_HOLD + active - 1;
+        cards.slice(0, active + 1).forEach((c, i) => {
+          tl.to(c, { ...stackState(i, active, stageEl, c), duration: 1 }, at);
         });
       }
+      tl.to({}, { duration: DECK_HOLD });
+      trackDeckProgress(tl, stageEl);
+    };
+
+    /* Pausa (en unidades de timeline) antes y después del recorrido: el pin
+       se engancha quieto y recién después empiezan a moverse las cartas. */
+    const DECK_HOLD = 0.35;
+    /* Expone el avance suavizado del timeline como --deck-p (0→1) para que
+       el fondo del stage se mueva al ritmo de las cartas. */
+    const trackDeckProgress = (tl, stageEl) => {
+      tl.eventCallback('onUpdate', () => {
+        stageEl.style.setProperty('--deck-p', tl.progress().toFixed(4));
+      });
+    };
+
+    const deckScrollTrigger = (rootEl, stageEl, n, vhPerStep) => ({
+      trigger: rootEl,
+      // Centrado en el área visible debajo del header fijo (92px).
+      start: 'center center+=46',
+      end: () => `+=${(n - 1 + DECK_HOLD * 2) * Math.max(window.innerHeight * vhPerStep, 380)}`,
+      pin: stageEl,
+      pinSpacing: true,
+      scrub: 1,
+      invalidateOnRefresh: true
+    });
+
+    /* 7.4 · Conclusiones — mazo girado (desktop only ≥1024px).
+       Adaptado de "Cards Stack Rotated" (Systaliko UI, MIT): las cartas esperan
+       abanicadas; la de adelante se va hacia arriba y la siguiente se endereza. */
+    const FAN_ROTATION = -6;
+    const FAN_Y = 0;
+    const fanState = (pos) => {
+      if (pos < 0) {
+        return { xPercent: -50, yPercent: -50, y: () => -window.innerHeight * 0.55, rotation: 6, scale: 1, opacity: 0 };
+      }
+      return {
+        xPercent: -50, yPercent: -50,
+        y: pos * FAN_Y,
+        rotation: pos * FAN_ROTATION,
+        scale: 1 - pos * 0.02,
+        opacity: pos > 3 ? 0 : 1
+      };
+    };
+
+    const setupFanDeck = (rootEl, stageEl, cardSelector) => {
+      const cards = Array.from(stageEl.querySelectorAll(cardSelector));
+      if (!cards.length) return;
+      const n = cards.length;
+      cards.forEach((c, i) => gsap.set(c, { ...fanState(i), zIndex: n - i }));
+
+      const tl = gsap.timeline({
+        defaults: { ease: 'sine.inOut' },
+        scrollTrigger: deckScrollTrigger(rootEl, stageEl, n, 0.6)
+      });
+
+      tl.to({}, { duration: DECK_HOLD });
+      for (let front = 1; front < n; front++) {
+        const at = DECK_HOLD + front - 1;
+        cards.forEach((c, i) => {
+          tl.to(c, { ...fanState(i - front), duration: 1 }, at);
+        });
+      }
+      tl.to({}, { duration: DECK_HOLD });
+      trackDeckProgress(tl, stageEl);
     };
 
     const stackMM = gsap.matchMedia();
@@ -363,6 +411,10 @@
       const adoptStackEl = document.querySelector('[data-adopt-stack]');
       const adoptStage = adoptStackEl && adoptStackEl.querySelector('[data-adopt-stage]');
       if (adoptStackEl && adoptStage) setupDeck(adoptStackEl, adoptStage, '.pf-adopt-card');
+
+      const resultStack = document.querySelector('[data-stack]');
+      const resultStage = resultStack && resultStack.querySelector('[data-stack-stage]');
+      if (resultStack && resultStage) setupFanDeck(resultStack, resultStage, '.pf-stack-card');
     });
 
     stackMM.add('(max-width: 1023px)', () => {
@@ -374,6 +426,18 @@
           y: 22, opacity: 0, duration: 0.6, ease: 'power2.out'
         });
       });
+
+      /* Conclusiones en flujo vertical: entran desde la derecha y se asientan. */
+      const resultStack = document.querySelector('[data-stack]');
+      if (resultStack) {
+        const resultCards = resultStack.querySelectorAll('.pf-stack-card');
+        gsap.set(resultCards, { clearProps: 'all' });
+        gsap.from(resultCards, {
+          scrollTrigger: { trigger: resultStack, start: 'top 78%', once: true },
+          x: 70, y: 18, opacity: 0,
+          duration: 1.05, stagger: 0.13, ease: 'power3.out'
+        });
+      }
     });
 
     /* Sustainability path */
@@ -439,7 +503,6 @@
       '.pf-editorial > p',
       '.pf-editorial-lead',
       '.pf-chart-card',
-      '.pf-stack-card',
       '.pf-eje'
     ].join(',');
     const targets = Array.from(new Set(document.querySelectorAll(selector)));
@@ -506,7 +569,8 @@
     function segColors(t) { return [t.accent, t.warning, t.success, t.accent2, t.error, t.info]; }
 
     function fetchAndRender() {
-      fetch(url, { headers: { Accept: 'application/json' } })
+      // no-store: al recargar siempre se piden las métricas actualizadas.
+      fetch(url, { headers: { Accept: 'application/json' }, cache: 'no-store' })
         .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
         .then(p => { lastPayload = p; renderAll(p); })
         .catch(err => { console.warn('[portfolio] metricas error:', err); renderEmpty(); });

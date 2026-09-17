@@ -1073,9 +1073,24 @@ body:has(.pf-main) {
   transform: translate(-50%, -50%);
   will-change: transform, opacity;
 }
-.pf-adopt-card:nth-child(1) { z-index: 10; }
-.pf-adopt-card:nth-child(2) { z-index: 9; }
-.pf-adopt-card:nth-child(3) { z-index: 8; }
+.pf-adopt-card:nth-child(1) { z-index: 1; }
+.pf-adopt-card:nth-child(2) { z-index: 2; }
+.pf-adopt-card:nth-child(3) { z-index: 3; }
+
+/* Desktop: el stage deja solo el aire justo para que las cartas de atrás
+   asomen por arriba; las que esperan entrar arrancan invisibles desde abajo. */
+@media (min-width: 1024px) {
+  .pf-adopt-stack {
+    margin: clamp(12px, 2vw, 24px) 0 clamp(16px, 2.4vw, 32px);
+    padding: 0;
+  }
+  .pf-adopt-stage {
+    height: clamp(420px, 52vh, 500px);
+    min-height: 0;
+  }
+  /* Bajada para que el aire quede arriba (donde asoman las cartas) y no abajo. */
+  .pf-adopt-card { top: calc(50% + 28px); }
+}
 .pf-adopt-num {
   align-self: flex-start;
   font-size: 12px;
@@ -1375,11 +1390,7 @@ body[data-theme="dark"] .pf-form-frame {
 
 /* Resultado / analisis narrativo debajo de los charts */
 .pf-results-analysis {
-  margin-top: 18px;
-  padding: 22px 24px;
-  border: 1px solid var(--hair);
-  border-radius: var(--radius-lg);
-  background: var(--bg-card);
+  margin-top: clamp(20px, 3vw, 36px);
   display: flex; flex-direction: column; gap: 14px;
 }
 .pf-results-eyebrow {
@@ -1455,6 +1466,77 @@ body[data-theme="dark"] .pf-form-frame {
   border-radius: 12px 12px 0 0;
   background: color-mix(in oklab, var(--accent) 10%, var(--bg-card));
 }
+/* Stage del mazo: en mobile/tablet es un contenedor transparente. */
+.pf-stack-stage {
+  display: contents;
+}
+
+/* Desktop: mazo girado. Las cartas se superponen en el centro del stage y
+   GSAP maneja giro, desplazamiento y salida según el scroll. */
+@media (min-width: 1024px) {
+  .pf-stack {
+    padding: 16px 0 0;
+  }
+  /* Alto apenas mayor que la carta: las esquinas giradas del abanico
+     desbordan a propósito en vez de reservar aire vacío arriba y abajo. */
+  .pf-stack-stage {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 360px;
+  }
+  .pf-stack-stage .pf-stack-card {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(640px, 86%);
+    min-height: 250px;
+    margin: 0;
+    background:
+      linear-gradient(135deg, color-mix(in oklab, var(--accent) 6%, transparent), transparent 44%),
+      var(--bg-2);
+    transform: translate(-50%, -50%);
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+  }
+  .pf-stack-stage .pf-stack-card::before { display: none; }
+}
+
+/* Fondo de los mazos con scroll (6.4–6.6 y Conclusiones), solo desktop.
+   Vive en el stage pineado, así acompaña a las cartas mientras quedan fijas.
+   --deck-p (0→1) lo actualiza GSAP: los brillos se cruzan y la grilla de
+   puntos sube a medida que avanzan las cartas. Bordes difuminados con mask
+   para que se funda con la página en vez de verse como una caja. */
+@media (min-width: 1024px) {
+  .pf-adopt-stage,
+  .pf-stack-stage {
+    --deck-p: 0;
+    isolation: isolate;
+  }
+  .pf-adopt-stage::before,
+  .pf-stack-stage::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: -64px;
+    bottom: -64px;
+    left: 50%;
+    width: 100vw;
+    margin-left: -50vw;
+    pointer-events: none;
+    background:
+      radial-gradient(460px 280px at calc(16% + var(--deck-p) * 44%) calc(72% - var(--deck-p) * 44%),
+        color-mix(in oklab, var(--accent) 24%, transparent), transparent 70%),
+      radial-gradient(420px 260px at calc(84% - var(--deck-p) * 40%) calc(28% + var(--deck-p) * 44%),
+        color-mix(in oklab, var(--accent-2) 20%, transparent), transparent 70%),
+      radial-gradient(circle, color-mix(in oklab, var(--ink) 16%, transparent) 1px, transparent 1.5px)
+        0 calc(var(--deck-p) * -160px) / 22px 22px,
+      color-mix(in oklab, var(--accent) 4%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, #000 24%, #000 76%, transparent);
+  }
+}
+
 .pf-stack-num {
   display: inline-flex;
   margin-bottom: 10px;

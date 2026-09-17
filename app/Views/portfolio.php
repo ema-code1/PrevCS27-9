@@ -42,7 +42,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/landing.css') ?>?v=20260609-3">
-<link rel="stylesheet" href="<?= base_url('css/portfolio.css') ?>?v=20260609-2">
+<link rel="stylesheet" href="<?= base_url('css/portfolio.css') ?>?v=20260917-9">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -212,12 +212,9 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           <span class="pf-muted">paso a paso, con tiempos y responsables.</span>
         </h2>
         <p class="pf-section-lede" data-reveal>
-          Apartado preparado para completarse cuando lo trabajemos en clase. Por ahora se mantiene
-          la estructura con bloques para objetivos, recursos, etapas, responsables y tiempos.
+          Plan de trabajo del ciclo lectivo 2026, de marzo a noviembre: desde el relevamiento de
+          requerimientos hasta la maqueta IoT funcionando y la documentación final.
         </p>
-        <span class="pf-status pf-status--todo" data-reveal>
-          <span class="pf-status-dot"></span> Pendiente — se completará más adelante
-        </span>
       </header>
 
       <div class="pf-steps" role="list">
@@ -229,12 +226,23 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           <span class="pf-step-num mono">01</span>
           <div class="pf-step-body">
             <h3><?= $icon('target', 'pf-ico pf-ico--head') ?> Objetivos</h3>
-            <p class="pf-placeholder-text">Reservado para los objetivos generales y específicos del emprendimiento.</p>
-            <ul class="pf-bullet-list pf-placeholder">
-              <li>Objetivo general — <em>placeholder</em></li>
-              <li>Objetivos específicos — <em>placeholder</em></li>
-              <li>Resultados esperados — <em>placeholder</em></li>
+            <p>
+              <b>General.</b> Desarrollar e implementar un sistema web de gestión y monitoreo de activos
+              industriales, integrado con IoT, que centralice maquinaria, herramientas e insumos y optimice
+              el mantenimiento con información accesible en tiempo real.
+            </p>
+            <ul class="pf-bullet-list">
+              <li>Relevar las necesidades de gestión y monitoreo en entornos industriales.</li>
+              <li>Diseñar una base de datos relacional íntegra, organizada y trazable.</li>
+              <li>Desarrollar la aplicación web para administrar activos, stock y tareas de mantenimiento.</li>
+              <li>Alertar cuando un insumo se agota o está por agotarse.</li>
+              <li>Construir un prototipo con ESP32 y 3 sensores (temperatura, vibración y RPM) conectados a un motor.</li>
+              <li>Registrar lecturas históricas y visualizarlas con alertas ante anomalías.</li>
             </ul>
+            <p>
+              <b>Resultados esperados.</b> Indicadores de frecuencia de mantenimiento, consumo de insumos
+              y detección temprana de fallas, sobre una base escalable para análisis predictivo.
+            </p>
           </div>
         </article>
 
@@ -242,11 +250,13 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           <span class="pf-step-num mono">02</span>
           <div class="pf-step-body">
             <h3><?= $icon('layers', 'pf-ico pf-ico--head') ?> Recursos</h3>
-            <p class="pf-placeholder-text">Tecnológicos, humanos, materiales y financieros que necesita el proyecto.</p>
-            <ul class="pf-bullet-list pf-placeholder">
-              <li>Hardware (sensores, gateways) — <em>placeholder</em></li>
-              <li>Software (CodeIgniter, MySQL, Chart.js) — <em>placeholder</em></li>
-              <li>Equipo de trabajo — <em>placeholder</em></li>
+            <p>Tecnológicos y materiales que requiere el proyecto.</p>
+            <ul class="pf-bullet-list">
+              <li><b>Microcontrolador.</b> Placa NodeMCU ESP32 con transmisión de datos por wifi.</li>
+              <li><b>Sensores.</b> DS18B20 (temperatura), SW-420 (vibración) y LM393 (RPM).</li>
+              <li><b>Alertas locales.</b> Buzzer y pantalla para avisar cuando se pierde la señal de un sensor.</li>
+              <li><b>Maqueta.</b> Motor de corriente continua a 12, 9 y 6 V que simula un motor trifásico con poleas.</li>
+              <li><b>Software.</b> CodeIgniter 4, MySQL, Chart.js y firmware Arduino para el ESP32.</li>
             </ul>
           </div>
         </article>
@@ -255,12 +265,14 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           <span class="pf-step-num mono">03</span>
           <div class="pf-step-body">
             <h3><?= $icon('route', 'pf-ico pf-ico--head') ?> Etapas</h3>
-            <p class="pf-placeholder-text">Hoja de ruta dividida en fases medibles, con hitos por cada etapa.</p>
-            <ol class="pf-timeline pf-placeholder">
-              <li><span class="pf-tl-dot"></span><b>Fase 1.</b> Investigación y validación</li>
-              <li><span class="pf-tl-dot"></span><b>Fase 2.</b> Prototipo funcional</li>
-              <li><span class="pf-tl-dot"></span><b>Fase 3.</b> Pilotaje con cliente</li>
-              <li><span class="pf-tl-dot"></span><b>Fase 4.</b> Lanzamiento</li>
+            <p>Hoja de ruta en seis fases, de marzo a noviembre.</p>
+            <ol class="pf-timeline">
+              <li><span class="pf-tl-dot"></span><span><b>Fase 1.</b> Relevamiento, requerimientos e investigación de tecnologías</span></li>
+              <li><span class="pf-tl-dot"></span><span><b>Fase 2.</b> Alcance, arquitectura y diseño de la base de datos</span></li>
+              <li><span class="pf-tl-dot"></span><span><b>Fase 3.</b> Modelo entidad-relación e implementación de la base</span></li>
+              <li><span class="pf-tl-dot"></span><span><b>Fase 4.</b> Backend, interfaz web y paneles de visualización</span></li>
+              <li><span class="pf-tl-dot"></span><span><b>Fase 5.</b> Integración IoT, captura de sensores y alertas</span></li>
+              <li><span class="pf-tl-dot"></span><span><b>Fase 6.</b> Pruebas, correcciones, validación y documentación</span></li>
             </ol>
           </div>
         </article>
@@ -269,11 +281,11 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           <span class="pf-step-num mono">04</span>
           <div class="pf-step-body">
             <h3><?= $icon('users', 'pf-ico pf-ico--head') ?> Responsables</h3>
-            <p class="pf-placeholder-text">Quién lidera cada área y cómo se distribuyen las tareas del equipo.</p>
-            <ul class="pf-bullet-list pf-placeholder">
-              <li>Líder del proyecto — <em>placeholder</em></li>
-              <li>Responsable técnico — <em>placeholder</em></li>
-              <li>Responsable comercial — <em>placeholder</em></li>
+            <p>Cómo se distribuyen las áreas dentro del equipo.</p>
+            <ul class="pf-bullet-list">
+              <li><b>José Mangold.</b> Desarrollo full-stack: base de datos, backend, interfaz web e integración IoT.</li>
+              <li><b>Emanuel Risso Patron.</b> Idea del proyecto, logística y definición de funcionalidades.</li>
+              <li><b>Mayra Dell'Oso.</b> Seguimiento y evaluación desde la materia Emprendimientos.</li>
             </ul>
           </div>
         </article>
@@ -282,14 +294,16 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           <span class="pf-step-num mono">05</span>
           <div class="pf-step-body">
             <h3><?= $icon('clock', 'pf-ico pf-ico--head') ?> Tiempos</h3>
-            <p class="pf-placeholder-text">Cronograma estimado por fase. Se completará con fechas concretas.</p>
-            <div class="pf-gantt pf-placeholder" aria-hidden="true">
-              <div class="pf-gantt-row"><span>Fase 1</span><span class="pf-gantt-bar" style="--from:0; --to:25;"></span></div>
-              <div class="pf-gantt-row"><span>Fase 2</span><span class="pf-gantt-bar" style="--from:20; --to:55;"></span></div>
-              <div class="pf-gantt-row"><span>Fase 3</span><span class="pf-gantt-bar" style="--from:50; --to:80;"></span></div>
-              <div class="pf-gantt-row"><span>Fase 4</span><span class="pf-gantt-bar" style="--from:75; --to:100;"></span></div>
+            <p>Cronograma general de marzo a noviembre de 2026.</p>
+            <div class="pf-gantt">
+              <div class="pf-gantt-row" title="Marzo – abril"><span>Fase 1</span><span class="pf-gantt-bar" style="--from:0; --to:22.2;"></span></div>
+              <div class="pf-gantt-row" title="Abril – mayo"><span>Fase 2</span><span class="pf-gantt-bar" style="--from:11.1; --to:33.3;"></span></div>
+              <div class="pf-gantt-row" title="Mayo – junio"><span>Fase 3</span><span class="pf-gantt-bar" style="--from:22.2; --to:44.4;"></span></div>
+              <div class="pf-gantt-row" title="Junio – agosto"><span>Fase 4</span><span class="pf-gantt-bar" style="--from:33.3; --to:66.7;"></span></div>
+              <div class="pf-gantt-row" title="Agosto – octubre"><span>Fase 5</span><span class="pf-gantt-bar" style="--from:55.6; --to:88.9;"></span></div>
+              <div class="pf-gantt-row" title="Septiembre – noviembre"><span>Fase 6</span><span class="pf-gantt-bar" style="--from:66.7; --to:100;"></span></div>
             </div>
-            <div class="pf-gantt-scale mono"><span>inicio</span><span>medio</span><span>cierre</span></div>
+            <div class="pf-gantt-scale mono"><span>mar</span><span>jul</span><span>nov</span></div>
           </div>
         </article>
       </div>
@@ -310,9 +324,6 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           Apartado preparado con la identidad actual derivada de la plataforma. Cuando definamos
           la versión final del manual de marca, los bloques se reemplazan con los assets oficiales.
         </p>
-        <span class="pf-status pf-status--partial" data-reveal>
-          <span class="pf-status-dot"></span> Parcial — derivado del proyecto, pendiente manual oficial
-        </span>
       </header>
 
       <div class="pf-brand-grid">
@@ -485,9 +496,6 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
             Qué es PrevCS y a quién va dirigido.
             <span class="pf-muted">Propósito, problema y propuesta de valor.</span>
           </h2>
-          <span class="pf-status pf-status--partial" data-reveal>
-            <span class="pf-status-dot"></span> Parcial — completado con lo que sabemos hoy
-          </span>
         </div>
 
         <!-- Right: scrollable body -->
@@ -536,6 +544,22 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
                 <li><?= $icon('bulb') ?><span><b>Recomendaciones inteligentes.</b> PrevCS sugiere set de sensores y plantillas.</span></li>
                 <li><?= $icon('layers') ?><span><b>Workspace propio.</b> Configurado a la empresa, no un panel genérico.</span></li>
                 <li><?= $icon('bell') ?><span><b>Alertas y predictivo.</b> Por umbral, tendencia o correlación entre métricas.</span></li>
+              </ul>
+            </div>
+
+            <div class="pf-about-item pf-about-item--full" data-reveal>
+              <span class="mono pf-about-tag"><?= $icon('cpu', 'pf-ico pf-ico--sm') ?> prototipo</span>
+              <h4>Cómo lo demostramos</h4>
+              <p>
+                Una maqueta con un motor de corriente continua reemplaza al motor trifásico con poleas de una
+                planta. Al hacerlo funcionar a 12, 9 y 6 V cambian las lecturas, igual que cuando un motor
+                se sobreexige por una anomalía.
+              </p>
+              <ul class="pf-feature-list pf-feature-list--2col">
+                <li><?= $icon('gauge') ?><span><b>LM393 · RPM.</b> Detecta cada vuelta del engranaje a través de su ranura óptica.</span></li>
+                <li><?= $icon('gauge') ?><span><b>SW-420 · vibración.</b> Cuenta los impactos: a más movimiento, mayor valor.</span></li>
+                <li><?= $icon('gauge') ?><span><b>DS18B20 · temperatura.</b> Convierte la lectura analógica a digital dentro del sensor.</span></li>
+                <li><?= $icon('bell') ?><span><b>ESP32 + wifi.</b> Envía los datos a la web; si un sensor deja de responder, suena el buzzer y aparece la alerta.</span></li>
               </ul>
             </div>
           </div>
@@ -973,7 +997,8 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
           <h5 class="pf-results-title">Conclusiones</h5>
 
           <div class="pf-stack" data-stack>
-            <article class="pf-stack-card" style="--i:0" data-reveal="right">
+            <div class="pf-stack-stage" data-stack-stage>
+            <article class="pf-stack-card" style="--i:0">
               <span class="pf-stack-num mono">01</span>
               <p>
                 La encuesta muestra que el <b>90% de los respondientes tiene contacto directo con
@@ -984,7 +1009,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
               </p>
             </article>
 
-            <article class="pf-stack-card" style="--i:1" data-reveal="right">
+            <article class="pf-stack-card" style="--i:1">
               <span class="pf-stack-num mono">02</span>
               <p>
                 Además, <b>el 70% de los encuestados conoce u operó algún producto similar</b>, contra
@@ -993,7 +1018,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
               </p>
             </article>
 
-            <article class="pf-stack-card" style="--i:2" data-reveal="right">
+            <article class="pf-stack-card" style="--i:2">
               <span class="pf-stack-num mono">03</span>
               <p>
                 Al preguntar qué función consideran <b>más útil para la empresa</b>, las respuestas se
@@ -1003,7 +1028,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
               </p>
             </article>
 
-            <article class="pf-stack-card" style="--i:3" data-reveal="right">
+            <article class="pf-stack-card" style="--i:3">
               <span class="pf-stack-num mono">04</span>
               <p>
                 Sobre el <b>nivel de mejora estimado</b>, el <b>80% lo considera Alto</b> y el <b>20%
@@ -1012,7 +1037,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
               </p>
             </article>
 
-            <article class="pf-stack-card" style="--i:4" data-reveal="right">
+            <article class="pf-stack-card" style="--i:4">
               <span class="pf-stack-num mono">05</span>
               <p>
                 Finalmente, en la dimensión ecológica, el <b>90% manifestó interés explícito</b> y el
@@ -1020,6 +1045,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
                 mayor profundidad en la reflexión de más abajo.
               </p>
             </article>
+            </div>
 
           </div>
         </div>
@@ -1062,8 +1088,8 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
               </mask>
             </defs>
             <g mask="url(#pf-ejes-mask)">
-              <path class="pf-ejes-path-base" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C315 640 540 615 750 665"/>
-              <path class="pf-ejes-path-line" pathLength="1" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C315 640 540 615 750 665"/>
+              <path class="pf-ejes-path-base" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C222 572 540 640 750 665"/>
+              <path class="pf-ejes-path-line" pathLength="1" d="M110 70 C250 70 300 170 430 170 C590 170 725 175 820 235 C900 285 760 355 535 390 C370 420 285 455 250 520 C222 572 540 640 750 665"/>
             </g>
           </svg>
         </div>
@@ -1166,5 +1192,5 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
 <!-- GSAP + ScrollTrigger — must load before portfolio.js (Lenis is loaded by the layout) -->
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
-<script src="<?= base_url('js/portfolio.js') ?>?v=20260609-1" defer></script>
+<script src="<?= base_url('js/portfolio.js') ?>?v=20260917-9" defer></script>
 <?= $this->endSection() ?>
