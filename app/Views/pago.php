@@ -3,7 +3,7 @@
 <?php $showHeader = false; ?>
 
 <?= $this->section('pageStyles') ?>
-<link rel="stylesheet" href="<?= base_url('css/pago.css') ?>?v=20260915-1">
+<link rel="stylesheet" href="<?= base_url('css/pago.css') ?>?v=20260917-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
