@@ -2,11 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Libraries\SpaceEventReminders;
 use App\Libraries\StockRowAlerts;
 use App\Models\IndustryModel;
 use App\Models\IndustryUserModel;
 use App\Models\NotificationModel;
+use App\Models\SpaceEventAssigneeModel;
 use App\Models\SpaceEventModel;
+use App\Models\SpaceEventTagModel;
 use App\Models\StockCellModel;
 use App\Models\StockColumnModel;
 use App\Models\StockRowModel;
@@ -65,10 +68,18 @@ class StockController extends BaseController
             'industry'              => $this->industry,
             'stockState'            => $tableModel->payloadForIndustry($industryId),
             // Pestaña "Calendario": eventos del espacio + listas válidas.
+            // Las etiquetas viajan en dos listas: las fijas del modelo y las
+            // que creó el espacio (con id, para poder borrarlas).
             'calendarState'         => [
-                'events'     => (new SpaceEventModel())->payloadForIndustry($industryId),
-                'categories' => SpaceEventModel::CATEGORIES,
-                'tags'       => SpaceEventModel::TAGS,
+                'events'        => (new SpaceEventModel())->payloadForIndustry($industryId),
+                'categories'    => SpaceEventModel::CATEGORIES,
+                'tags'          => SpaceEventModel::TAGS,
+                'customTags'    => (new SpaceEventTagModel())->payloadForIndustry($industryId),
+                'members'       => SpaceEventAssigneeModel::optionsFromMembers(
+                    (new IndustryUserModel())->membersForIndustry($industryId)
+                ),
+                'notifyOptions' => SpaceEventReminders::optionList(),
+                'currentUserId' => (int) session('user_id'),
             ],
             'canEdit'               => $this->canEdit,
             // El sidebar marca "Stock" abierto y resalta el espacio actual.

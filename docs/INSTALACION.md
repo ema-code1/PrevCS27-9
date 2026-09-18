@@ -49,6 +49,16 @@ php spark prevcs:setup
 | Suscripciones con Mercado Pago | `MP_ACCESS_TOKEN`, `MP_PUBLIC_KEY` y luego `php spark mp:plan` |
 | Webhooks de Mercado Pago | `MP_WEBHOOK_SECRET`, `APP_URL` con la URL de ngrok y `app.tunnelHost` |
 
+## Opcional: recordatorios del calendario con nadie conectado
+
+Los recordatorios de los eventos del calendario salen solos mientras alguien
+tenga la app abierta (el feed de la campana los reparte cada minuto). Para que
+salgan igual cuando no hay nadie conectado, programar cada 5 minutos:
+
+```bash
+php spark calendario:recordatorios
+```
+
 Detalle de Mercado Pago: [MERCADOPAGO-INTEGRACION.md](MERCADOPAGO-INTEGRACION.md).
 
 ## Problemas comunes

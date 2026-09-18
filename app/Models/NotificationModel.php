@@ -15,6 +15,16 @@ class NotificationModel extends Model
 {
     public const SOURCE_STOCK = 'stock';
 
+    /** Recordatorios del calendario del espacio (SpaceEventReminders). */
+    public const SOURCE_CALENDAR = 'calendar';
+
+    /** Nivel = color del punto en el panel: 1 rojo, 2 ámbar, 3 neutro. */
+    public const LEVEL_CRITICAL = 1;
+
+    public const LEVEL_WARNING = 2;
+
+    public const LEVEL_INFO = 3;
+
     /** Cuántas notificaciones se muestran en el panel de la campana. */
     public const FEED_LIMIT = 30;
 
@@ -43,6 +53,28 @@ class NotificationModel extends Model
             return;
         }
 
+        $this->sendTo(
+            $industryId,
+            array_map(static fn (array $member): int => (int) $member['user_id'], $members),
+            $notification
+        );
+    }
+
+    /**
+     * Misma notificación, pero solo para los destinatarios que se piden. La
+     * usan los recordatorios del calendario, que van a los encargados del
+     * evento y no a todo el espacio.
+     *
+     * @param list<int> $userIds
+     * @param array     $notification level, title, text, source, source_key, link
+     */
+    public function sendTo(int $industryId, array $userIds, array $notification): void
+    {
+        $userIds = array_values(array_unique(array_filter(array_map('intval', $userIds))));
+        if ($userIds === []) {
+            return;
+        }
+
         $base = [
             'industry_id' => $industryId,
             'level'       => (int) ($notification['level'] ?? 3),
@@ -54,8 +86,8 @@ class NotificationModel extends Model
         ];
 
         $batch = [];
-        foreach ($members as $member) {
-            $batch[] = $base + ['user_id' => (int) $member['user_id']];
+        foreach ($userIds as $userId) {
+            $batch[] = $base + ['user_id' => $userId];
         }
 
         $this->insertBatch($batch);

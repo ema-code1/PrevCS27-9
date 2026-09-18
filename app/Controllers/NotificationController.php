@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\SpaceEventReminders;
 use App\Models\NotificationModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -11,6 +12,11 @@ use CodeIgniter\HTTP\ResponseInterface;
  * El feed es GET a propósito: no pasa por el filtro CSRF, así el polling del
  * layout no le rota el token a la página que esté abierta (stock y kanban lo
  * tienen cacheado y `$regenerate = true` invalida el anterior en cada POST).
+ *
+ * El polling también es el reloj de los recordatorios del calendario: antes de
+ * armar la bandeja se reparten los que vencieron. El layout consulta cada
+ * minuto, así que el aviso llega con ese retraso como máximo sin necesidad de
+ * cron (para cuando no hay nadie conectado está `php spark calendario:recordatorios`).
  */
 class NotificationController extends BaseController
 {
@@ -20,6 +26,10 @@ class NotificationController extends BaseController
         if ($userId <= 0) {
             return $this->response->setStatusCode(401)->setJSON(['ok' => false, 'error' => 'Sesión vencida.']);
         }
+
+        // Recordatorios vencidos del calendario: se reparten antes de leer la
+        // bandeja para que aparezcan en esta misma respuesta.
+        SpaceEventReminders::flushDue();
 
         $model = new NotificationModel();
 

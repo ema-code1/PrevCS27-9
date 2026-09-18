@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/standalone.css') ?>?v=20260807-3">
 <link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260831-2">
-<link rel="stylesheet" href="<?= base_url('css/event-manager.css') ?>?v=20260917-1">
+<link rel="stylesheet" href="<?= base_url('css/event-manager.css') ?>?v=20260918-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -295,7 +295,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260831-1" defer></script>
-<script src="<?= base_url('js/event-manager.js') ?>?v=20260917-1"></script>
+<script src="<?= base_url('js/event-manager.js') ?>?v=20260918-3"></script>
 <script>
 /* ── Pestañas Stock / Calendario + calendario del espacio ─────────────── */
 (function () {
@@ -342,9 +342,9 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         var base = root.dataset.calendarBase;
         var canEdit = root.dataset.calendarCanEdit === '1';
 
-        function post(path, body) {
+        function postTo(url, body) {
             return window.PrevcsCsrf.queue(function () {
-                return fetch(base + path, {
+                return fetch(url, {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {
@@ -365,16 +365,27 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             });
         }
 
+        function post(path, body) {
+            return postTo(base + path, body);
+        }
+
         function toast(message, type) {
             if (window.PrevcsToast && typeof window.PrevcsToast.show === 'function') {
                 window.PrevcsToast.show(message, type || 'success', 3200);
             }
         }
 
+        // base termina en /eventos; las etiquetas son la ruta hermana.
+        var tagsBase = base.replace(/\/eventos$/, '/etiquetas');
+
         calendar = new window.EventManager(root, {
             events: state.events || [],
             categories: state.categories,
             availableTags: state.tags,
+            customTags: state.customTags || [],
+            members: state.members || [],
+            notifyOptions: state.notifyOptions || [],
+            notifyTip: 'Notificar a los encargados antes de que arranque el evento. El aviso llega a la campana del sistema.',
             defaultView: 'month',
             readOnly: !canEdit,
             onEventCreate: function (data) {
@@ -386,6 +397,18 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
             },
             onEventDelete: function (id) {
                 return post('/' + encodeURIComponent(id) + '/eliminar').then(function () { toast('Evento eliminado.'); });
+            },
+            onTagCreate: function (name) {
+                return postTo(tagsBase, { name: name }).then(function (res) {
+                    toast('Etiqueta "' + name + '" creada.');
+                    return res;
+                });
+            },
+            onTagDelete: function (id) {
+                return postTo(tagsBase + '/' + encodeURIComponent(id) + '/eliminar').then(function (res) {
+                    toast('Etiqueta eliminada.');
+                    return res;
+                });
             }
         });
     }

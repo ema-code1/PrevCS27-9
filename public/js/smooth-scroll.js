@@ -103,6 +103,10 @@
     window.dispatchEvent(new CustomEvent('pcs:smooth-scroll', { detail: event || null }));
   }
 
+  function shouldPreventLenis(node) {
+    return !!(node && node.closest && node.closest('[data-lenis-prevent], dialog[open]'));
+  }
+
   function initLenis() {
     if (prefersReducedMotion || window.__PCS_DISABLE_SMOOTH_SCROLL) return;
     if (typeof window.Lenis !== 'function') return;
@@ -115,7 +119,8 @@
       gestureOrientation: 'vertical',
       wheelMultiplier: 0.85,
       touchMultiplier: 1.1,
-      autoResize: true
+      autoResize: true,
+      prevent: shouldPreventLenis
     });
 
     state.lenis = lenis;

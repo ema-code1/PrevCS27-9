@@ -104,6 +104,9 @@ $routes->post('espacios/(:num)/stock/tablas/(:num)/celdas/(:num)/(:num)', 'Stock
 $routes->post('espacios/(:num)/calendario/eventos', 'SpaceEventController::create/$1');
 $routes->post('espacios/(:num)/calendario/eventos/(:num)', 'SpaceEventController::update/$1/$2');
 $routes->post('espacios/(:num)/calendario/eventos/(:num)/eliminar', 'SpaceEventController::delete/$1/$2');
+// Etiquetas propias del espacio: se suman a las fijas del modelo.
+$routes->post('espacios/(:num)/calendario/etiquetas', 'SpaceEventController::createTag/$1');
+$routes->post('espacios/(:num)/calendario/etiquetas/(:num)/eliminar', 'SpaceEventController::deleteTag/$1/$2');
 
 // Campana del header. El feed es GET para que el polling no rote el CSRF.
 $routes->get('notificaciones', 'NotificationController::feed');

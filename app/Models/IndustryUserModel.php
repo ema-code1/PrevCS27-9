@@ -96,7 +96,8 @@ class IndustryUserModel extends Model
      */
     public function membersForIndustry(int $industryId): array
     {
-        return $this->select('industry_users.*, users.nombre, users.apellido, users.email')
+        // foto_perfil viaja para los avatares de los encargados del calendario.
+        return $this->select('industry_users.*, users.nombre, users.apellido, users.email, users.foto_perfil')
             ->join('users', 'users.id = industry_users.user_id')
             ->where('industry_users.industry_id', $industryId)
             ->orderBy('industry_users.role', 'ASC')

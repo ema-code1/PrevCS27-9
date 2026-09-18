@@ -6,18 +6,30 @@
    Uso:
      var cal = new EventManager(elemento, {
        events: [...],              // { id, title, description, startTime,
-                                   //   endTime, color, category, tags }
-       categories: [...], availableTags: [...],
+                                   //   endTime, color, category, tags,
+                                   //   assignees: [userId], notify }
+       categories: [...],
+       availableTags: [...],       // etiquetas fijas (no se pueden borrar)
+       customTags: [{ id, name }], // etiquetas propias del espacio
+       members: [{ id, name, initials, photo, role }],
+       notifyOptions: [{ value, label }],
        defaultView: 'month',       // month | week | day | list
        readOnly: false,
        onEventCreate: function (data)      { return Promise<evento> },
        onEventUpdate: function (id, data)  { return Promise<evento> },
-       onEventDelete: function (id)        { return Promise }
+       onEventDelete: function (id)        { return Promise },
+       onTagCreate:   function (name)      { return Promise<{tags}> },
+       onTagDelete:   function (id)        { return Promise<{tags, events}> }
      });
 
    Los callbacks pueden devolver una promesa. Crear/editar/borrar esperan la
    respuesta (si falla, el diálogo queda abierto con el error); arrastrar un
    evento se aplica al toque y se revierte si el guardado falla.
+
+   Los campos de fecha, categoría, encargados y notificaciones son controles
+   propios (EmDateTime / EmSelect) y no controles nativos: el calendario del
+   datetime-local y el menú del select los dibuja el navegador y no se pueden
+   estilar.
    ===================================================================== */
 (function (window, document) {
   'use strict';
@@ -44,7 +56,12 @@
   var ICONS = {
     chevronLeft: '<path d="m15 18-6-6 6-6"/>',
     chevronRight: '<path d="m9 18 6-6-6-6"/>',
+    chevronDown: '<path d="m6 9 6 6 6-6"/>',
     plus: '<path d="M5 12h14M12 5v14"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+    bellOff: '<path d="M8.7 3A6 6 0 0 1 18 8c0 7 3 9 3 9H9"/><path d="M6 8a6 6 0 0 1 .4-2.2C5.5 6.8 5 7.9 5 9c0 7-2 8-2 8h3"/><path d="m2 2 20 20"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>',
     calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
     grid: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
@@ -130,7 +147,11 @@
       endTime: parseDate(ev.endTime),
       color: ev.color,
       category: ev.category || '',
-      tags: Array.isArray(ev.tags) ? ev.tags.slice() : []
+      tags: Array.isArray(ev.tags) ? ev.tags.slice() : [],
+      /* Encargados: ids de usuario. El nombre y el avatar los resuelve el
+         componente con la lista de miembros del espacio. */
+      assignees: Array.isArray(ev.assignees) ? ev.assignees.map(Number) : [],
+      notify: ev.notify || 'none'
     };
   }
 
@@ -151,13 +172,998 @@
       endTime: toInputValue(ev.endTime),
       color: ev.color,
       category: ev.category,
-      tags: ev.tags.slice()
+      tags: ev.tags.slice(),
+      assignees: ev.assignees.slice(),
+      notify: ev.notify
     };
   }
 
   function resolved(value) {
     return value && typeof value.then === 'function' ? value : Promise.resolve(value);
   }
+
+  function avatar(person, extraClass) {
+    var cls = 'em-avatar' + (extraClass ? ' ' + extraClass : '');
+    if (person.photo) {
+      return h('img', { class: cls + ' em-avatar--photo', src: person.photo, alt: '', loading: 'lazy' });
+    }
+    return h('span', { class: cls, 'aria-hidden': 'true', text: person.initials || '?' });
+  }
+
+  /* Pila de avatares: hasta `max` caras y un "+N" con el resto. */
+  function avatarStack(people, max) {
+    var limit = max || 3;
+    var shown = people.slice(0, limit);
+    var rest = people.length - shown.length;
+    return h('span', { class: 'em-avatars' }, [
+      shown.map(function (person) { return avatar(person); }),
+      rest > 0 ? h('span', { class: 'em-avatar em-avatar--more', 'aria-hidden': 'true', text: '+' + rest }) : null
+    ]);
+  }
+
+  /* =================================================================
+     Popover flotante (selects y campos de fecha)
+
+     Los menús de los campos del diálogo van con position: fixed y
+     coordenadas calculadas a mano: el cuerpo del diálogo scrollea, así que un
+     absolute quedaría recortado por el overflow. Hay uno abierto a la vez.
+     ================================================================= */
+  var activeFloat = null;
+
+  /**
+   * Coloca el popover pegado a su disparador, en coordenadas de viewport.
+   *
+   * position: fixed se ancla al viewport salvo que algún ancestro tenga
+   * transform, filter o perspective: ahí ese ancestro pasa a ser el bloque
+   * contenedor y top/left se miden desde su borde. En vez de adivinar cuál es
+   * (al <dialog> le pasa mientras corre su animación de entrada), se mide:
+   * con top/left en 0 el popover queda justo en el origen del bloque
+   * contenedor, así que su rect en ese momento ES el corrimiento a restar.
+   */
+  function floatPlace(entry) {
+    var pop = entry.pop;
+    var rect = entry.trigger.getBoundingClientRect();
+    var gap = 6;
+    var margin = 10;
+
+    if (entry.matchWidth) pop.style.minWidth = Math.round(rect.width) + 'px';
+
+    pop.style.top = '0px';
+    pop.style.left = '0px';
+    var base = pop.getBoundingClientRect();
+    var height = base.height;
+    var width = base.width;
+
+    var below = window.innerHeight - rect.bottom - margin;
+    /* Si abajo no entra y arriba hay más aire, se despliega hacia arriba. */
+    var up = height > below && (rect.top - margin) > below;
+
+    var top = up ? rect.top - gap - height : rect.bottom + gap;
+    top = Math.max(margin, Math.min(top, window.innerHeight - height - margin));
+    var left = Math.max(margin, Math.min(rect.left, window.innerWidth - width - margin));
+
+    pop.classList.toggle('is-up', up);
+    pop.style.top = Math.round(top - base.top) + 'px';
+    pop.style.left = Math.round(left - base.left) + 'px';
+  }
+
+  function floatOpen(entry) {
+    floatClose();
+    activeFloat = entry;
+    /* Se mide ya desplegado pero invisible: sin alto no hay dónde ponerlo. */
+    entry.pop.hidden = false;
+    entry.pop.style.visibility = 'hidden';
+    floatPlace(entry);
+    entry.pop.style.visibility = '';
+    entry.pop.classList.add('is-open');
+    entry.trigger.setAttribute('aria-expanded', 'true');
+    if (typeof entry.onOpen === 'function') entry.onOpen();
+
+    /* Segunda pasada en el frame siguiente: si el diálogo todavía estaba
+       animándose (su transform mueve el bloque contenedor), la primera medida
+       queda vieja. También se reposiciona al terminar esa animación. */
+    window.requestAnimationFrame(function () {
+      if (activeFloat === entry) floatPlace(entry);
+    });
+  }
+
+  function floatClose(focusTrigger) {
+    var entry = activeFloat;
+    if (!entry) return;
+    activeFloat = null;
+    entry.pop.hidden = true;
+    entry.pop.classList.remove('is-open', 'is-up');
+    entry.trigger.setAttribute('aria-expanded', 'false');
+    if (typeof entry.onClose === 'function') entry.onClose();
+    if (focusTrigger) entry.trigger.focus();
+  }
+
+  function floatIsOpen(pop) {
+    return !!activeFloat && activeFloat.pop === pop;
+  }
+
+  function floatSync() {
+    if (activeFloat) floatPlace(activeFloat);
+  }
+
+  window.addEventListener('resize', floatSync);
+  window.addEventListener('scroll', floatSync, true);
+  document.addEventListener('mousedown', function (e) {
+    if (!activeFloat) return;
+    if (activeFloat.pop.contains(e.target) || activeFloat.trigger.contains(e.target)) return;
+    floatClose();
+  });
+  /* En captura y con preventDefault: si no, Escape cierra el <dialog> entero
+     en vez de cerrar solo el menú que está abierto arriba de él. */
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape' || !activeFloat) return;
+    e.preventDefault();
+    e.stopPropagation();
+    floatClose(true);
+  }, true);
+
+  /* =================================================================
+     Select propio (una o varias opciones)
+
+     Reemplaza al <select> nativo, cuyo menú no se puede estilar. Mismo
+     material que los menús de filtro: rol listbox, teclado completo y
+     opciones con avatar, color o renglón secundario.
+     ================================================================= */
+  function EmSelect(cfg) {
+    var self = this;
+    this.cfg = cfg || {};
+    this.multiple = !!this.cfg.multiple;
+    this.values = [];
+    this.options = [];
+    this.optionEls = [];
+    this.disabled = false;
+
+    this.valueEl = h('span', { class: 'em-sel__value' });
+    this.trigger = h('button', {
+      type: 'button',
+      class: 'em-sel__trigger',
+      id: this.cfg.id || null,
+      'aria-haspopup': 'listbox',
+      'aria-expanded': 'false',
+      'aria-label': this.cfg.ariaLabel || null
+    }, [
+      this.cfg.icon ? icon(this.cfg.icon) : null,
+      this.valueEl,
+      h('span', { class: 'em-sel__caret' }, icon('chevronDown'))
+    ]);
+
+    this.listEl = h('div', {
+      class: 'em-sel__list',
+      role: 'listbox',
+      'aria-multiselectable': this.multiple ? 'true' : null,
+      'aria-label': this.cfg.ariaLabel || 'Opciones'
+    });
+    this.emptyEl = h('p', { class: 'em-sel__empty', hidden: true, text: this.cfg.emptyText || 'Sin opciones' });
+
+    var parts = [];
+    if (this.cfg.searchable) {
+      this.searchInput = h('input', {
+        type: 'search',
+        class: 'em-sel__search-input',
+        placeholder: this.cfg.searchPlaceholder || 'Buscar...',
+        'aria-label': this.cfg.searchPlaceholder || 'Buscar'
+      });
+      this.searchInput.addEventListener('input', function () { self.applyFilter(); });
+      this.searchInput.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); self.focusOption(0, 1); }
+      });
+      parts.push(h('div', { class: 'em-sel__search' }, [icon('search'), this.searchInput]));
+    }
+    parts.push(this.listEl, this.emptyEl);
+    if (this.cfg.hint) parts.push(h('p', { class: 'em-sel__hint', text: this.cfg.hint }));
+
+    this.menu = h('div', { class: 'em-sel__menu', hidden: true, 'data-lenis-prevent': '' }, parts);
+    this.root = h('div', { class: 'em-sel' + (this.multiple ? ' em-sel--multi' : '') }, [this.trigger, this.menu]);
+
+    this.float = {
+      trigger: this.trigger,
+      pop: this.menu,
+      matchWidth: true,
+      onOpen: function () {
+        self.root.classList.add('is-open');
+        if (self.searchInput) { self.searchInput.value = ''; self.applyFilter(); self.searchInput.focus(); }
+        else self.focusOption(Math.max(0, self.firstSelectedIndex()), 1);
+      },
+      onClose: function () { self.root.classList.remove('is-open'); }
+    };
+
+    this.trigger.addEventListener('click', function () {
+      if (self.disabled) return;
+      if (floatIsOpen(self.menu)) floatClose(); else floatOpen(self.float);
+    });
+    this.trigger.addEventListener('keydown', function (e) {
+      if (self.disabled) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!floatIsOpen(self.menu)) floatOpen(self.float);
+      }
+    });
+
+    this.setOptions(this.cfg.options || []);
+  }
+
+  EmSelect.prototype.setOptions = function (options) {
+    var self = this;
+    this.options = (options || []).slice();
+    this.listEl.textContent = '';
+
+    this.optionEls = this.options.map(function (opt, index) {
+      var el = h('div', {
+        class: 'em-sel__opt',
+        role: 'option',
+        tabindex: '-1',
+        'aria-selected': 'false',
+        'data-value': String(opt.value)
+      }, [
+        opt.initials || opt.photo ? avatar(opt) : null,
+        opt.hex ? swatch(opt.hex, 'em-swatch em-swatch--round') : null,
+        opt.icon ? icon(opt.icon) : null,
+        h('span', { class: 'em-sel__opt-text' }, [
+          h('span', { class: 'em-sel__opt-name', text: opt.label }),
+          opt.hint ? h('span', { class: 'em-sel__opt-hint', text: opt.hint }) : null
+        ]),
+        h('span', { class: 'em-sel__check' }, icon('check'))
+      ]);
+
+      el.addEventListener('click', function () { self.pick(opt.value); });
+      el.addEventListener('keydown', function (e) { self.onOptionKey(e, index); });
+      return el;
+    });
+
+    append(this.listEl, this.optionEls);
+    /* Los valores que ya no existen se caen solos. */
+    this.setValue(this.multiple ? this.values : (this.values[0] === undefined ? '' : this.values[0]));
+    this.applyFilter();
+  };
+
+  EmSelect.prototype.getValue = function () {
+    return this.multiple ? this.values.slice() : (this.values.length ? this.values[0] : '');
+  };
+
+  EmSelect.prototype.setValue = function (value) {
+    var known = this.options.map(function (opt) { return String(opt.value); });
+    var wanted = (this.multiple ? (value || []) : [value === undefined || value === null ? '' : value])
+      .map(function (v) { return String(v); })
+      .filter(function (v) { return known.indexOf(v) !== -1; });
+
+    this.values = this.multiple ? wanted : wanted.slice(0, 1);
+    this.sync();
+  };
+
+  EmSelect.prototype.pick = function (value) {
+    if (this.disabled) return;
+    var key = String(value);
+
+    if (this.multiple) {
+      var index = this.values.indexOf(key);
+      if (index === -1) this.values.push(key); else this.values.splice(index, 1);
+    } else {
+      this.values = [key];
+    }
+
+    this.sync();
+    if (typeof this.cfg.onChange === 'function') this.cfg.onChange(this.getValue());
+    /* En simple, elegir cierra; en múltiple se sigue tildando. */
+    if (!this.multiple) floatClose(true);
+  };
+
+  EmSelect.prototype.selectedOptions = function () {
+    var values = this.values;
+    return this.options.filter(function (opt) { return values.indexOf(String(opt.value)) !== -1; });
+  };
+
+  EmSelect.prototype.firstSelectedIndex = function () {
+    var values = this.values;
+    for (var i = 0; i < this.options.length; i++) {
+      if (values.indexOf(String(this.options[i].value)) !== -1) return i;
+    }
+    return 0;
+  };
+
+  EmSelect.prototype.sync = function () {
+    var values = this.values;
+
+    this.optionEls.forEach(function (el) {
+      var on = values.indexOf(el.getAttribute('data-value')) !== -1;
+      el.classList.toggle('is-on', on);
+      el.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+
+    this.valueEl.textContent = '';
+    var picked = this.selectedOptions();
+
+    /* Sin nada elegido siempre va el placeholder, incluso con renderValue. */
+    if (!picked.length) {
+      this.valueEl.appendChild(h('span', {
+        class: 'em-sel__placeholder',
+        text: this.cfg.placeholder || 'Elegir'
+      }));
+    } else if (typeof this.cfg.renderValue === 'function') {
+      append(this.valueEl, this.cfg.renderValue(picked));
+    } else {
+      append(this.valueEl, [
+        picked[0].hex ? swatch(picked[0].hex, 'em-swatch em-swatch--round') : null,
+        h('span', { class: 'em-sel__text', text: picked.map(function (o) { return o.label; }).join(', ') })
+      ]);
+    }
+
+    this.trigger.classList.toggle('has-value', picked.length > 0);
+    this.root.classList.toggle('is-empty', picked.length === 0);
+  };
+
+  /** Filtra por texto (solo si el select es buscable). */
+  EmSelect.prototype.applyFilter = function () {
+    var query = this.searchInput ? this.searchInput.value.trim().toLowerCase() : '';
+    var visible = 0;
+
+    this.optionEls.forEach(function (el, index) {
+      var opt = this.options[index];
+      var hay = (opt.label + ' ' + (opt.hint || '')).toLowerCase();
+      var show = !query || hay.indexOf(query) !== -1;
+      el.hidden = !show;
+      if (show) visible++;
+    }, this);
+
+    this.emptyEl.hidden = visible > 0;
+    this.emptyEl.textContent = query ? 'Sin resultados' : (this.cfg.emptyText || 'Sin opciones');
+    if (floatIsOpen(this.menu)) floatSync();
+  };
+
+  EmSelect.prototype.focusOption = function (from, direction) {
+    var els = this.optionEls;
+    if (!els.length) return;
+
+    for (var i = 0; i < els.length; i++) {
+      var index = ((from + i * direction) % els.length + els.length) % els.length;
+      if (!els[index].hidden) { els[index].focus(); return; }
+    }
+  };
+
+  EmSelect.prototype.onOptionKey = function (e, index) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.focusOption(index + 1, 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); this.focusOption(index - 1, -1); }
+    else if (e.key === 'Home') { e.preventDefault(); this.focusOption(0, 1); }
+    else if (e.key === 'End') { e.preventDefault(); this.focusOption(this.optionEls.length - 1, -1); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.pick(this.options[index].value); }
+    else if (e.key === 'Tab') { floatClose(); }
+  };
+
+  EmSelect.prototype.setDisabled = function (disabled) {
+    this.disabled = !!disabled;
+    this.trigger.disabled = !!disabled;
+    this.root.classList.toggle('is-disabled', !!disabled);
+    if (disabled && floatIsOpen(this.menu)) floatClose();
+  };
+
+  /* =================================================================
+     Rueda scrolleable (hora y minutos)
+
+     Es una lista real con scrollTop propio, no una tira reescrita a mano.
+     Eso evita el salto visual: el wheel mueve píxeles continuos y, cuando el
+     gesto termina, la fila más cercana se acomoda suave al centro.
+     ================================================================= */
+
+  /** Alto de fila de respaldo, para cuando el popover todavía está oculto. */
+  var WHEEL_ITEM_FALLBACK = 32;
+
+  /** Cuánto de la rueda gira una muesca del mouse. */
+  var WHEEL_SPEED = 0.22;
+  var WHEEL_EASE = 0.06;
+
+  function EmWheel(cfg) {
+    var self = this;
+    this.cfg = cfg || {};
+    this.values = [];
+    this.valueEls = [];
+    this.index = 0;
+    this.disabled = false;
+    this.snapTimer = null;
+    this.frameId = 0;
+    this.targetTop = 0;
+    this.rawTargetTop = 0;
+    this.pointerId = null;
+    this.dragTotal = 0;
+    this.dragged = false;
+
+    this.strip = h('div', { class: 'em-wheel__strip' });
+    this.root = h('div', {
+      class: 'em-wheel',
+      role: 'spinbutton',
+      tabindex: '0',
+      'data-lenis-prevent': '',
+      'aria-label': this.cfg.label || 'Valor'
+    }, this.strip);
+
+    this.root.addEventListener('wheel', function (e) { self.onWheel(e); }, { passive: false, capture: true });
+    this.root.addEventListener('scroll', function () { self.onScroll(); }, { passive: true });
+    this.root.addEventListener('keydown', function (e) { self.onKey(e); });
+    this.root.addEventListener('pointerdown', function (e) { self.onPointerDown(e); });
+    this.strip.addEventListener('click', function (e) { self.onClick(e); });
+
+    this.setValues(this.cfg.values || []);
+  }
+
+  /* Se mide en vivo: el alto de fila lo decide el CSS y cambia con el zoom. */
+  EmWheel.prototype.itemHeight = function () {
+    var first = this.valueEls[0];
+    var height = first ? first.getBoundingClientRect().height : 0;
+    return height > 0 ? height : WHEEL_ITEM_FALLBACK;
+  };
+
+  EmWheel.prototype.centerPad = function () {
+    var pad = (this.root.clientHeight - this.itemHeight()) / 2;
+    return Math.max(0, pad);
+  };
+
+  EmWheel.prototype.maxTop = function () {
+    return Math.max(0, (this.values.length - 1) * this.itemHeight());
+  };
+
+  EmWheel.prototype.topForIndex = function (index) {
+    return Math.max(0, Math.min(this.maxTop(), index * this.itemHeight()));
+  };
+
+  EmWheel.prototype.setValues = function (values) {
+    var current = this.values.length ? this.values[this.index] : null;
+    this.values = (values || []).slice();
+
+    var at = this.values.indexOf(current);
+    this.index = at === -1 ? 0 : at;
+    this.rebuild();
+    this.syncSelected();
+    this.scrollToIndex(this.index, false);
+  };
+
+  EmWheel.prototype.getValue = function () {
+    return this.values.length ? this.values[this.index] : null;
+  };
+
+  /**
+   * false si el valor no está en la lista (el que llama decide qué hacer).
+   *
+   * Si ya es el elegido no toca nada salvo asegurar el centrado cuando la
+   * rueda acaba de desplegarse y recién ahora tiene medidas reales.
+   */
+  EmWheel.prototype.setValue = function (value) {
+    var at = this.values.indexOf(value);
+    if (at === -1) return false;
+    if (at === this.index) return true;
+
+    this.index = at;
+    this.syncSelected();
+    this.scrollToIndex(at, false);
+
+    return true;
+  };
+
+  EmWheel.prototype.refresh = function () {
+    this.scrollToIndex(this.index, false);
+  };
+
+  EmWheel.prototype.rebuild = function () {
+    var self = this;
+    var format = this.cfg.format || String;
+
+    this.strip.textContent = '';
+    this.valueEls = [];
+    this.strip.appendChild(h('div', { class: 'em-wheel__pad', 'aria-hidden': 'true' }));
+
+    this.values.forEach(function (value, index) {
+      var item = h('div', {
+        class: 'em-wheel__item',
+        role: 'option',
+        'data-index': String(index),
+        text: format(value)
+      });
+      self.valueEls.push(item);
+      self.strip.appendChild(item);
+    });
+
+    this.strip.appendChild(h('div', { class: 'em-wheel__pad', 'aria-hidden': 'true' }));
+    this.root.style.setProperty('--em-wheel-pad', this.centerPad() + 'px');
+  };
+
+  EmWheel.prototype.syncSelected = function () {
+    var format = this.cfg.format || String;
+    var value = this.getValue();
+
+    this.root.setAttribute('aria-valuenow', value === null ? '' : String(value));
+    this.root.setAttribute('aria-valuetext', value === null ? '' : format(value));
+
+    this.valueEls.forEach(function (item, index) {
+      var on = index === this.index;
+      item.classList.toggle('is-on', on);
+      item.setAttribute('aria-selected', on ? 'true' : 'false');
+    }, this);
+  };
+
+  EmWheel.prototype.cancelFrame = function () {
+    if (!this.frameId) return;
+    window.cancelAnimationFrame(this.frameId);
+    this.frameId = 0;
+  };
+
+  EmWheel.prototype.currentIndexFromScroll = function () {
+    if (!this.values.length) return 0;
+    return Math.max(0, Math.min(this.values.length - 1, Math.round(this.root.scrollTop / this.itemHeight())));
+  };
+
+  EmWheel.prototype.setIndexFromScroll = function (notify) {
+    var next = this.currentIndexFromScroll();
+    if (next === this.index) return;
+
+    this.index = next;
+    this.syncSelected();
+    if (notify && typeof this.cfg.onChange === 'function') this.cfg.onChange(this.getValue());
+  };
+
+  EmWheel.prototype.scrollToIndex = function (index, animate, preserveRawTarget) {
+    this.scrollToTop(this.topForIndex(index), animate, preserveRawTarget);
+  };
+
+  EmWheel.prototype.scrollToTop = function (top, animate, preserveRawTarget) {
+    var self = this;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    this.cancelFrame();
+    window.clearTimeout(this.snapTimer);
+    this.root.style.setProperty('--em-wheel-pad', this.centerPad() + 'px');
+    this.targetTop = Math.max(0, Math.min(this.maxTop(), top));
+    if (!preserveRawTarget) this.rawTargetTop = this.targetTop;
+
+    if (!animate || reduce) {
+      this.root.scrollTop = this.targetTop;
+      this.setIndexFromScroll(false);
+      return;
+    }
+
+    this.frameId = window.requestAnimationFrame(function tick() {
+      var distance = self.targetTop - self.root.scrollTop;
+
+      if (Math.abs(distance) <= 0.4) {
+        self.root.scrollTop = self.targetTop;
+        self.frameId = 0;
+        self.setIndexFromScroll(true);
+        return;
+      }
+
+      self.root.scrollTop += distance * WHEEL_EASE;
+      self.setIndexFromScroll(true);
+      self.frameId = window.requestAnimationFrame(tick);
+    });
+  };
+
+  EmWheel.prototype.onScroll = function () {
+    this.root.style.setProperty('--em-wheel-pad', this.centerPad() + 'px');
+    this.setIndexFromScroll(true);
+  };
+
+  EmWheel.prototype.snap = function () {
+    this.scrollToIndex(this.currentIndexFromScroll(), true);
+  };
+
+  EmWheel.prototype.scheduleSnap = function () {
+    var self = this;
+    window.clearTimeout(this.snapTimer);
+    this.snapTimer = window.setTimeout(function () { self.snap(); }, 120);
+  };
+
+  /** Gira con animación (clic en una fila, flechas del teclado). */
+  EmWheel.prototype.slideBy = function (steps) {
+    if (this.disabled || !steps) return;
+    this.scrollToIndex(this.index + steps, true);
+  };
+
+  EmWheel.prototype.onWheel = function (e) {
+    if (this.disabled) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+
+    this.cancelFrame();
+
+    var delta = e.deltaY;
+    if (e.deltaMode === 1) delta *= 16;                                  // líneas
+    else if (e.deltaMode === 2) delta *= this.root.clientHeight || this.itemHeight() * 5; // páginas
+
+    if (!this.frameId) this.rawTargetTop = this.root.scrollTop;
+    this.rawTargetTop = Math.max(0, Math.min(this.maxTop(), this.rawTargetTop + delta * WHEEL_SPEED));
+    this.scrollToIndex(Math.round(this.rawTargetTop / this.itemHeight()), true, true);
+  };
+
+  EmWheel.prototype.onPointerDown = function (e) {
+    var self = this;
+    if (this.disabled || (e.button !== undefined && e.button !== 0)) return;
+
+    this.pointerId = e.pointerId;
+    this.lastY = e.clientY;
+    this.targetTop = this.root.scrollTop;
+    this.dragTotal = 0;
+    this.dragged = false;
+    this.root.classList.add('is-dragging');
+    window.clearTimeout(this.snapTimer);
+    this.cancelFrame();
+    try { this.root.setPointerCapture(e.pointerId); } catch (err) { /* sin captura */ }
+
+    this.onPointerMove = function (ev) {
+      if (ev.pointerId !== self.pointerId) return;
+      var delta = self.lastY - ev.clientY;
+      self.lastY = ev.clientY;
+      self.dragTotal += Math.abs(delta);
+      /* Con 4 px ya es un arrastre: el clic que viene después no elige fila. */
+      if (self.dragTotal > 4) self.dragged = true;
+      self.targetTop = Math.max(0, Math.min(self.maxTop(), self.root.scrollTop + delta));
+      self.root.scrollTop = self.targetTop;
+      self.setIndexFromScroll(true);
+    };
+
+    this.onPointerUp = function (ev) {
+      if (ev.pointerId !== self.pointerId) return;
+      self.endDrag();
+    };
+
+    this.root.addEventListener('pointermove', this.onPointerMove);
+    this.root.addEventListener('pointerup', this.onPointerUp);
+    this.root.addEventListener('pointercancel', this.onPointerUp);
+    this.root.focus();
+  };
+
+  EmWheel.prototype.endDrag = function () {
+    this.root.removeEventListener('pointermove', this.onPointerMove);
+    this.root.removeEventListener('pointerup', this.onPointerUp);
+    this.root.removeEventListener('pointercancel', this.onPointerUp);
+    try { this.root.releasePointerCapture(this.pointerId); } catch (err) { /* ya soltada */ }
+
+    this.pointerId = null;
+    this.root.classList.remove('is-dragging');
+    this.snap();
+  };
+
+  EmWheel.prototype.onClick = function (e) {
+    if (this.disabled) return;
+    if (this.dragged) { this.dragged = false; return; }
+
+    var item = e.target.closest('.em-wheel__item');
+    if (!item) return;
+
+    this.root.focus();
+    this.scrollToIndex(Number(item.getAttribute('data-index')) || 0, true);
+  };
+
+  EmWheel.prototype.onKey = function (e) {
+    if (this.disabled) return;
+
+    var steps = { ArrowUp: -1, ArrowDown: 1, PageUp: -3, PageDown: 3 }[e.key];
+    if (steps === undefined) return;
+
+    e.preventDefault();
+    this.slideBy(steps);
+  };
+
+  EmWheel.prototype.setDisabled = function (disabled) {
+    this.disabled = !!disabled;
+    this.root.classList.toggle('is-disabled', !!disabled);
+    this.root.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    this.root.tabIndex = disabled ? -1 : 0;
+  };
+
+  /* =================================================================
+     Campo de fecha y hora propio
+
+     El calendario del <input type="datetime-local"> lo dibuja el navegador y
+     no se puede estilar, así que el input pasa a ser un botón con un popover
+     propio: mes navegable + las dos ruedas de hora y minutos.
+     ================================================================= */
+  function EmDateTime(cfg) {
+    var self = this;
+    this.cfg = cfg || {};
+    this.locale = this.cfg.locale || 'es-AR';
+    this.weekStartsOn = this.cfg.weekStartsOn === undefined ? 1 : this.cfg.weekStartsOn;
+    this.step = this.cfg.minuteStep || 5;
+    this.value = null;
+    this.view = startOfDay(new Date());
+    this.disabled = false;
+    this.dayEls = [];
+
+    this.dateEl = h('span', { class: 'em-dt__date' });
+    this.hourEl = h('span', { class: 'em-dt__hour' });
+    this.trigger = h('button', {
+      type: 'button',
+      class: 'em-dt__trigger',
+      id: this.cfg.id || null,
+      'aria-haspopup': 'dialog',
+      'aria-expanded': 'false',
+      'aria-label': this.cfg.ariaLabel || null
+    }, [
+      icon('calendar'),
+      h('span', { class: 'em-dt__label' }, [this.dateEl, this.hourEl]),
+      h('span', { class: 'em-sel__caret' }, icon('chevronDown'))
+    ]);
+
+    this.monthEl = h('h4', { class: 'em-dt__month' });
+    this.prevBtn = h('button', {
+      type: 'button', class: 'em-dt__arrow', 'aria-label': 'Mes anterior',
+      onclick: function () { self.shiftMonth(-1); }
+    }, icon('chevronLeft'));
+    this.nextBtn = h('button', {
+      type: 'button', class: 'em-dt__arrow', 'aria-label': 'Mes siguiente',
+      onclick: function () { self.shiftMonth(1); }
+    }, icon('chevronRight'));
+
+    this.weekdaysEl = h('div', { class: 'em-dt__weekdays', 'aria-hidden': 'true' });
+    this.gridEl = h('div', { class: 'em-dt__grid', role: 'grid', 'aria-label': 'Día' });
+    this.calEl = h('div', { class: 'em-dt__cal' }, [
+      h('div', { class: 'em-dt__head' }, [
+        this.monthEl,
+        h('div', { class: 'em-dt__nav' }, [this.prevBtn, this.nextBtn])
+      ]),
+      this.weekdaysEl,
+      this.gridEl
+    ]);
+
+    var hours = [];
+    for (var hour = 0; hour < 24; hour++) hours.push(hour);
+
+    this.hourWheel = new EmWheel({
+      label: 'Hora',
+      values: hours,
+      format: pad,
+      onChange: function (value) { self.setPart('hour', value); }
+    });
+    this.minuteWheel = new EmWheel({
+      label: 'Minutos',
+      values: this.minuteValues(),
+      format: pad,
+      onChange: function (value) { self.setPart('minute', value); }
+    });
+
+    this.todayBtn = h('button', {
+      type: 'button', class: 'em-btn em-btn--ghost em-dt__today', text: 'Hoy',
+      onclick: function () { self.jumpToday(); }
+    });
+    this.doneBtn = h('button', {
+      type: 'button', class: 'em-btn em-btn--primary em-dt__done', text: 'Listo',
+      onclick: function () { floatClose(true); }
+    });
+
+    this.pop = h('div', {
+      class: 'em-dt__pop', hidden: true, role: 'dialog',
+      'data-lenis-prevent': '',
+      'aria-label': this.cfg.ariaLabel ? this.cfg.ariaLabel + ': elegir fecha y hora' : 'Elegir fecha y hora'
+    }, [
+      h('div', { class: 'em-dt__panels' }, [
+        this.calEl,
+        h('div', { class: 'em-dt__time' }, [
+          h('p', { class: 'em-dt__time-label' }, [icon('clock'), h('span', { text: 'Hora' })]),
+          h('div', { class: 'em-dt__wheels' }, [
+            this.hourWheel.root,
+            h('span', { class: 'em-dt__colon', 'aria-hidden': 'true', text: ':' }),
+            this.minuteWheel.root
+          ])
+        ])
+      ]),
+      h('footer', { class: 'em-dt__foot' }, [this.todayBtn, this.doneBtn])
+    ]);
+
+    this.root = h('div', { class: 'em-dt' }, [this.trigger, this.pop]);
+
+    this.float = {
+      trigger: this.trigger,
+      pop: this.pop,
+      matchWidth: false,
+      onOpen: function () {
+        self.root.classList.add('is-open');
+        self.view = startOfDay(self.value || new Date());
+        self.renderCalendar();
+        self.syncWheels(false, true);
+      },
+      onClose: function () { self.root.classList.remove('is-open'); }
+    };
+
+    this.trigger.addEventListener('click', function () {
+      if (self.disabled) return;
+      if (floatIsOpen(self.pop)) floatClose(); else floatOpen(self.float);
+    });
+    this.trigger.addEventListener('keydown', function (e) {
+      if (self.disabled) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (!floatIsOpen(self.pop)) floatOpen(self.float); }
+    });
+
+    this.buildWeekdays();
+    this.renderTrigger();
+  }
+
+  EmDateTime.prototype.buildWeekdays = function () {
+    var start = startOfWeek(new Date(), this.weekStartsOn);
+    for (var i = 0; i < 7; i++) {
+      var day = addDays(start, i);
+      this.weekdaysEl.appendChild(h('span', {
+        text: day.toLocaleDateString(this.locale, { weekday: 'narrow' }).toUpperCase()
+      }));
+    }
+  };
+
+  /**
+   * Minutos de la rueda: de `step` en `step`, más el minuto exacto que traiga
+   * un evento cargado fuera de la grilla (un 17:03 de antes), para que se
+   * pueda ver y conservar.
+   */
+  EmDateTime.prototype.minuteValues = function (extra) {
+    var minutes = [];
+    for (var minute = 0; minute < 60; minute += this.step) minutes.push(minute);
+
+    if (typeof extra === 'number' && minutes.indexOf(extra) === -1) {
+      minutes.push(extra);
+      minutes.sort(function (a, b) { return a - b; });
+    }
+
+    return minutes;
+  };
+
+  EmDateTime.prototype.getValue = function () {
+    return this.value ? new Date(this.value.getTime()) : null;
+  };
+
+  /**
+   * El valor llega como Date o como "YYYY-MM-DDTHH:MM".
+   *
+   * `silent` (lo usa el diálogo al cargar un evento) es también el momento de
+   * recalcular la lista de minutos: girando la rueda no se toca, así que un
+   * minuto fuera de la grilla no desaparece de abajo del dedo.
+   */
+  EmDateTime.prototype.setValue = function (value, silent) {
+    var date = value ? parseDate(value) : null;
+    this.value = date;
+    this.view = startOfDay(date || new Date());
+
+    this.syncWheels(!!silent);
+    this.renderTrigger();
+    this.renderCalendar();
+
+    if (!silent && typeof this.cfg.onChange === 'function') this.cfg.onChange(this.getValue());
+  };
+
+  /** Deja las ruedas en la hora y el minuto del valor actual. */
+  EmDateTime.prototype.syncWheels = function (recompute, refresh) {
+    var date = this.value || new Date(this.view.getFullYear(), this.view.getMonth(), this.view.getDate(), 9, 0);
+    var minute = date.getMinutes();
+
+    if (recompute) this.minuteWheel.setValues(this.minuteValues(minute));
+
+    this.hourWheel.setValue(date.getHours());
+
+    /* Si el minuto no está en la lista (llegó sin recalcular), se recalcula. */
+    if (!this.minuteWheel.setValue(minute)) {
+      this.minuteWheel.setValues(this.minuteValues(minute));
+      this.minuteWheel.setValue(minute);
+    }
+
+    if (refresh) {
+      this.hourWheel.refresh();
+      this.minuteWheel.refresh();
+    }
+  };
+
+  EmDateTime.prototype.setPart = function (part, value) {
+    var base = this.value || new Date(this.view.getFullYear(), this.view.getMonth(), this.view.getDate(), 9, 0);
+    var next = new Date(base.getTime());
+    if (part === 'hour') next.setHours(value);
+    else next.setMinutes(value);
+    next.setSeconds(0, 0);
+    this.setValue(next);
+  };
+
+  EmDateTime.prototype.pickDay = function (day) {
+    var base = this.value;
+    var next = new Date(
+      day.getFullYear(), day.getMonth(), day.getDate(),
+      base ? base.getHours() : 9,
+      base ? base.getMinutes() : 0
+    );
+    this.setValue(next);
+  };
+
+  EmDateTime.prototype.shiftMonth = function (direction) {
+    this.view = new Date(this.view.getFullYear(), this.view.getMonth() + direction, 1);
+    this.calEl.classList.remove('is-fwd', 'is-bwd');
+    void this.calEl.offsetWidth;
+    this.calEl.classList.add(direction > 0 ? 'is-fwd' : 'is-bwd');
+    this.renderCalendar();
+    if (floatIsOpen(this.pop)) floatSync();
+  };
+
+  EmDateTime.prototype.jumpToday = function () {
+    var now = new Date();
+    var base = this.value;
+    this.setValue(new Date(
+      now.getFullYear(), now.getMonth(), now.getDate(),
+      base ? base.getHours() : now.getHours(),
+      base ? base.getMinutes() : 0
+    ));
+  };
+
+  EmDateTime.prototype.renderTrigger = function () {
+    var value = this.value;
+    if (!value) {
+      this.dateEl.textContent = 'Elegir fecha';
+      this.hourEl.textContent = '--:--';
+      this.trigger.classList.remove('has-value');
+      return;
+    }
+
+    this.dateEl.textContent = capitalize(value.toLocaleDateString(this.locale, {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+    }).replace(/\./g, ''));
+    this.hourEl.textContent = pad(value.getHours()) + ':' + pad(value.getMinutes());
+    this.trigger.classList.add('has-value');
+  };
+
+  EmDateTime.prototype.renderCalendar = function () {
+    var self = this;
+    var view = this.view;
+    var today = new Date();
+    var value = this.value;
+
+    this.monthEl.textContent = capitalize(view.toLocaleDateString(this.locale, { month: 'long', year: 'numeric' }));
+
+    var start = startOfWeek(new Date(view.getFullYear(), view.getMonth(), 1), this.weekStartsOn);
+    this.gridEl.textContent = '';
+    this.dayEls = [];
+
+    for (var i = 0; i < 42; i++) {
+      (function (day) {
+        var outside = day.getMonth() !== view.getMonth();
+        var selected = value && sameDay(day, value);
+        var btn = h('button', {
+          type: 'button',
+          class: 'em-dt__day' + (outside ? ' is-outside' : '') + (sameDay(day, today) ? ' is-today' : '') + (selected ? ' is-selected' : ''),
+          'aria-pressed': selected ? 'true' : 'false',
+          'aria-label': day.toLocaleDateString(self.locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+          text: String(day.getDate()),
+          onclick: function () { self.pickDay(day); }
+        });
+        btn.addEventListener('keydown', function (e) { self.onDayKey(e, day); });
+        self.dayEls.push({ el: btn, day: day });
+        self.gridEl.appendChild(btn);
+      })(addDays(start, i));
+    }
+
+    /* La hora y el minuto los marca la rueda: el valor elegido es el del
+       centro, así que no hay nada que sincronizar acá. */
+  };
+
+  /** Flechas para moverse por la grilla; el día que se enfoca queda elegido. */
+  EmDateTime.prototype.onDayKey = function (e, day) {
+    var jump = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7, PageUp: -30, PageDown: 30 }[e.key];
+    if (jump === undefined) {
+      if (e.key === 'Tab') floatSync();
+      return;
+    }
+
+    e.preventDefault();
+    var target = addDays(day, jump);
+    if (target.getMonth() !== this.view.getMonth() || target.getFullYear() !== this.view.getFullYear()) {
+      this.view = new Date(target.getFullYear(), target.getMonth(), 1);
+    }
+    this.pickDay(target);
+
+    var focus = this.dayEls.filter(function (entry) { return sameDay(entry.day, target); })[0];
+    if (focus) focus.el.focus();
+  };
+
+  EmDateTime.prototype.setDisabled = function (disabled) {
+    this.disabled = !!disabled;
+    this.trigger.disabled = !!disabled;
+    this.hourWheel.setDisabled(disabled);
+    this.minuteWheel.setDisabled(disabled);
+    this.root.classList.toggle('is-disabled', !!disabled);
+    if (disabled && floatIsOpen(this.pop)) floatClose();
+  };
 
   /* =================================================================
      Componente
@@ -173,13 +1179,34 @@
       categories: o.categories || ['Reunión', 'Tarea', 'Recordatorio', 'Personal'],
       colors: o.colors || DEFAULT_COLORS,
       availableTags: o.availableTags || ['Importante', 'Urgente', 'Trabajo', 'Personal', 'Equipo', 'Cliente'],
+      customTags: (o.customTags || []).map(function (tag) {
+        return { id: String(tag.id), name: tag.name };
+      }),
+      members: (o.members || []).map(function (member) {
+        return {
+          id: String(member.id),
+          name: member.name || ('Usuario #' + member.id),
+          initials: member.initials || '?',
+          photo: member.photo || null,
+          role: member.role || ''
+        };
+      }),
+      notifyOptions: o.notifyOptions && o.notifyOptions.length ? o.notifyOptions : [{ value: 'none', label: 'No notificar' }],
+      notifyTip: o.notifyTip || 'Notificar a los encargados antes de que arranque el evento.',
       locale: o.locale || 'es-AR',
       weekStartsOn: o.weekStartsOn === undefined ? 1 : o.weekStartsOn,
       readOnly: !!o.readOnly,
       onEventCreate: o.onEventCreate,
       onEventUpdate: o.onEventUpdate,
-      onEventDelete: o.onEventDelete
+      onEventDelete: o.onEventDelete,
+      onTagCreate: o.onTagCreate,
+      onTagDelete: o.onTagDelete
     };
+
+    /* id → persona, para ponerle cara a los encargados de cada evento. */
+    var map = {};
+    this.opts.members.forEach(function (member) { map[member.id] = member; });
+    this.memberMap = map;
 
     this.state = {
       events: (o.events || []).map(normalize).filter(function (ev) { return ev.startTime && ev.endTime; }),
@@ -210,14 +1237,65 @@
     this.render();
   };
 
+  /* Etiquetas disponibles: primero las fijas, después las del espacio.
+     `custom` marca las que se pueden borrar. */
+  EventManager.prototype.tagList = function () {
+    var out = this.opts.availableTags.map(function (name) {
+      return { name: name, id: null, custom: false };
+    });
+
+    this.opts.customTags.forEach(function (tag) {
+      out.push({ name: tag.name, id: tag.id, custom: true });
+    });
+
+    return out;
+  };
+
+  EventManager.prototype.tagNames = function () {
+    return this.tagList().map(function (tag) { return tag.name; });
+  };
+
+  /** Reemplaza las etiquetas propias (después de crear o borrar una). */
+  EventManager.prototype.setCustomTags = function (tags) {
+    this.opts.customTags = (tags || []).map(function (tag) {
+      return { id: String(tag.id), name: tag.name };
+    });
+
+    /* Un filtro por una etiqueta que ya no existe se cae. */
+    var names = this.tagNames();
+    this.state.filters.tags = this.state.filters.tags.filter(function (name) {
+      return names.indexOf(name) !== -1;
+    });
+
+    this.rebuildTagFilter();
+    this.renderTags();
+    this.syncFilters();
+    this.renderBody();
+  };
+
+  /** Encargados de un evento, ya resueltos a personas. */
+  EventManager.prototype.people = function (ev) {
+    var map = this.memberMap;
+    return ev.assignees.map(function (id) {
+      return map[String(id)] || { id: String(id), name: 'Usuario #' + id, initials: '?', photo: null };
+    });
+  };
+
+  EventManager.prototype.notifyLabel = function (value) {
+    var match = this.opts.notifyOptions.filter(function (opt) { return opt.value === value; })[0];
+    return match ? match.label : '';
+  };
+
   EventManager.prototype.color = function (value) {
     var colors = this.opts.colors;
     for (var i = 0; i < colors.length; i++) if (colors[i].value === value) return colors[i];
     return colors[0];
   };
 
+  /* hour12: false a propósito: el campo de fecha y la base trabajan en 24 h,
+     y el navegador formatea es-AR con "p. m." según la versión. */
   EventManager.prototype.fmtTime = function (d) {
-    return d.toLocaleTimeString(this.opts.locale, { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleTimeString(this.opts.locale, { hour: '2-digit', minute: '2-digit', hour12: false });
   };
 
   /* =================================================================
@@ -291,7 +1369,7 @@
       this.buildFilter('colors', 'Colores', 'Filtrar por color', o.colors.map(function (c) {
         return { value: c.value, label: c.name, hex: c.hex };
       })),
-      this.buildFilter('tags', 'Etiquetas', 'Filtrar por etiqueta', o.availableTags.map(function (t) {
+      this.buildFilter('tags', 'Etiquetas', 'Filtrar por etiqueta', this.tagNames().map(function (t) {
         return { value: t, label: t };
       })),
       this.buildFilter('categories', 'Categorías', 'Filtrar por categoría', o.categories.map(function (c) {
@@ -325,23 +1403,7 @@
       type: 'button', class: 'em-btn em-filter__trigger', 'aria-haspopup': 'true', 'aria-expanded': 'false'
     }, [icon('filter'), h('span', { text: label }), badge]);
 
-    var inputs = [];
-    var menu = h('div', { class: 'em-menu', role: 'group', 'aria-label': heading, hidden: true }, [
-      h('p', { class: 'em-menu__label', text: heading })
-    ]);
-
-    items.forEach(function (item) {
-      var input = h('input', { type: 'checkbox', value: item.value, class: 'em-menu__input' });
-      input.addEventListener('change', function () { self.toggleFilter(key, item.value, input.checked); });
-      inputs.push(input);
-      menu.appendChild(h('label', { class: 'em-menu__item' }, [
-        input,
-        h('span', { class: 'em-menu__check' }, icon('check')),
-        item.hex ? swatch(item.hex) : null,
-        h('span', { text: item.label })
-      ]));
-    });
-
+    var menu = h('div', { class: 'em-menu', role: 'group', 'aria-label': heading, hidden: true });
     var wrap = h('div', { class: 'em-filter' }, [trigger, menu]);
     trigger.addEventListener('click', function () {
       var open = !wrap.classList.contains('is-open');
@@ -353,10 +1415,53 @@
       }
     });
 
-    this.filterUi[key] = { wrap: wrap, trigger: trigger, menu: menu, badge: badge, inputs: inputs, items: items };
+    this.filterUi[key] = {
+      wrap: wrap, trigger: trigger, menu: menu, badge: badge,
+      inputs: [], items: [], heading: heading
+    };
+    this.fillFilterMenu(key, items);
+
     return wrap;
   };
 
+  /**
+   * Contenido del menú de un filtro. Está aparte de buildFilter porque el de
+   * etiquetas se vuelve a armar cada vez que se crea o se borra una.
+   */
+  EventManager.prototype.fillFilterMenu = function (key, items) {
+    var self = this;
+    var ui = this.filterUi[key];
+
+    ui.items = items;
+    ui.inputs = [];
+    ui.menu.textContent = '';
+    ui.menu.appendChild(h('p', { class: 'em-menu__label', text: ui.heading }));
+
+    items.forEach(function (item) {
+      var input = h('input', { type: 'checkbox', value: item.value, class: 'em-menu__input' });
+      input.addEventListener('change', function () { self.toggleFilter(key, item.value, input.checked); });
+      ui.inputs.push(input);
+      ui.menu.appendChild(h('label', { class: 'em-menu__item' }, [
+        input,
+        h('span', { class: 'em-menu__check' }, icon('check')),
+        item.hex ? swatch(item.hex) : null,
+        h('span', { text: item.label })
+      ]));
+    });
+
+    if (!items.length) {
+      ui.menu.appendChild(h('p', { class: 'em-menu__empty', text: 'Todavía no hay etiquetas.' }));
+    }
+  };
+
+  EventManager.prototype.rebuildTagFilter = function () {
+    this.fillFilterMenu('tags', this.tagNames().map(function (name) {
+      return { value: name, label: name };
+    }));
+  };
+
+  /* Solo los menús de filtro: los flotantes del diálogo se cierran solos al
+     hacer clic afuera (floatClose vive en el listener de mousedown). */
   EventManager.prototype.closeMenus = function () {
     Object.keys(this.filterUi).forEach(function (key) {
       var ui = this.filterUi[key];
@@ -462,9 +1567,14 @@
     var query = s.search.trim().toLowerCase();
     var f = s.filters;
 
+    var self = this;
+
     return s.events.filter(function (ev) {
       if (query) {
-        var haystack = [ev.title, ev.description, ev.category].concat(ev.tags).join(' ').toLowerCase();
+        /* El nombre de los encargados también busca: "Juan" trae lo suyo. */
+        var haystack = [ev.title, ev.description, ev.category]
+          .concat(ev.tags, self.people(ev).map(function (person) { return person.name; }))
+          .join(' ').toLowerCase();
         if (haystack.indexOf(query) === -1) return false;
       }
       if (f.colors.length && f.colors.indexOf(ev.color) === -1) return false;
@@ -584,6 +1694,31 @@
     return out.length ? h('div', { class: 'em-badges' }, out) : null;
   };
 
+  /* Renglón de encargados: avatares + nombres (o "N encargados" si son varios). */
+  EventManager.prototype.assigneeRow = function (ev, compact) {
+    var people = this.people(ev);
+    if (!people.length) return null;
+
+    var label = people.length === 1
+      ? people[0].name
+      : (compact ? people.length + ' encargados' : people.map(function (p) { return p.name; }).join(', '));
+
+    return h('p', { class: 'em-who' }, [
+      avatarStack(people, 3),
+      h('span', { class: 'em-who__names', text: label })
+    ]);
+  };
+
+  /* Renglón del recordatorio; nada si el evento no notifica. */
+  EventManager.prototype.reminderRow = function (ev) {
+    if (!ev.notify || ev.notify === 'none') return null;
+
+    var label = this.notifyLabel(ev.notify);
+    if (!label) return null;
+
+    return h('p', { class: 'em-remind' }, [icon('bell'), h('span', { text: label })]);
+  };
+
   /* Popover con el detalle; se muestra con :hover / :focus-within (CSS). */
   EventManager.prototype.popover = function (ev, alignEnd) {
     var color = this.color(ev.color);
@@ -598,6 +1733,8 @@
         h('span', { text: this.fmtTime(ev.startTime) + ' – ' + this.fmtTime(ev.endTime) }),
         h('span', { class: 'em-muted', text: '(' + this.durationLabel(ev) + ')' })
       ]),
+      this.assigneeRow(ev, false),
+      this.reminderRow(ev),
       this.badges(ev)
     ]);
   };
@@ -717,6 +1854,8 @@
       h('p', { class: 'em-detail__title', text: ev.title }),
       ev.description ? h('p', { class: 'em-detail__desc', text: ev.description }) : null,
       h('p', { class: 'em-detail__time' }, [icon('clock'), h('span', { text: this.fmtTime(ev.startTime) + ' – ' + this.fmtTime(ev.endTime) })]),
+      this.assigneeRow(ev, true),
+      this.reminderRow(ev),
       this.badges(ev)
     ]);
     card.style.setProperty('--em-c', this.color(ev.color).hex);
@@ -762,6 +1901,8 @@
               ]),
               h('div', { class: 'em-list__meta' }, [
                 h('span', { class: 'em-list__time' }, [icon('clock'), h('span', { text: self.fmtTime(ev.startTime) + ' – ' + self.fmtTime(ev.endTime) })]),
+                self.assigneeRow(ev, true),
+                self.reminderRow(ev),
                 ev.tags.length ? h('span', { class: 'em-badges' }, ev.tags.map(function (tag) {
                   return h('span', { class: 'em-badge em-badge--outline', text: tag });
                 })) : null
@@ -825,32 +1966,98 @@
     var o = this.opts;
     var uid = 'em' + Math.random().toString(36).slice(2, 8);
 
-    function field(label, id, control, extraClass) {
+    /* `tip` agrega el iconito con la explicación al lado de la etiqueta. */
+    function field(label, id, control, extraClass, tip) {
       return h('div', { class: 'em-field' + (extraClass ? ' ' + extraClass : '') }, [
-        h('label', { class: 'em-label', for: id, text: label }),
+        h('label', { class: 'em-label', for: id }, [
+          h('span', { text: label }),
+          tip ? h('span', {
+            class: 'em-tip', tabindex: '0', role: 'img',
+            'aria-label': tip, 'data-em-tip': tip
+          }, icon('info')) : null
+        ]),
         control
       ]);
     }
 
     this.f = {
       title: h('input', { id: uid + '-title', type: 'text', maxlength: '200', placeholder: 'Título del evento', required: true }),
-      description: h('textarea', { id: uid + '-desc', rows: '3', maxlength: '2000', placeholder: 'Descripción del evento' }),
-      start: h('input', { id: uid + '-start', type: 'datetime-local', required: true }),
-      end: h('input', { id: uid + '-end', type: 'datetime-local', required: true }),
-      category: h('select', { id: uid + '-cat' }, [h('option', { value: '', text: 'Sin categoría' })].concat(
-        o.categories.map(function (c) { return h('option', { value: c, text: c }); })))
+      description: h('textarea', { id: uid + '-desc', rows: '3', maxlength: '2000', placeholder: 'Descripción del evento' })
     };
 
-    /* Si el inicio pasa al fin, el fin se corre manteniendo la duración. */
-    var lastStart = null;
-    this.f.start.addEventListener('focus', function () { lastStart = parseDate(self.f.start.value); });
-    this.f.start.addEventListener('change', function () {
-      var start = parseDate(self.f.start.value);
-      var end = parseDate(self.f.end.value);
-      if (!start) return;
-      var duration = lastStart && end && end > lastStart ? end - lastStart : 3600000;
-      if (!end || end <= start || lastStart) self.f.end.value = toInputValue(new Date(start.getTime() + duration));
-      lastStart = start;
+    /* ── Fechas ──────────────────────────────────────────────────── */
+    this.startField = new EmDateTime({
+      id: uid + '-start',
+      ariaLabel: 'Inicio',
+      locale: o.locale,
+      weekStartsOn: o.weekStartsOn,
+      onChange: function () {
+        var previous = self.lastStart;
+        self.lastStart = self.startField.getValue();
+        self.shiftEnd(previous);
+        self.showError('');
+      }
+    });
+
+    this.endField = new EmDateTime({
+      id: uid + '-end',
+      ariaLabel: 'Fin',
+      locale: o.locale,
+      weekStartsOn: o.weekStartsOn,
+      onChange: function () { self.showError(''); }
+    });
+
+    /* ── Categoría ───────────────────────────────────────────────── */
+    this.categorySelect = new EmSelect({
+      id: uid + '-cat',
+      ariaLabel: 'Categoría',
+      placeholder: 'Sin categoría',
+      options: [{ value: '', label: 'Sin categoría' }].concat(o.categories.map(function (c) {
+        return { value: c, label: c };
+      }))
+    });
+
+    /* ── Encargados: los miembros del espacio ────────────────────── */
+    this.assigneeSelect = new EmSelect({
+      id: uid + '-who',
+      ariaLabel: 'Encargados',
+      multiple: true,
+      icon: 'users',
+      placeholder: 'Sin encargados',
+      emptyText: 'Este espacio todavía no tiene miembros.',
+      /* Con pocos miembros el buscador es ruido; con muchos, imprescindible. */
+      searchable: o.members.length > 6,
+      searchPlaceholder: 'Buscar persona...',
+      hint: 'Solo los que tienen acceso a este espacio.',
+      options: o.members.map(function (member) {
+        return {
+          value: member.id, label: member.name, hint: member.role,
+          initials: member.initials, photo: member.photo
+        };
+      }),
+      renderValue: function (picked) {
+        if (picked.length === 1) {
+          return [avatar(picked[0]), h('span', { class: 'em-sel__text', text: picked[0].label })];
+        }
+        return [
+          avatarStack(picked, 3),
+          h('span', { class: 'em-sel__text', text: picked.length + ' encargados' })
+        ];
+      }
+    });
+
+    /* ── Recordatorio ────────────────────────────────────────────── */
+    this.notifySelect = new EmSelect({
+      id: uid + '-notify',
+      ariaLabel: 'Notificaciones',
+      placeholder: 'No notificar',
+      options: o.notifyOptions.map(function (opt) {
+        return {
+          value: opt.value,
+          label: opt.label,
+          icon: opt.value === 'none' ? 'bellOff' : 'bell'
+        };
+      })
     });
 
     this.colorInputs = o.colors.map(function (c) {
@@ -863,15 +2070,34 @@
         return dot;
       }));
 
-    this.tagButtons = o.availableTags.map(function (tag) {
-      return h('button', {
-        type: 'button', class: 'em-tag', 'aria-pressed': 'false', text: tag,
-        onclick: function (e) {
-          var btn = e.currentTarget;
-          btn.setAttribute('aria-pressed', btn.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
-        }
-      });
+    /* ── Etiquetas: las fijas, las del espacio y el alta de una nueva ── */
+    this.tagButtons = [];
+    this.tagsEl = h('div', { class: 'em-tags', role: 'group', 'aria-label': 'Etiquetas' });
+
+    this.tagInput = h('input', {
+      type: 'text', maxlength: '40', class: 'em-tagnew__input',
+      placeholder: 'Nombre de la etiqueta', 'aria-label': 'Nombre de la etiqueta nueva'
     });
+    this.tagSaveBtn = h('button', {
+      type: 'button', class: 'em-btn em-btn--primary em-tagnew__save', text: 'Crear',
+      onclick: function () { self.createTag(); }
+    });
+    this.tagCancelBtn = h('button', {
+      type: 'button', class: 'em-btn em-btn--ghost', text: 'Cancelar',
+      onclick: function () { self.toggleTagForm(false); }
+    });
+    this.tagFormEl = h('div', { class: 'em-tagnew', hidden: true }, [
+      this.tagInput, this.tagSaveBtn, this.tagCancelBtn
+    ]);
+    this.tagNoteEl = h('p', { class: 'em-tagnew__note', role: 'alert', hidden: true });
+
+    this.tagInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); self.createTag(); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); self.toggleTagForm(false); }
+    });
+    this.tagInput.addEventListener('input', function () { self.showTagNote(''); });
+
+    this.renderTags([]);
 
     this.dialogTitle = h('h2', { class: 'em-dialog__title', id: uid + '-dlg-title' });
     this.dialogDesc = h('p', { class: 'em-dialog__desc', id: uid + '-dlg-desc' });
@@ -889,16 +2115,22 @@
         field('Título', this.f.title.id, this.f.title),
         field('Descripción', this.f.description.id, this.f.description),
         h('div', { class: 'em-row' }, [
-          field('Inicio', this.f.start.id, this.f.start),
-          field('Fin', this.f.end.id, this.f.end)
+          field('Inicio', uid + '-start', this.startField.root),
+          field('Fin', uid + '-end', this.endField.root)
         ]),
         h('div', { class: 'em-row' }, [
-          field('Categoría', this.f.category.id, this.f.category),
+          field('Categoría', uid + '-cat', this.categorySelect.root),
           h('div', { class: 'em-field' }, [h('span', { class: 'em-label', id: uid + '-color-label', text: 'Color' }), colors])
+        ]),
+        h('div', { class: 'em-row' }, [
+          field('Encargado(s)', uid + '-who', this.assigneeSelect.root),
+          field('Notificaciones', uid + '-notify', this.notifySelect.root, null, o.notifyTip)
         ]),
         h('div', { class: 'em-field' }, [
           h('span', { class: 'em-label', text: 'Etiquetas' }),
-          h('div', { class: 'em-tags', role: 'group', 'aria-label': 'Etiquetas' }, this.tagButtons)
+          this.tagsEl,
+          this.tagFormEl,
+          this.tagNoteEl
         ]),
         this.errorEl
       ]),
@@ -911,6 +2143,9 @@
     /* Clic en el fondo cierra (el form ocupa toda la caja del dialog). */
     this.dialog.addEventListener('click', function (e) { if (e.target === self.dialog) self.closeDialog(); });
     this.dialog.addEventListener('cancel', function (e) { if (self.busy) e.preventDefault(); });
+    /* Al terminar la animación de entrada el transform del diálogo se va y el
+       bloque contenedor de los popovers vuelve a ser el viewport. */
+    this.dialog.addEventListener('animationend', function () { floatSync(); });
 
     return this.dialog;
   };
@@ -946,18 +2181,26 @@
 
     this.f.title.value = ev ? ev.title : '';
     this.f.description.value = ev ? ev.description : '';
-    this.f.start.value = toInputValue(start);
-    this.f.end.value = toInputValue(end);
-    this.f.category.value = ev ? ev.category : (o.categories[0] || '');
+
+    this.startField.setValue(start, true);
+    this.endField.setValue(end, true);
+    /* Referencia para conservar la duración si después se mueve el inicio. */
+    this.lastStart = start;
+
+    this.categorySelect.setValue(ev ? ev.category : (o.categories[0] || ''));
+    this.assigneeSelect.setValue(ev ? ev.assignees.map(String) : []);
+    this.notifySelect.setValue(ev ? ev.notify : 'none');
+
     var colorValue = ev ? this.color(ev.color).value : o.colors[0].value;
     this.colorInputs.forEach(function (input) { input.checked = input.value === colorValue; });
-    this.tagButtons.forEach(function (btn) {
-      btn.setAttribute('aria-pressed', ev && ev.tags.indexOf(btn.textContent) !== -1 ? 'true' : 'false');
-    });
 
-    var controls = [this.f.title, this.f.description, this.f.start, this.f.end, this.f.category]
-      .concat(this.colorInputs, this.tagButtons);
-    controls.forEach(function (c) { c.disabled = readOnly; });
+    this.renderTags(ev ? ev.tags : []);
+    this.toggleTagForm(false);
+
+    [this.f.title, this.f.description].concat(this.colorInputs)
+      .forEach(function (control) { control.disabled = readOnly; });
+    [this.startField, this.endField, this.categorySelect, this.assigneeSelect, this.notifySelect]
+      .forEach(function (control) { control.setDisabled(readOnly); });
 
     this.deleteBtn.hidden = readOnly || !ev;
     this.deleteBtn.textContent = 'Eliminar';
@@ -969,6 +2212,7 @@
     this.setBusy(false);
 
     this.closeMenus();
+    floatClose();
     if (typeof this.dialog.showModal === 'function') this.dialog.showModal();
     else this.dialog.setAttribute('open', '');
     if (!readOnly) this.f.title.focus();
@@ -976,6 +2220,8 @@
 
   EventManager.prototype.closeDialog = function () {
     if (this.busy) return;
+    /* Un menú flotante abierto quedaría suelto sobre la página. */
+    floatClose();
     if (typeof this.dialog.close === 'function') this.dialog.close();
     else this.dialog.removeAttribute('open');
     this.editing = null;
@@ -1000,13 +2246,193 @@
       id: this.editing ? this.editing.id : '',
       title: this.f.title.value.trim(),
       description: this.f.description.value.trim(),
-      startTime: parseDate(this.f.start.value),
-      endTime: parseDate(this.f.end.value),
+      startTime: this.startField.getValue(),
+      endTime: this.endField.getValue(),
       color: checked ? checked.value : this.opts.colors[0].value,
-      category: this.f.category.value,
-      tags: this.tagButtons.filter(function (btn) { return btn.getAttribute('aria-pressed') === 'true'; })
-        .map(function (btn) { return btn.textContent; })
+      category: this.categorySelect.getValue(),
+      tags: this.selectedTags(),
+      assignees: this.assigneeSelect.getValue().map(Number),
+      notify: this.notifySelect.getValue() || 'none'
     };
+  };
+
+  /* Mueve el fin manteniendo la duración que tenía respecto del inicio
+     anterior. Si no había una razonable, deja una hora. */
+  EventManager.prototype.shiftEnd = function (previousStart) {
+    var start = this.startField.getValue();
+    if (!start) return;
+
+    var end = this.endField.getValue();
+    var duration = previousStart && end && end > previousStart ? end - previousStart : 3600000;
+    this.endField.setValue(new Date(start.getTime() + duration), true);
+  };
+
+  /* =================================================================
+     Etiquetas del diálogo (fijas + propias del espacio)
+     ================================================================= */
+  EventManager.prototype.selectedTags = function () {
+    return (this.tagButtons || [])
+      .filter(function (btn) { return btn.getAttribute('aria-pressed') === 'true'; })
+      .map(function (btn) { return btn.getAttribute('data-tag'); });
+  };
+
+  /**
+   * Dibuja las píldoras. `selected` es la lista de etiquetas marcadas; si no
+   * se pasa, se conservan las que estaban (se vuelve a dibujar al crear o
+   * borrar una etiqueta con el diálogo abierto).
+   */
+  EventManager.prototype.renderTags = function (selected) {
+    var self = this;
+    if (!this.tagsEl) return;
+
+    var picked = selected || this.selectedTags();
+    var readOnly = this.opts.readOnly;
+
+    this.tagsEl.textContent = '';
+    this.tagButtons = [];
+    this.tagAddBtn = null;
+
+    this.tagList().forEach(function (tag) {
+      var on = picked.indexOf(tag.name) !== -1;
+      var wrap = h('span', { class: 'em-tag-wrap' + (on ? ' is-on' : '') + (tag.custom ? ' em-tag-wrap--own' : '') });
+
+      var btn = h('button', {
+        type: 'button', class: 'em-tag', 'data-tag': tag.name, text: tag.name,
+        'aria-pressed': on ? 'true' : 'false',
+        title: tag.custom ? 'Etiqueta de este espacio' : 'Etiqueta fija',
+        onclick: function () {
+          var next = btn.getAttribute('aria-pressed') !== 'true';
+          btn.setAttribute('aria-pressed', next ? 'true' : 'false');
+          wrap.classList.toggle('is-on', next);
+        }
+      });
+      btn.disabled = readOnly;
+      self.tagButtons.push(btn);
+      wrap.appendChild(btn);
+
+      /* Las fijas son del sistema: solo se borran las del espacio. */
+      if (tag.custom && !readOnly && typeof self.opts.onTagDelete === 'function') {
+        var remove = h('button', {
+          type: 'button', class: 'em-tag__remove',
+          'aria-label': 'Borrar la etiqueta ' + tag.name,
+          title: 'Borrar la etiqueta ' + tag.name,
+          onclick: function () { self.removeTag(tag, remove); }
+        }, icon('x'));
+        wrap.appendChild(remove);
+      }
+
+      self.tagsEl.appendChild(wrap);
+    });
+
+    if (!readOnly && typeof this.opts.onTagCreate === 'function') {
+      this.tagAddBtn = h('button', {
+        type: 'button', class: 'em-tag em-tag--add',
+        onclick: function () { self.toggleTagForm(true); }
+      }, [icon('plus'), h('span', { text: 'Nueva etiqueta' })]);
+      this.tagsEl.appendChild(this.tagAddBtn);
+    }
+  };
+
+  EventManager.prototype.selectTag = function (name, on) {
+    this.tagButtons.forEach(function (btn) {
+      if (btn.getAttribute('data-tag') !== name) return;
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      if (btn.parentNode) btn.parentNode.classList.toggle('is-on', !!on);
+    });
+  };
+
+  EventManager.prototype.toggleTagForm = function (open) {
+    this.showTagNote('');
+    this.tagFormEl.hidden = !open;
+    this.tagInput.value = '';
+    this.tagBusy(false);
+    if (this.tagAddBtn) this.tagAddBtn.hidden = !!open;
+    if (open) this.tagInput.focus();
+  };
+
+  EventManager.prototype.showTagNote = function (message, kind) {
+    this.tagNoteEl.textContent = message || '';
+    this.tagNoteEl.hidden = !message;
+    this.tagNoteEl.classList.toggle('is-danger', kind === 'danger');
+  };
+
+  EventManager.prototype.tagBusy = function (busy) {
+    this.tagSaveBtn.disabled = !!busy;
+    this.tagCancelBtn.disabled = !!busy;
+    this.tagInput.disabled = !!busy;
+  };
+
+  EventManager.prototype.createTag = function () {
+    var self = this;
+    if (typeof this.opts.onTagCreate !== 'function') return;
+
+    var name = this.tagInput.value.trim().replace(/\s+/g, ' ');
+    if (!name) {
+      this.showTagNote('Escribí un nombre para la etiqueta.', 'danger');
+      this.tagInput.focus();
+      return;
+    }
+
+    var repeated = this.tagNames().filter(function (existing) {
+      return existing.toLowerCase() === name.toLowerCase();
+    })[0];
+    if (repeated) {
+      this.showTagNote('Ya existe la etiqueta "' + repeated + '".', 'danger');
+      return;
+    }
+
+    this.tagBusy(true);
+    resolved(this.opts.onTagCreate(name)).then(function (result) {
+      var tags = result && result.tags
+        ? result.tags
+        : self.opts.customTags.concat([{ id: (result && result.tag && result.tag.id) || name, name: name }]);
+
+      /* setCustomTags redibuja conservando lo que estaba marcado. */
+      self.setCustomTags(tags);
+      /* La etiqueta recién creada queda puesta en el evento que se edita. */
+      self.selectTag(name, true);
+      self.toggleTagForm(false);
+    }).catch(function (error) {
+      self.tagBusy(false);
+      self.showTagNote((error && error.message) || 'No se pudo crear la etiqueta.', 'danger');
+    });
+  };
+
+  /* Borrar pide dos clics: el primero arma la cruz, como el botón de eliminar
+     del diálogo. La etiqueta se va de todo el espacio, no solo del evento. */
+  EventManager.prototype.removeTag = function (tag, btn) {
+    var self = this;
+    if (this.busy || typeof this.opts.onTagDelete !== 'function') return;
+
+    if (btn.getAttribute('data-armed') !== 'true') {
+      this.tagsEl.querySelectorAll('.em-tag__remove[data-armed]').forEach(function (node) {
+        node.removeAttribute('data-armed');
+      });
+      btn.setAttribute('data-armed', 'true');
+      this.showTagNote('Tocá otra vez la cruz para borrar "' + tag.name + '" de todo el espacio.', 'danger');
+      window.setTimeout(function () {
+        if (!btn.parentNode) return;
+        btn.removeAttribute('data-armed');
+        if (!self.tagFormEl.hidden) return;
+        self.showTagNote('');
+      }, 4000);
+      return;
+    }
+
+    btn.disabled = true;
+    this.showTagNote('Borrando "' + tag.name + '"...');
+
+    resolved(this.opts.onTagDelete(tag.id)).then(function (result) {
+      if (result && result.events) self.state.events = (result.events || []).map(normalize);
+      self.setCustomTags(result && result.tags ? result.tags : self.opts.customTags.filter(function (t) {
+        return t.id !== tag.id;
+      }));
+      self.showTagNote('');
+    }).catch(function (error) {
+      btn.disabled = false;
+      btn.removeAttribute('data-armed');
+      self.showTagNote((error && error.message) || 'No se pudo borrar la etiqueta.', 'danger');
+    });
   };
 
   EventManager.prototype.handleSave = function () {
