@@ -5,8 +5,8 @@ from machine import Pin, I2C
 import time
 
 TESTS = (
-    ("normal", 21, 22),   # SDA=GPIO21, SCL=GPIO22
-    ("cruzado", 22, 21),  # SDA=GPIO22, SCL=GPIO21
+    ("normal", 32, 33),   # SDA=GPIO32, SCL=GPIO33
+    ("cruzado", 33, 32),  # SDA=GPIO33, SCL=GPIO32
 )
 
 
@@ -34,7 +34,7 @@ def scan_i2c(name, sda_pin, scl_pin):
 
 print("Chequeo LCD I2C")
 print("LCD esperado: 0x27 o 0x3F")
-print("Cable esperado: SDA GPIO21 / SCL GPIO22")
+print("Cable esperado: SDA GPIO32 / SCL GPIO33")
 
 for test in TESTS:
     scan_i2c(*test)

@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/standalone.css') ?>?v=20260807-3">
 <link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260924-1">
-<link rel="stylesheet" href="<?= base_url('css/event-manager.css') ?>?v=20260918-1">
+<link rel="stylesheet" href="<?= base_url('css/event-manager.css') ?>?v=20260925-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -295,7 +295,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260831-1" defer></script>
-<script src="<?= base_url('js/event-manager.js') ?>?v=20260924-1"></script>
+<script src="<?= base_url('js/event-manager.js') ?>?v=20260925-1"></script>
 <script>
 /* ── Pestañas Stock / Calendario + calendario del espacio ─────────────── */
 (function () {

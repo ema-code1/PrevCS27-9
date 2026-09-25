@@ -3,13 +3,13 @@
 # No importa nada del firmware (ni pins, ni lcd1602, ni buzzer): no hace falta
 # que haya ningun otro .py en la placa. Abrilo en Thonny y apreta F5.
 #
-# Cableado que asume: VCC a 5V, GND a GND, SDA a GPIO21, SCL a GPIO22.
+# Cableado que asume: VCC a 5V, GND a GND, SDA a GPIO32, SCL a GPIO33.
 
 import time
 from machine import Pin, I2C
 
-SDA = 21
-SCL = 22
+SDA = 32
+SCL = 33
 COLS = 16
 
 RS = 0x01
@@ -21,7 +21,7 @@ i2c = I2C(0, sda=Pin(SDA), scl=Pin(SCL), freq=50000)
 encontrados = i2c.scan()
 print("I2C:", [hex(a) for a in encontrados])
 if not encontrados:
-    print("No hay nada en el bus. Revisar VCC 5V, GND comun y los cables 21/22.")
+    print("No hay nada en el bus. Revisar VCC 5V, GND comun y los cables 32/33.")
     raise SystemExit
 
 ADDR = encontrados[0]

@@ -53,7 +53,13 @@
   /* Hora a la que arrancan las vistas de semana y día (se puede subir). */
   var SCROLL_HOUR = 7;
 
+  /* Profundidad de cada vista: clic en un día acerca (mes → semana → día). */
+  var ZOOM_LEVEL = { month: 0, week: 1, day: 2 };
+  var ZOOM_MS = 460;
+  var ZOOM_EASE = 'cubic-bezier(.22,.8,.24,1)';
+
   var ICONS = {
+    arrowLeft: '<path d="M19 12H5M12 19l-7-7 7-7"/>',
     chevronLeft: '<path d="m15 18-6-6 6-6"/>',
     chevronRight: '<path d="m9 18 6-6-6-6"/>',
     chevronDown: '<path d="m6 9 6 6 6-6"/>',
@@ -136,6 +142,16 @@
     var d = new Date(value);
     return isNaN(d.getTime()) ? null : d;
   }
+  /* El contenedor con scroll de semana/día (o nada en mes y lista). */
+  function scrollerOf(el) {
+    if (!el) return null;
+    return el.classList.contains('em-scroll') ? el : el.querySelector('.em-scroll');
+  }
+
+  function reducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
   function capitalize(text) { return text ? text.charAt(0).toUpperCase() + text.slice(1) : text; }
 
   function normalize(ev) {
@@ -1221,6 +1237,8 @@
     this.busy = false;
     this.filterUi = {};
     this.lastScrollKey = null;
+    this.viewStack = [];   // vistas desde las que se hizo zoom (para la flecha de volver)
+    this.zoomFx = null;    // transición de zoom en curso
 
     this.build();
     this.render();
@@ -1232,9 +1250,42 @@
     this.state.events = (events || []).map(normalize);
     this.renderBody();
   };
+  /* Elegir una vista a mano corta el camino de zoom: no hay a dónde volver. */
   EventManager.prototype.setView = function (view) {
+    this.viewStack = [];
     this.state.view = view;
     this.render();
+  };
+
+  /**
+   * Cambia de vista con animación de zoom. `source` es el elemento clickeado
+   * (el zoom nace de ahí); `anchor` fija una hora en la misma altura al pasar
+   * entre semana y día.
+   */
+  EventManager.prototype.zoomTo = function (view, date, source, anchor) {
+    var s = this.state;
+    if (view === s.view) return;
+    this.stopZoom();
+
+    var dir = ZOOM_LEVEL[view] > ZOOM_LEVEL[s.view] ? 'in' : 'out';
+    if (dir === 'in') this.viewStack.push(s.view);
+
+    var zoom = { dir: dir, anchor: anchor || this.topAnchor() };
+    if (source) zoom.origin = this.pointIn(source);
+
+    s.currentDate = startOfDay(date);
+    s.view = view;
+    this.render(zoom);
+  };
+
+  /* Flecha de volver: un nivel para atrás, sobre la fecha en la que se está. */
+  EventManager.prototype.back = function () {
+    if (!this.viewStack.length) return;
+    this.stopZoom();
+    var s = this.state;
+    var anchor = this.topAnchor();
+    s.view = this.viewStack.pop();
+    this.render({ dir: 'out', anchor: anchor, target: dayKey(s.currentDate) });
   };
 
   /* Etiquetas disponibles: primero las fijas, después las del espacio.
@@ -1310,6 +1361,10 @@
 
     /* Cabecera: título + navegación | vistas + nuevo evento */
     this.titleEl = h('h2', { class: 'em-title', 'aria-live': 'polite' });
+    this.backBtn = h('button', {
+      type: 'button', class: 'em-back', 'aria-hidden': 'true', tabindex: '-1',
+      onclick: function () { self.back(); }
+    }, icon('arrowLeft'));
     this.prevBtn = h('button', { type: 'button', class: 'em-btn em-btn--icon', 'aria-label': 'Anterior', onclick: function () { self.navigate(-1); } }, icon('chevronLeft'));
     this.todayBtn = h('button', { type: 'button', class: 'em-btn', text: 'Hoy', onclick: function () { self.state.currentDate = startOfDay(new Date()); self.render(); } });
     this.nextBtn = h('button', { type: 'button', class: 'em-btn em-btn--icon', 'aria-label': 'Siguiente', onclick: function () { self.navigate(1); } }, icon('chevronRight'));
@@ -1332,7 +1387,7 @@
 
     var header = h('div', { class: 'em-header' }, [
       h('div', { class: 'em-header__main' }, [
-        this.titleEl,
+        h('div', { class: 'em-heading' }, [this.backBtn, this.titleEl]),
         h('div', { class: 'em-nav' }, [this.prevBtn, this.todayBtn, this.nextBtn])
       ]),
       h('div', { class: 'em-header__actions' }, [
@@ -1491,7 +1546,7 @@
   /* =================================================================
      Render
      ================================================================= */
-  EventManager.prototype.render = function () {
+  EventManager.prototype.render = function (zoom) {
     var s = this.state;
     var locale = this.opts.locale;
 
@@ -1520,8 +1575,28 @@
       btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
 
+    this.syncBack();
     this.syncFilters();
-    this.renderBody();
+    this.renderBody(zoom);
+
+    if (zoom && !reducedMotion() && this.titleEl.animate) {
+      this.titleEl.animate([
+        { opacity: 0, transform: 'translateY(' + (zoom.dir === 'in' ? 5 : -5) + 'px)' },
+        { opacity: 1, transform: 'none' }
+      ], { duration: 260, easing: ZOOM_EASE });
+    }
+  };
+
+  EventManager.prototype.syncBack = function () {
+    var prev = this.state.view !== 'list' ? this.viewStack[this.viewStack.length - 1] : null;
+    var btn = this.backBtn;
+    var label = prev ? 'Volver a la vista de ' + (prev === 'month' ? 'mes' : 'semana') : '';
+
+    btn.classList.toggle('is-visible', !!prev);
+    btn.setAttribute('aria-hidden', prev ? 'false' : 'true');
+    btn.setAttribute('tabindex', prev ? '0' : '-1');
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
   };
 
   EventManager.prototype.syncFilters = function () {
@@ -1584,9 +1659,12 @@
     });
   };
 
-  EventManager.prototype.renderBody = function () {
+  EventManager.prototype.renderBody = function (zoom) {
     var s = this.state;
-    var previous = this.bodyEl.querySelector('.em-scroll');
+    this.stopZoom();
+
+    var old = this.bodyEl.firstElementChild;
+    var previous = scrollerOf(old);
     var previousTop = previous ? previous.scrollTop : 0;
 
     var events = this.filteredEvents().sort(function (a, b) { return a.startTime - b.startTime; });
@@ -1596,15 +1674,32 @@
     else if (s.view === 'day') content = this.renderDay(events);
     else content = this.renderList(events);
 
-    this.bodyEl.textContent = '';
+    /* Con zoom, la vista anterior queda encima como "fantasma" mientras se
+       anima; sacarla del DOM le perdería el scroll. */
+    var ghost = zoom && old && !reducedMotion() && content.animate ? old : null;
+    if (ghost) {
+      ghost.style.width = ghost.offsetWidth + 'px';
+      ghost.style.height = ghost.offsetHeight + 'px';
+      ghost.classList.add('em-ghost');
+      ghost.setAttribute('aria-hidden', 'true');
+      ghost.setAttribute('inert', '');
+    } else {
+      this.bodyEl.textContent = '';
+    }
     this.bodyEl.appendChild(content);
 
     /* En semana/día: al cambiar de vista o de fecha se baja a SCROLL_HOUR;
-       si solo cambió un filtro se conserva el scroll. */
-    var scroller = this.bodyEl.querySelector('.em-scroll');
+       si solo cambió un filtro se conserva el scroll. Pasando entre semana y
+       día con zoom, la hora de referencia queda a la misma altura. */
+    var scroller = scrollerOf(content);
     if (scroller) {
       var key = s.view + ':' + dayKey(s.currentDate);
-      if (key === this.lastScrollKey) {
+      var anchorRow = zoom && zoom.anchor ? scroller.querySelector('[data-hour="' + zoom.anchor.hour + '"]') : null;
+      if (anchorRow) {
+        var headEl = scroller.querySelector('.em-time__head');
+        var offset = Math.max(zoom.anchor.offset, headEl ? headEl.offsetHeight : 0);
+        scroller.scrollTop = anchorRow.offsetTop - offset;
+      } else if (key === this.lastScrollKey) {
         scroller.scrollTop = previousTop;
       } else {
         var row = scroller.querySelector('[data-hour="' + SCROLL_HOUR + '"]');
@@ -1615,6 +1710,76 @@
     } else {
       this.lastScrollKey = null;
     }
+
+    if (ghost) this.playZoom(ghost, content, zoom);
+  };
+
+  /* ── Zoom entre vistas ───────────────────────────────────────────── */
+
+  /* Centro de un elemento, relativo al cuerpo del calendario. */
+  EventManager.prototype.pointIn = function (el) {
+    var r = el.getBoundingClientRect();
+    var body = this.bodyEl.getBoundingClientRect();
+    return { x: r.left + r.width / 2 - body.left, y: r.top + r.height / 2 - body.top };
+  };
+
+  /* Primera hora visible en semana/día y a qué altura del scroll está. */
+  EventManager.prototype.topAnchor = function () {
+    var scroller = scrollerOf(this.bodyEl.firstElementChild);
+    if (!scroller) return null;
+
+    var head = scroller.querySelector('.em-time__head');
+    var top = scroller.getBoundingClientRect().top + (head ? head.offsetHeight : 0);
+    var rows = scroller.querySelectorAll('.em-time__label');
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i].getBoundingClientRect();
+      if (r.bottom > top + 1) {
+        return { hour: rows[i].getAttribute('data-hour'), offset: r.top - scroller.getBoundingClientRect().top };
+      }
+    }
+    return null;
+  };
+
+  EventManager.prototype.playZoom = function (ghost, content, zoom) {
+    var self = this;
+    var origin = zoom.origin;
+
+    /* Al volver, el zoom se cierra sobre el día del que se venía. */
+    if (zoom.target) {
+      var target = content.querySelector('[data-day="' + zoom.target + '"]');
+      if (target) origin = this.pointIn(target);
+    }
+    if (!origin) origin = { x: this.bodyEl.offsetWidth / 2, y: Math.min(this.bodyEl.offsetHeight, 480) / 2 };
+
+    var at = origin.x + 'px ' + origin.y + 'px';
+    ghost.style.transformOrigin = at;
+    content.style.transformOrigin = at;
+
+    var zoomIn = zoom.dir === 'in';
+    var opts = { duration: ZOOM_MS, easing: ZOOM_EASE };
+
+    this.bodyEl.classList.add('is-zooming');
+    var out = ghost.animate([
+      { opacity: 1, transform: 'scale(1)' },
+      { opacity: 0, transform: 'scale(' + (zoomIn ? 1.6 : 0.55) + ')' }
+    ], { duration: ZOOM_MS * 0.75, easing: ZOOM_EASE, fill: 'forwards' });
+    var enter = content.animate([
+      { opacity: 0, transform: 'scale(' + (zoomIn ? 0.55 : 1.6) + ')' },
+      { opacity: 1, transform: 'scale(1)' }
+    ], opts);
+
+    this.zoomFx = { ghost: ghost, content: content, anims: [out, enter] };
+    enter.onfinish = function () { self.stopZoom(); };
+  };
+
+  EventManager.prototype.stopZoom = function () {
+    var fx = this.zoomFx;
+    if (!fx) return;
+    this.zoomFx = null;
+    fx.anims.forEach(function (anim) { anim.onfinish = null; anim.cancel(); });
+    if (fx.ghost.parentNode) fx.ghost.parentNode.removeChild(fx.ghost);
+    fx.content.style.transformOrigin = '';
+    this.bodyEl.classList.remove('is-zooming');
   };
 
   EventManager.prototype.navigate = function (direction) {
@@ -1778,17 +1943,27 @@
         var cell = h('div', {
           class: 'em-month__cell' +
             (day.getMonth() !== cur.getMonth() ? ' is-outside' : '') +
-            (sameDay(day, today) ? ' is-today' : '')
+            (sameDay(day, today) ? ' is-today' : ''),
+          'data-day': dayKey(day)
         }, [
-          h('span', { class: 'em-month__num', text: String(day.getDate()) }),
+          /* El número es el acceso por teclado; con el mouse sirve toda la celda. */
+          h('button', {
+            type: 'button', class: 'em-month__num', text: String(day.getDate()),
+            'aria-label': 'Ver la semana del ' + day.toLocaleDateString(locale, { day: 'numeric', month: 'long' })
+          }),
           h('div', { class: 'em-month__events' }, [
             dayEvents.slice(0, 3).map(function (ev) { return self.chip(ev, alignEnd); }),
             dayEvents.length > 3 ? h('button', {
               type: 'button', class: 'em-more', text: '+' + (dayEvents.length - 3) + ' más',
-              onclick: function () { self.state.currentDate = startOfDay(day); self.setView('day'); }
+              onclick: function (e) { e.stopPropagation(); self.zoomTo('day', day, cell); }
             }) : null
           ])
         ]);
+        /* Clic en el día (no en una tarea): acerca a la semana de ese día. */
+        cell.addEventListener('click', function (e) {
+          if (e.target.closest('.em-event-wrap')) return;
+          self.zoomTo('week', day, cell);
+        });
         self.makeDropTarget(cell, day, null);
         grid.appendChild(cell);
       })(addDays(start, n), n);
@@ -1815,11 +1990,18 @@
     if (!detailed) {
       grid.appendChild(h('div', { class: 'em-time__head em-time__corner', text: 'Hora' }));
       days.forEach(function (day) {
-        grid.appendChild(h('div', { class: 'em-time__head' + (sameDay(day, today) ? ' is-today' : '') }, [
+        var head = h('button', {
+          type: 'button',
+          class: 'em-time__head em-time__head--link' + (sameDay(day, today) ? ' is-today' : ''),
+          'data-day': dayKey(day),
+          'aria-label': 'Ver el ' + day.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' }),
+          onclick: function () { self.zoomTo('day', day, head); }
+        }, [
           h('span', { class: 'em-wide', text: capitalize(day.toLocaleDateString(locale, { weekday: 'short' }).replace('.', '')) }),
           h('span', { class: 'em-narrow', text: day.toLocaleDateString(locale, { weekday: 'narrow' }).toUpperCase() }),
           h('span', { class: 'em-time__date', text: day.toLocaleDateString(locale, { day: 'numeric', month: 'short' }).replace('.', '') })
-        ]));
+        ]);
+        grid.appendChild(head);
       });
     }
 
@@ -1830,12 +2012,28 @@
         var slot = h('div', { class: 'em-time__slot' }, slotEvents.map(function (ev) {
           return detailed ? self.detailedCard(ev) : self.chip(ev, index >= days.length - 3);
         }));
+        if (!detailed) self.makeZoomSlot(slot, day, hour);
         self.makeDropTarget(slot, day, hour);
         grid.appendChild(slot);
       });
     }
 
     return h('div', { class: 'em-card em-scroll' }, grid);
+  };
+
+  /* En semana, clic en un hueco (no en una tarea) acerca a ese día, con la
+     hora clickeada a la misma altura en la vista de día. */
+  EventManager.prototype.makeZoomSlot = function (slot, day, hour) {
+    var self = this;
+    slot.addEventListener('click', function (e) {
+      if (e.target.closest('.em-event-wrap')) return;
+      var scroller = slot.closest('.em-scroll');
+      var anchor = scroller ? {
+        hour: String(hour),
+        offset: slot.getBoundingClientRect().top - scroller.getBoundingClientRect().top
+      } : null;
+      self.zoomTo('day', day, slot, anchor);
+    });
   };
 
   EventManager.prototype.renderWeek = function (events) {

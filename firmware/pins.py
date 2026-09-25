@@ -6,11 +6,15 @@
 #   LM393 RPM           DO   -> GPIO25   (cuenta de pulsos por interrupcion)
 #   LM393 RPM           AO   -> GPIO35   (ADC1, solo-entrada)
 #   DS18B20 (temp)      DATA -> GPIO27   (OneWire, 4.7k a 3.3V)
-#   LCD1602 I2C 5V      SDA  -> GPIO21   (via conversor de nivel 3.3V<->5V)
-#   LCD1602 I2C 5V      SCL  -> GPIO22   (via conversor de nivel 3.3V<->5V)
+#   LCD1602 I2C 5V      SDA  -> GPIO32   (via conversor de nivel 3.3V<->5V)
+#   LCD1602 I2C 5V      SCL  -> GPIO33   (via conversor de nivel 3.3V<->5V)
 #   Buzzer activo 3.3V       -> GPIO26 -> 1k -> base BC337
 #
-# RESERVADOS: GPIO21, GPIO22 y GPIO26 son de uso interno (LCD y buzzer).
+# CAMBIO TEMPORAL DE DIAGNOSTICO (LCD con luz de fondo pero sin texto):
+# se movio el bus I2C de GPIO21/22 a GPIO32/33 para descartar que esos dos
+# pines del ESP32 esten danados. GPIO21/22 quedan libres por ahora.
+#
+# RESERVADOS: GPIO32, GPIO33 y GPIO26 son de uso interno (LCD y buzzer).
 # No asignarlos a sensores ni sacarlos al socket exterior.
 
 # --- Sensores ---
@@ -20,8 +24,8 @@ PIN_RPM_AO    = 35   # LM393 AO
 PIN_TEMP      = 27   # DS18B20 DATA
 
 # --- Interfaz de estado (interno) ---
-PIN_LCD_SDA = 21
-PIN_LCD_SCL = 22
+PIN_LCD_SDA = 32
+PIN_LCD_SCL = 33
 PIN_BUZZER  = 26
 
 # --- LCD1602 I2C ---
@@ -42,14 +46,24 @@ LCD_ROWS = 2
 # ============================================================================
 # SocketPuertos GPIO — mapa del conector exterior
 # ============================================================================
-# Todos los GPIO que NO usa la placa por dentro (LCD en 21/22, buzzer en 26)
+# Todos los GPIO que NO usa la placa por dentro (LCD en 32/33, buzzer en 26)
 # salen a un socket, y los sensores se conectan ahi y no al ESP32 directo.
-# Este bloque es la numeracion oficial de ese conector: P1..P16.
+#
+# El conector tiene 20 columnas y dos filas:
+#
+#   fila de arriba : 20 GPIO            -> P1..P20, de izquierda a derecha
+#   fila de abajo  : columnas 1..9      -> GND   (G1..G9)
+#                    columna 10         -> VACIA a proposito (la ranura negra
+#                                          del conector: sin GPIO, sin VCC, sin GND)
+#                    columnas 11..20    -> 3.3V  (V1..V10)
 #
 # Fuera del socket, a proposito:
 #   GPIO6..GPIO11  -> flash SPI interna. Usarlos cuelga la placa.
 #   GPIO1 / GPIO3  -> UART0 (consola). El firmware imprime diagnosticos ahi.
-#   GPIO21/22/26   -> LCD y buzzer (ver RESERVADOS arriba).
+#   GPIO32/33/26   -> LCD y buzzer (ver RESERVADOS arriba).
+#   GPIO12         -> strapping de voltaje del flash: si un sensor lo deja en
+#                     ALTO al arrancar, la placa no bootea. Es el que sobra para
+#                     entrar en 20 columnas.
 #
 # Cada puerto es una tupla:
 #   (puerto, gpio, capacidades, nota)
@@ -63,6 +77,9 @@ LCD_ROWS = 2
 #   'pwm'   salida PWM / LEDC
 #   'pull'  admite pull-up y pull-down internos
 #   'dac'   salida analogica real de 8 bits (solo GPIO25; el 26 lo usa el buzzer)
+#   'i2c'   par I2C por defecto del ESP32 (GPIO21 = SDA, GPIO22 = SCL)
+#   'strap' pin de strapping: su nivel EN EL ARRANQUE decide como bootea la
+#           placa. Sirve despues del boot; el sensor no debe forzarlo al arrancar.
 
 SOCKET_PORTS = (
     ('P1',   4, ('io', 'adc2', 'touch', 'pwm', 'pull'), ''),
@@ -75,24 +92,23 @@ SOCKET_PORTS = (
     ('P8',  23, ('io', 'pwm', 'pull'), 'VSPI MOSI si alguna vez se usa SPI'),
     ('P9',  25, ('io', 'adc2', 'pwm', 'pull', 'dac'), 'EN USO: DO del LM393 (RPM)'),
     ('P10', 27, ('io', 'adc2', 'touch', 'pwm', 'pull'), 'EN USO: DATA del DS18B20 (temp)'),
-    ('P11', 32, ('io', 'adc1', 'touch', 'pwm', 'pull'), 'Analogico recomendado'),
-    ('P12', 33, ('io', 'adc1', 'touch', 'pwm', 'pull'), 'Analogico recomendado'),
+    ('P11', 21, ('io', 'pwm', 'pull', 'i2c'), 'I2C SDA por defecto (libre mientras el LCD este en 32/33)'),
+    ('P12', 22, ('io', 'pwm', 'pull', 'i2c'), 'I2C SCL por defecto (libre mientras el LCD este en 32/33)'),
     ('P13', 34, ('in', 'adc1'), 'EN USO: DO del SW-420 (vibracion). Necesita pull-up externo'),
     ('P14', 35, ('in', 'adc1'), 'EN USO: AO del LM393 (RPM). Necesita pull-up externo'),
     ('P15', 36, ('in', 'adc1'), 'Rotulado VP. Necesita pull-up externo'),
     ('P16', 39, ('in', 'adc1'), 'Rotulado VN. Necesita pull-up externo'),
+    ('P17',  0, ('io', 'adc2', 'touch', 'pwm', 'pull', 'strap'), 'Boton BOOT. Debe estar en ALTO al arrancar'),
+    ('P18',  2, ('io', 'adc2', 'touch', 'pwm', 'pull', 'strap'), 'LED onboard. Debe estar en BAJO o libre al arrancar'),
+    ('P19',  5, ('io', 'pwm', 'pull', 'strap'), 'Debe estar en ALTO al arrancar'),
+    ('P20', 15, ('io', 'adc2', 'touch', 'pwm', 'pull', 'strap'), 'Debe estar en ALTO al arrancar'),
 )
 
-# Anexo: pines libres pero de strapping. Su nivel EN EL ARRANQUE decide como
-# bootea el ESP32, asi que un sensor que fije el nivel equivocado deja la placa
-# sin arrancar. Sirven despues del boot; no van al socket principal.
-SOCKET_PORTS_STRAPPING = (
-    ('S1',  0, ('io', 'adc2', 'touch', 'pwm', 'pull'), 'Boton BOOT. Debe estar en ALTO al arrancar'),
-    ('S2',  2, ('io', 'adc2', 'touch', 'pwm', 'pull'), 'LED onboard. Debe estar en BAJO o libre al arrancar'),
-    ('S3',  5, ('io', 'pwm', 'pull'), 'Debe estar en ALTO al arrancar'),
-    ('S4', 12, ('io', 'adc2', 'touch', 'pwm', 'pull'), 'Debe estar en BAJO al arrancar, o el flash queda mal configurado'),
-    ('S5', 15, ('io', 'adc2', 'touch', 'pwm', 'pull'), 'Debe estar en ALTO al arrancar'),
-)
+# Fila de abajo del conector, por columna (1..20). None = ranura vacia.
+SOCKET_COLUMNS = 20
+SOCKET_GND_COLUMNS = tuple(range(1, 10))     # G1..G9  (columnas 1-9)
+SOCKET_BLOCKED_COLUMN = 10                   # sin pin
+SOCKET_3V3_COLUMNS = tuple(range(11, 21))    # V1..V10 (columnas 11-20)
 
 # GPIO que nunca salen del ESP32.
 RESERVED_GPIO = (PIN_LCD_SDA, PIN_LCD_SCL, PIN_BUZZER)
@@ -111,7 +127,7 @@ def _index(ports):
     return by_port, by_gpio
 
 
-_BY_PORT, _BY_GPIO = _index(SOCKET_PORTS + SOCKET_PORTS_STRAPPING)
+_BY_PORT, _BY_GPIO = _index(SOCKET_PORTS)
 
 
 def gpio_for_port(port):
