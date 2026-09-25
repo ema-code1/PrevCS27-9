@@ -16,7 +16,7 @@ $activeStockId = (int) ($activeStockIndustryId ?? 0);
 <div class="sidebar-backdrop" data-sidebar-backdrop aria-hidden="true"></div>
 <aside class="sidebar" data-sidebar>
     <div class="sidebar__head">
-        <h2 class="sidebar__title">Navegacion</h2>
+        <h2 class="sidebar__title">Navegación</h2>
         <label class="burger sidebar__toggle" for="burger">
             <input type="checkbox" id="burger" data-sidebar-toggle aria-label="Contraer menu lateral">
             <span></span><span></span><span></span>

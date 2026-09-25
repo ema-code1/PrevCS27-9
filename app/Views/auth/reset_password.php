@@ -31,7 +31,7 @@ $errorMessage = session('error');
                         <span class="auth-field__label">Nueva contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="password" placeholder="Minimo 6 caracteres" required>
+                            <input type="password" name="password" placeholder="Mínimo 8 caracteres" minlength="8" autocomplete="new-password" required>
                         </span>
                         <?php if (isset($errors['password'])): ?>
                             <span class="auth-field__error"><?= esc($errors['password']) ?></span>
@@ -42,7 +42,7 @@ $errorMessage = session('error');
                         <span class="auth-field__label">Repetir contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="password_confirm" placeholder="Repeti tu contraseña" required>
+                            <input type="password" name="password_confirm" placeholder="Repetí tu contraseña" minlength="8" autocomplete="new-password" required>
                         </span>
                         <?php if (isset($errors['password_confirm'])): ?>
                             <span class="auth-field__error"><?= esc($errors['password_confirm']) ?></span>

@@ -32,6 +32,8 @@ SENSOR_ERROR = "SENSOR_ERROR"
 WIFI_ERROR = "WIFI_ERROR"
 API_ERROR = "API_ERROR"
 CRITICAL_ERROR = "CRITICAL_ERROR"
+# La web respondio que algun sensor quedo fuera de su rango de alerta.
+SENSOR_ALERT = "SENSOR_ALERT"
 
 TITLE = "PrevCS"
 
@@ -51,6 +53,7 @@ _TEXTS = {
     WIFI_ERROR:      ("ERROR WIFI", "Reintentando..."),
     API_ERROR:       ("ERROR API", "Reintentando..."),
     CRITICAL_ERROR:  ("ERROR CRITICO", "Reiniciar placa"),
+    SENSOR_ALERT:    ("ALERTA SENSOR", "Fuera de rango"),
 }
 
 # Estados que significan "enlace sano": cierran la alarma de conexion.
@@ -63,6 +66,7 @@ _ALARMS = {
     WIFI_ERROR:     ("conn", buzzer_module.PATTERN_CONN_ERROR),
     API_ERROR:      ("conn", buzzer_module.PATTERN_CONN_ERROR),
     CRITICAL_ERROR: ("critical", buzzer_module.PATTERN_CRITICAL),
+    SENSOR_ALERT:   ("limit", buzzer_module.PATTERN_LIMIT),
 }
 
 
@@ -103,6 +107,10 @@ class DeviceUI:
         """Los sensores volvieron a responder: se rearma su alarma."""
         self._active.pop("sensor", None)
 
+    def limits_ok(self):
+        """Todos los sensores volvieron a su rango: se rearma la alarma de limite."""
+        self._active.pop("limit", None)
+
     def message(self, line1, line2=""):
         """Texto libre (MAC, IP, portal) sin pasar por la maquina de estados."""
         self.state = None  # el proximo set() vuelve a escribir aunque repita estado
@@ -129,7 +137,7 @@ class DeviceUI:
 
     def _queue(self, state, detail, hold_ms):
         line1, line2 = _TEXTS.get(state, (TITLE, state))
-        if state == SENSOR_ERROR and detail:
+        if state in (SENSOR_ERROR, SENSOR_ALERT) and detail:
             line2 = detail
 
         now = time.ticks_ms()

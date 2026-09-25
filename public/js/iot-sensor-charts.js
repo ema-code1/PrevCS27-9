@@ -60,7 +60,38 @@
     if (grid._tip) grid._tip.classList.remove('is-visible');
   }
 
-  function drawLine(grid, points) {
+  /* Líneas punteadas del rango de alerta (mín./máx. del sensor). El grupo
+     se crea la primera vez: el SVG de la vista no lo trae. */
+  function limitsLayer(grid) {
+    var layer = grid.querySelector('[data-sensor-limits]');
+    if (layer) return layer;
+    var svg = grid.querySelector('.iot-line-chart');
+    var line = grid.querySelector('[data-sensor-line]');
+    layer = el('g', { 'class': 'iot-line-chart__limits', 'data-sensor-limits': '' });
+    svg.insertBefore(layer, line);
+    return layer;
+  }
+
+  function hasLimit(v) { return v !== null && v !== undefined && v !== ''; }
+
+  function drawLimits(grid, limits, min, max) {
+    var layer = limitsLayer(grid);
+    var list = [];
+    if (limits && hasLimit(limits.max)) list.push({ v: Number(limits.max), t: 'máx.' });
+    if (limits && hasLimit(limits.min)) list.push({ v: Number(limits.min), t: 'mín.' });
+    var count = min === null ? 0 : list.length;
+    var lines = syncChildren(layer, 'line', count, 'iot-line-chart__limit');
+    var texts = syncChildren(layer, 'text', count, 'iot-line-chart__limit-label');
+    if (!count) return;
+    list.forEach(function (item, i) {
+      var y = Y1 - (Y1 - Y0) * ((item.v - min) / (max - min));
+      setAttrs(lines[i], { x1: X0, y1: y, x2: X1, y2: y });
+      setAttrs(texts[i], { x: X1, y: y - 5, 'text-anchor': 'end' });
+      texts[i].textContent = item.t + ' ' + fmtVal(item.v);
+    });
+  }
+
+  function drawLine(grid, points, limits) {
     var line = grid.querySelector('[data-sensor-line]');
     var dots = grid.querySelector('[data-sensor-points]');
     var empty = grid.querySelector('[data-sensor-empty]');
@@ -78,12 +109,17 @@
       syncChildren(yAxis, 'text', 0);
       syncChildren(xAxis, 'line', 0);
       syncChildren(xAxis, 'text', 0);
+      drawLimits(grid, limits, null, null);
       if (empty) empty.hidden = false;
       return;
     }
     if (empty) empty.hidden = true;
 
     var values = points.map(function (p) { return p.value; });
+    // El rango del eje incluye los límites de alerta: así la línea punteada
+    // siempre se ve y queda claro cuánto falta para cruzarla.
+    if (limits && hasLimit(limits.max)) values = values.concat([Number(limits.max)]);
+    if (limits && hasLimit(limits.min)) values = values.concat([Number(limits.min)]);
     var min = Math.min.apply(null, values);
     var max = Math.max.apply(null, values);
     if (min === max) { min -= 1; max += 1; }
@@ -139,7 +175,52 @@
         'data-value': points[i].value,
         'data-when': points[i].at || points[i].label || ''
       });
+      // Lecturas fuera de rango en rojo.
+      circles[i].classList.toggle('is-alert', !!points[i].state && points[i].state !== 'ok');
     });
+
+    drawLimits(grid, limits, min, max);
+  }
+
+  /* ── Tarjeta "Estado": motor ilustrado + badge según la última lectura ── */
+  var STATE_LABELS = { high: 'Sobre el límite', low: 'Bajo el límite', ok: 'Normal' };
+  var STATE_BADGES = { high: 'badge--error', low: 'badge--warning', ok: 'badge--success' };
+  var STATE_IMAGES = {
+    temperature: { high: 'temperature-high', low: 'temperature-low' },
+    vibration: { high: 'vibration-high', low: 'vibration-medium' },
+    rpm: { high: 'rpm-high', low: 'rpm-low' }
+  };
+
+  function fmtLimit(v, unit) { return fmtVal(Number(v)) + (unit ? ' ' + unit : ''); }
+
+  function updateState(grid, data) {
+    var card = grid.querySelector('[data-sensor-state]');
+    if (!card) return;
+    var state = data.state || 'none';
+    var unit = grid.dataset.sensorUnit || '';
+    card.setAttribute('data-sensor-state', state);
+
+    var badge = card.querySelector('[data-sensor-state-badge]');
+    if (badge) {
+      badge.className = 'badge ' + (STATE_BADGES[state] || 'badge--info');
+      badge.textContent = STATE_LABELS[state] || 'Sin datos';
+    }
+
+    var code = card.dataset.sensorCode || '';
+    var name = (STATE_IMAGES[code] && STATE_IMAGES[code][state]) || 'motor-ok';
+    var base = card.dataset.imagesBase || '';
+    card.querySelectorAll('[data-sensor-state-img]').forEach(function (img) {
+      var src = base + name + (img.dataset.sensorStateImg === 'dark' ? '-dark' : '') + '.png';
+      if (img.getAttribute('src') !== src) img.setAttribute('src', src);
+    });
+
+    var range = card.querySelector('[data-sensor-state-range]');
+    if (range) {
+      var parts = [];
+      if (hasLimit(data.alert_min)) parts.push('mín. ' + fmtLimit(data.alert_min, unit));
+      if (hasLimit(data.alert_max)) parts.push('máx. ' + fmtLimit(data.alert_max, unit));
+      range.textContent = parts.length ? 'Rango aceptable: ' + parts.join(' · ') + '.' : 'Sin límites de alerta configurados.';
+    }
   }
 
   /* ── Tooltip flotante: valor exacto + hora del punto ── */
@@ -266,7 +347,18 @@
           setError(grid, false);
 
           var points = data.points || [];
-          drawLine(grid, points);
+          drawLine(grid, points, { min: data.alert_min, max: data.alert_max });
+          updateState(grid, data);
+
+          // El CSV respeta el rango de fechas elegido.
+          var csv = grid.querySelector('[data-sensor-csv]');
+          if (csv) {
+            var csvUrl = grid.dataset.readingsUrl + '?sensor=' + encodeURIComponent(sensorId) + '&format=csv';
+            if (range && range.from && range.to) {
+              csvUrl += '&from=' + encodeURIComponent(range.from) + '&to=' + encodeURIComponent(range.to);
+            }
+            csv.setAttribute('href', csvUrl);
+          }
 
           var latestEl = grid.querySelector('[data-sensor-latest]');
           var latestAtEl = grid.querySelector('[data-sensor-latest-at]');
@@ -283,6 +375,11 @@
               points.length + ' lecturas' + rangeNote + '.';
             if (code === 'rpm') {
               obs += ' Motor: ' + (Number(data.latest) > 0 ? 'ANDANDO ▶' : 'DETENIDO ⏸');
+            }
+            if (data.state === 'high') {
+              obs += ' ⚠ Supera el máximo de ' + fmtLimit(data.alert_max, unit) + ': se avisó a todo el espacio.';
+            } else if (data.state === 'low') {
+              obs += ' ⚠ Está debajo del mínimo de ' + fmtLimit(data.alert_min, unit) + ': se avisó a todo el espacio.';
             }
             if (obsEl) obsEl.textContent = obs;
           } else if (obsEl) {
@@ -302,9 +399,10 @@
             if (!points.length) {
               histEl.innerHTML = '<p class="text-muted">Sin historial.</p>';
             } else {
-              histEl.innerHTML = points.slice(-12).reverse().map(function (p) {
-                return '<div class="esp32-history__row"><span class="mono">' + p.label +
-                  '</span><strong>' + p.value + ' ' + unit + '</strong></div>';
+              histEl.innerHTML = points.slice(-50).reverse().map(function (p) {
+                var alert = p.state && p.state !== 'ok';
+                return '<div class="esp32-history__row' + (alert ? ' is-alert' : '') + '"><span class="mono">' + p.label +
+                  '</span><strong>' + p.value + ' ' + unit + (alert ? ' ⚠' : '') + '</strong></div>';
               }).join('');
             }
           }

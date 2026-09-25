@@ -3,7 +3,7 @@
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260924-2">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -49,7 +49,7 @@ $defaultName = $selectedIndustry !== null ? 'ESP32 ' . $selectedIndustry['space_
         <?php if ($industries === []): ?>
             <section class="panel card esp32-empty">
                 <h3>No administras ningun espacio</h3>
-                <p>Primero crea un espacio. Después vinculas la ESP32.</p>
+                <p>Primero creá un espacio. Después vinculás la ESP32.</p>
                 <a class="btn btn--primary" href="<?= base_url('crear-espacio') ?>">Crear espacio</a>
             </section>
         <?php else: ?>

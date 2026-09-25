@@ -30,19 +30,17 @@ $routes->get('form-answers/import', 'FormAnswers::import');
 $routes->get('principal', 'Home::index');
 $routes->get('admin-account', 'AdminAccount::index');
 $routes->post('admin-account', 'AdminAccount::update');
+$routes->post('admin-account/suscripcion/cancelar', 'AdminAccount::cancelSubscription');
 $routes->get('login', 'Auth::index');
 $routes->get('reg-log', 'Auth::index');
 $routes->get('register', 'Auth::index');
 $routes->post('login', 'Auth::login');
 $routes->post('register', 'Auth::register');
 $routes->post('logout', 'Auth::logout');
-$routes->get('logout', 'Auth::logout');
 $routes->get('forgot-password', 'Auth::forgotPassword');
 $routes->post('forgot-password', 'Auth::sendResetLink');
 $routes->get('reset-password/(:segment)', 'Auth::resetPassword/$1');
 $routes->post('reset-password', 'Auth::updatePassword');
-$routes->get('admin-account', 'Account::index');
-$routes->post('admin-account/update', 'Account::update');
 
 // === Modulo IoT multi-industria ===
 // Registros IoT por-espacio (reemplaza la vieja vista global con datos demo)
@@ -128,9 +126,6 @@ $routes->post('esp32/(:num)/sensores', 'SensorController::store/$1');
 $routes->post('esp32/(:num)/sensores/(:num)', 'SensorController::update/$1/$2');
 $routes->post('esp32/(:num)/sensores/(:num)/eliminar', 'SensorController::deleteFromDevice/$1/$2');
 $routes->get('esp32/(:num)', 'Esp32Controller::show/$1');
-
-// show user
-$routes->get('showuser/', 'ShowUserController::index');
 
 // APIs IoT
 $routes->get('api/esp32/(:num)/lecturas', 'Esp32Controller::readings/$1');

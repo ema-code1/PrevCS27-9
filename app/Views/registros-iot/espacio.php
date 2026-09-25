@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260807-1">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260612-2">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260924-2">
 <link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
 <?= $this->endSection() ?>
 
@@ -80,12 +80,13 @@
             </div>
 
             <?php foreach ($sensors as $idx => $s): ?>
+                <?php $readingsUrl = base_url('api/espacio/' . $industry['id'] . '/lecturas'); ?>
                 <section class="section-pane<?= $idx === 0 ? ' is-active' : '' ?>" data-section-pane="sensor-<?= $s['id'] ?>">
                     <div class="iot-grid"
                         data-sensor-id="<?= $s['id'] ?>"
                         data-sensor-code="<?= esc($s['code']) ?>"
                         data-sensor-unit="<?= esc($s['unit'] ?? '') ?>"
-                        data-readings-url="<?= base_url('api/espacio/' . $industry['id'] . '/lecturas') ?>">
+                        data-readings-url="<?= esc($readingsUrl, 'attr') ?>">
                         <section class="panel card iot-chart-card">
                             <div class="panel__header">
                                 <h3><?= esc($s['name']) ?><?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?></h3>
@@ -130,14 +131,16 @@
                         </section>
 
                         <div class="iot-side-stack">
+                            <?= view('registros-iot/_sensor_state', ['s' => $s], ['saveData' => false]) ?>
+
                             <aside class="panel card">
                                 <div class="panel__header"><h3>Resumen</h3></div>
                                 <dl class="esp32-sensor-meta">
-                                    <div><dt>Placá</dt><dd><?= esc($s['device_name']) ?></dd></div>
+                                    <div><dt>Placa</dt><dd><?= esc($s['device_name']) ?></dd></div>
                                     <div><dt>MAC</dt><dd class="mono"><?= esc($s['mac_address']) ?></dd></div>
                                     <div><dt>Última lectura</dt>
                                         <dd class="mono" data-sensor-latest>
-                                            <?= $s['latest_value'] !== null ? esc($s['latest_value']) . ' ' . esc($s['unit'] ?? '') : '—' ?>
+                                            <?= $s['latest_value'] !== null ? esc(\App\Libraries\SensorAlerts::num((float) $s['latest_value'])) . ' ' . esc($s['unit'] ?? '') : '—' ?>
                                         </dd>
                                     </div>
                                     <div><dt>Registrada</dt><dd class="mono" data-sensor-latest-at><?= esc($s['latest_at'] ?? '—') ?></dd></div>
@@ -150,7 +153,12 @@
                             </aside>
 
                             <aside class="panel card">
-                                <div class="panel__header"><h3>Historial</h3></div>
+                                <div class="panel__header">
+                                    <h3>Historial</h3>
+                                    <a class="btn btn--secondary btn--sm" data-sensor-csv download
+                                       href="<?= esc($readingsUrl . '?sensor=' . (int) $s['id'] . '&format=csv', 'attr') ?>"
+                                       title="Descargar todas las lecturas del rango elegido">Descargar CSV</a>
+                                </div>
                                 <div class="esp32-history" data-sensor-history>
                                     <div class="iot-skel-rows" aria-hidden="true">
                                         <span class="iot-skel"></span>
@@ -171,5 +179,5 @@
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
 <script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260820-1" defer></script>
-<script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260612-1" defer></script>
+<script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260924-1" defer></script>
 <?= $this->endSection() ?>

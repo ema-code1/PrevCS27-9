@@ -21,7 +21,7 @@ from sensors import Sensors
 
 _ui = None   # capa LCD+buzzer; global para poder avisar desde el handler de errores
 
-FIRMWARE_BUILD = "2026-09-04-lcd-buzzer-v4"
+FIRMWARE_BUILD = "2026-09-24-alertas-v5"
 
 # Unidad que reporta cada metrica (informativo para el backend).
 # Son los 3 sensores que se guardan en sensor_readings.
@@ -44,6 +44,27 @@ def build_readings(data):
             continue
         readings.append({"type": key, "value": value, "unit": UNITS[key]})
     return readings
+
+
+# Texto corto para el LCD (16 caracteres) de cada sensor fuera de rango.
+_ALERT_NAMES = {"temperature": "TEMP", "vibration": "VIBR", "rpm": "RPM"}
+_ALERT_STATES = {"high": "ALTA", "low": "BAJA"}
+
+
+def show_alerts(ui, alerts):
+    """Refleja en la placa las alertas que devolvio la web."""
+    if not alerts:
+        ui.limits_ok()
+        return
+    partes = []
+    for a in alerts[:2]:
+        partes.append("{} {}".format(
+            _ALERT_NAMES.get(a.get("type"), str(a.get("type", "?"))[:4].upper()),
+            _ALERT_STATES.get(a.get("state"), "!"),
+        ))
+    detalle = " ".join(partes)[:16]
+    print("[main] ALERTA de la web:", alerts)
+    ui.set(device_ui.SENSOR_ALERT, detalle, hold_ms=5000)
 
 
 def ensure_wifi(cfg, intentos=3, ui=None):
@@ -164,6 +185,8 @@ def run():
             )
             first_send = False
             ui.set(device_ui.DATA_SENT if enviado else device_ui.API_ERROR)
+            if enviado:
+                show_alerts(ui, backend.last_alerts)
         else:
             print("[main] Sin WiFi: se descarta este paquete (no se bloquea el ciclo).")
             ui.set(device_ui.WIFI_ERROR)

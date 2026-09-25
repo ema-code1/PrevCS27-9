@@ -10,9 +10,9 @@ use App\Models\UserModel;
 class Auth extends BaseController
 {
     private const RESET_TOKEN_EXPIRATION_SECONDS = 900;
-    private const RESET_LINK_SENT_MESSAGE = 'Si el correo existe, se enviara un enlace.';
+    private const RESET_LINK_SENT_MESSAGE = 'Si el correo existe, se enviará un enlace.';
     private const RESET_LINK_ERROR_MESSAGE = 'No pudimos procesar la solicitud en este momento. Intentá nuevamente más tarde.';
-    private const RESET_LINK_INVALID_MESSAGE = 'El enlace de recuperación no es valido o ya expiro.';
+    private const RESET_LINK_INVALID_MESSAGE = 'El enlace de recuperación no es válido o ya expiró.';
 
     public function index()
     {
@@ -35,7 +35,8 @@ class Auth extends BaseController
     {
         $rules = [
             'email'    => 'required|valid_email',
-            'password' => 'required|min_length[6]',
+            // Sin largo mínimo acá: las cuentas viejas pueden tener claves de 6.
+            'password' => 'required',
         ];
 
         if (! $this->validate($rules)) {
@@ -43,6 +44,14 @@ class Auth extends BaseController
                 ->withInput()
                 ->with('activeForm', 'login')
                 ->with('errors', $this->validator->getErrors());
+        }
+
+        // Freno a la fuerza bruta: 5 intentos por minuto por IP + email.
+        if (! $this->allowAttempt('login', (string) $this->request->getPost('email'))) {
+            return redirect()->to(base_url('login'))
+                ->withInput()
+                ->with('activeForm', 'login')
+                ->with('error', 'Demasiados intentos. Esperá un minuto y volvé a probar.');
         }
 
         $userModel = new UserModel();
@@ -62,7 +71,7 @@ class Auth extends BaseController
             $redirect = redirect()->to(base_url('verificar-cuenta'));
             return $sent
                 ? $redirect
-                : $redirect->with('error', 'No pudimos enviar el correo. Podes intentar de nuevo.');
+                : $redirect->with('error', 'No pudimos enviar el correo. Podés intentar de nuevo.');
         }
 
         if ((bool) ($user['two_factor_enabled'] ?? false)) {
@@ -72,12 +81,24 @@ class Auth extends BaseController
             $redirect = redirect()->to(base_url('verificar-login'));
             return $sent
                 ? $redirect
-                : $redirect->with('error', 'No pudimos enviar el codigo. Podes intentar de nuevo.');
+                : $redirect->with('error', 'No pudimos enviar el código. Podés intentar de nuevo.');
         }
 
         $this->completeLogin($user);
 
         return redirect()->to($this->afterLoginUrl('principal'));
+    }
+
+    /**
+     * Límite de intentos (token bucket del Throttler de CodeIgniter): 5 por
+     * minuto para la misma IP y el mismo dato (email). Pasado el límite, el
+     * formulario rechaza sin siquiera consultar la base.
+     */
+    private function allowAttempt(string $action, string $subject): bool
+    {
+        $key = $action . '-' . md5($this->request->getIPAddress() . '|' . mb_strtolower(trim($subject)));
+
+        return service('throttler')->check($key, 5, MINUTE);
     }
 
     /**
@@ -139,13 +160,13 @@ class Auth extends BaseController
             'nombre'           => 'required|min_length[2]|max_length[150]',
             'apellido'         => 'required|min_length[2]|max_length[150]',
             'email'            => 'required|valid_email|is_unique[users.email]',
-            'password'         => 'required|min_length[6]',
+            'password'         => 'required|min_length[8]',
             'password_confirm' => 'required|matches[password]',
         ];
 
         $messages = [
             'email' => [
-                'is_unique' => 'Ese email ya esta registrado.',
+                'is_unique' => 'Ese email ya está registrado.',
             ],
             'password_confirm' => [
                 'matches' => 'Las contraseñas no coinciden.',
@@ -182,7 +203,7 @@ class Auth extends BaseController
             return redirect()->to(base_url('login'))
                 ->withInput()
                 ->with('activeForm', 'register')
-                ->with('error', 'No se pudo crear la cuenta. Revisa la estructura de la tabla users.');
+                ->with('error', 'No se pudo crear la cuenta. Intentá de nuevo en unos minutos.');
         }
 
         $user = $userModel->find($userModel->getInsertID());
@@ -190,7 +211,7 @@ class Auth extends BaseController
         if ($user === null) {
             return redirect()->to(base_url('login'))
                 ->with('activeForm', 'login')
-                ->with('error', 'La cuenta fue creada, pero no pudimos iniciar la verificacion.');
+                ->with('error', 'La cuenta fue creada, pero no pudimos iniciar la verificación.');
         }
 
         // Si pagó la suscripción en /pago antes de crear la cuenta, queda vinculada acá.
@@ -206,8 +227,8 @@ class Auth extends BaseController
 
         $redirect = redirect()->to(base_url('verificar-cuenta'));
         return $sent
-            ? $redirect->with('success', 'Cuenta creada. Revisa tu correo.')
-            : $redirect->with('error', 'Cuenta creada, pero no pudimos enviar el correo. Reintenta.');
+            ? $redirect->with('success', 'Cuenta creada. Revisá tu correo.')
+            : $redirect->with('error', 'Cuenta creada, pero no pudimos enviar el correo. Reintentá.');
     }
 
     public function verificationForm()
@@ -215,7 +236,7 @@ class Auth extends BaseController
         $user = $this->pendingUser(VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);
         if ($user === null) {
             return redirect()->to(base_url('login'))
-                ->with('error', 'Inicia sesion para verificar tu cuenta.');
+                ->with('error', 'Iniciá sesión para verificar tu cuenta.');
         }
 
         if (! empty($user['email_verified_at'])) {
@@ -226,9 +247,9 @@ class Auth extends BaseController
         return $this->verificationView(
             $user,
             VerificationCodeService::PURPOSE_EMAIL_VERIFICATION,
-            'Verificacion de correo',
-            'Ingresa el codigo',
-            'Verifica tu cuenta',
+            'Verificación de correo',
+            'Ingresá el código',
+            'Verificá tu cuenta',
             base_url('verificar-cuenta'),
             base_url('verificar-cuenta/reenviar'),
         );
@@ -239,7 +260,7 @@ class Auth extends BaseController
         $user = $this->pendingUser(VerificationCodeService::PURPOSE_EMAIL_VERIFICATION);
         if ($user === null) {
             return redirect()->to(base_url('login'))
-                ->with('error', 'La verificacion vencio. Inicia sesion de nuevo.');
+                ->with('error', 'La verificación venció. Iniciá sesión de nuevo.');
         }
 
         $result = (new VerificationCodeService())->verify(
@@ -280,15 +301,15 @@ class Auth extends BaseController
         $user = $this->pendingUser(VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN);
         if ($user === null || ! (bool) ($user['two_factor_enabled'] ?? false)) {
             return redirect()->to(base_url('login'))
-                ->with('error', 'Inicia sesion de nuevo.');
+                ->with('error', 'Iniciá sesión de nuevo.');
         }
 
         return $this->verificationView(
             $user,
             VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN,
             'Seguridad',
-            'Ingresa tu codigo 2FA',
-            'Confirma el inicio de sesion',
+            'Ingresá tu código 2FA',
+            'Confirmá el inicio de sesión',
             base_url('verificar-login'),
             base_url('verificar-login/reenviar'),
         );
@@ -299,7 +320,7 @@ class Auth extends BaseController
         $user = $this->pendingUser(VerificationCodeService::PURPOSE_TWO_FACTOR_LOGIN);
         if ($user === null || ! (bool) ($user['two_factor_enabled'] ?? false)) {
             return redirect()->to(base_url('login'))
-                ->with('error', 'La verificacion vencio. Inicia sesion de nuevo.');
+                ->with('error', 'La verificación venció. Iniciá sesión de nuevo.');
         }
 
         $result = (new VerificationCodeService())->verify(
@@ -412,7 +433,7 @@ class Auth extends BaseController
         $user = $this->pendingUser($purpose);
         if ($user === null) {
             return redirect()->to(base_url('login'))
-                ->with('error', 'La verificacion vencio. Inicia sesion de nuevo.');
+                ->with('error', 'La verificación venció. Iniciá sesión de nuevo.');
         }
 
         $codes = new VerificationCodeService();
@@ -420,27 +441,27 @@ class Auth extends BaseController
 
         if ($issued['cooldown'] === true) {
             return redirect()->to(base_url($redirectPath))
-                ->with('error', 'Espera ' . $issued['retry_after'] . ' segundos para reenviar.');
+                ->with('error', 'Esperá ' . $issued['retry_after'] . ' segundos para reenviar.');
         }
 
         if (! (new VerificationMailer())->send($user, $purpose, (string) $issued['code'])) {
             $codes->discard((int) $user['id'], $purpose);
             return redirect()->to(base_url($redirectPath))
-                ->with('error', 'No pudimos enviar el correo. Intenta de nuevo.');
+                ->with('error', 'No pudimos enviar el correo. Intentá de nuevo.');
         }
 
         return redirect()->to(base_url($redirectPath))
-            ->with('success', 'Codigo enviado.');
+            ->with('success', 'Código enviado.');
     }
 
     private function verificationError(array $result): string
     {
         return match ($result['status']) {
-            VerificationCodeService::STATUS_INVALID => 'Codigo incorrecto. Te quedan ' . $result['attempts_left'] . ' intentos.',
-            VerificationCodeService::STATUS_EXPIRED => 'El codigo vencio. Envia uno nuevo.',
-            VerificationCodeService::STATUS_USED => 'Ese codigo ya fue usado. Envia uno nuevo.',
-            VerificationCodeService::STATUS_LOCKED => 'Llegaste al maximo de 5 intentos. Envia un codigo nuevo.',
-            default => 'No hay un codigo activo. Envia uno nuevo.',
+            VerificationCodeService::STATUS_INVALID => 'Código incorrecto. Te quedan ' . $result['attempts_left'] . ' intentos.',
+            VerificationCodeService::STATUS_EXPIRED => 'El código venció. Enviá uno nuevo.',
+            VerificationCodeService::STATUS_USED => 'Ese código ya fue usado. Enviá uno nuevo.',
+            VerificationCodeService::STATUS_LOCKED => 'Llegaste al máximo de 5 intentos. Enviá un código nuevo.',
+            default => 'No hay un código activo. Enviá uno nuevo.',
         };
     }
 
@@ -480,6 +501,14 @@ class Auth extends BaseController
         }
 
         $email = trim((string) $this->request->getPost('email'));
+
+        // Sin límite, cualquiera podría llenar de correos la casilla de otro.
+        if (! $this->allowAttempt('reset', $email)) {
+            return redirect()->to(base_url('forgot-password'))
+                ->withInput()
+                ->with('error', 'Demasiados pedidos seguidos. Esperá un minuto y volvé a probar.');
+        }
+
         $userModel = new UserModel();
         $user = $userModel->where('email', $email)->first();
 
@@ -579,7 +608,7 @@ class Auth extends BaseController
     {
         $rules = [
             'token'            => 'required',
-            'password'         => 'required|min_length[6]',
+            'password'         => 'required|min_length[8]',
             'password_confirm' => 'required|matches[password]',
         ];
 
@@ -640,7 +669,7 @@ class Auth extends BaseController
         $this->deletePasswordReset($passwordResetBuilder, $matchedReset);
 
         return redirect()->to(base_url('login'))
-            ->with('success', 'Contraseña actualizáda correctamente. Ya puedes iniciar sesión.');
+            ->with('success', 'Contraseña actualizada correctamente. Ya podés iniciar sesión.');
     }
 
     private function findPasswordResetByToken($passwordResetBuilder, string $token): ?array

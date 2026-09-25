@@ -126,7 +126,7 @@ $notifClass = static fn ($level): string => 'notif-item--' . ([1 => 'error', 2 =
                         <span class="user-menu__item-icon" aria-hidden="true">
                             <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
                         </span>
-                        <span>Configuracion</span>
+                        <span>Configuración</span>
                     </a>
 
                     <div class="user-menu__item user-menu__item--theme">
@@ -157,12 +157,17 @@ $notifClass = static fn ($level): string => 'notif-item--' . ([1 => 'error', 2 =
                     <!-- "Administrar cuenta" y "Ayuda" viven ahora en el pie del
                          menú de navegación (templates/sidebar.php). -->
 
-                    <a class="user-menu__item user-menu__item--danger" href="<?= base_url('logout') ?>">
-                        <span class="user-menu__item-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none"><path d="M15 12H3m12 0-3-3m3 3-3 3M9 5h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </span>
-                        <span>Cerrar sesión</span>
-                    </a>
+                    <?php /* POST + CSRF: un link GET permitía que cualquier página
+                            cerrara la sesión del usuario con un simple <img>. */ ?>
+                    <form class="user-menu__logout" action="<?= base_url('logout') ?>" method="post">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="user-menu__item user-menu__item--danger">
+                            <span class="user-menu__item-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M15 12H3m12 0-3-3m3 3-3 3M9 5h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </span>
+                            <span>Cerrar sesión</span>
+                        </button>
+                    </form>
                 </div>
             </details>
         <?php else: ?>

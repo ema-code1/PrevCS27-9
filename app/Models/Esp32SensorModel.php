@@ -11,7 +11,7 @@ class Esp32SensorModel extends Model
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $protectFields    = true;
-    protected $allowedFields    = ['esp32_device_id', 'sensor_type_id', 'label'];
+    protected $allowedFields    = ['esp32_device_id', 'sensor_type_id', 'label', 'alert_min', 'alert_max', 'alert_state'];
 
     protected bool $allowEmptyInserts = false;
 

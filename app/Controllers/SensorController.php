@@ -3,10 +3,12 @@
 namespace App\Controllers;
 
 use App\Libraries\DeviceModalRegions;
+use App\Libraries\SensorAlerts;
 use App\Libraries\SpaceModalRegions;
 use App\Models\Esp32DeviceModel;
 use App\Models\Esp32SensorModel;
 use App\Models\IndustryUserModel;
+use App\Models\SensorReadingModel;
 use App\Models\SensorTypeModel;
 
 class SensorController extends BaseController
@@ -90,7 +92,7 @@ class SensorController extends BaseController
     {
         $device = $this->adminDevice($deviceId);
         if ($device === null) {
-            return $this->deviceFail(null, 'No tenes permiso para agregar sensores a esa placa.', 403);
+            return $this->deviceFail(null, 'No tenés permiso para agregar sensores a esa placa.', 403);
         }
 
         $rules = [
@@ -104,7 +106,8 @@ class SensorController extends BaseController
 
         $sensorTypeId = (int) $this->request->getPost('sensor_type_id');
 
-        if ((new SensorTypeModel())->find($sensorTypeId) === null) {
+        $type = (new SensorTypeModel())->find($sensorTypeId);
+        if ($type === null) {
             return $this->deviceFail($device, 'El tipo de sensor no existe.');
         }
 
@@ -121,7 +124,7 @@ class SensorController extends BaseController
             'esp32_device_id' => (int) $device['id'],
             'sensor_type_id'  => $sensorTypeId,
             'label'           => $label !== '' ? $label : null,
-        ], true);
+        ] + SensorAlerts::defaultsFor((string) $type['code']), true);
 
         return $this->deviceOk($device, 'Sensor agregado a la ESP32.', [
             'action' => 'created',
@@ -140,7 +143,7 @@ class SensorController extends BaseController
     {
         $device = $this->adminDevice($deviceId);
         if ($device === null) {
-            return $this->deviceFail(null, 'No tenes permiso para editar los sensores de esa placa.', 403);
+            return $this->deviceFail(null, 'No tenés permiso para editar los sensores de esa placa.', 403);
         }
 
         $sensorModel = new Esp32SensorModel();
@@ -153,10 +156,21 @@ class SensorController extends BaseController
         $rules = [
             'sensor_type_id' => 'required|is_natural_no_zero',
             'label'          => 'permit_empty|max_length[150]',
+            'alert_min'      => 'permit_empty|decimal',
+            'alert_max'      => 'permit_empty|decimal',
         ];
 
         if (! $this->validate($rules)) {
-            return $this->deviceFail($device, 'Elegí un tipo de sensor válido.');
+            return $this->deviceFail($device, isset($this->validator->getErrors()['sensor_type_id'])
+                ? 'Elegí un tipo de sensor válido.'
+                : 'Los límites de alerta tienen que ser números.');
+        }
+
+        // Rango aceptable del sensor: fuera de él, la ingesta avisa al espacio.
+        $alertMin = $this->optionalNumber('alert_min');
+        $alertMax = $this->optionalNumber('alert_max');
+        if ($alertMin !== null && $alertMax !== null && $alertMin >= $alertMax) {
+            return $this->deviceFail($device, 'El mínimo de alerta tiene que ser menor que el máximo.');
         }
 
         $sensorTypeId = (int) $this->request->getPost('sensor_type_id');
@@ -176,10 +190,24 @@ class SensorController extends BaseController
         $label       = trim((string) $this->request->getPost('label'));
         $typeChanged = (int) $sensor['sensor_type_id'] !== $sensorTypeId;
 
+        // Con otro tipo u otro rango, el estado se recalcula con la última
+        // lectura: la tarjeta "Estado" queda al día sin esperar a la placa.
+        $rangeChanged = $typeChanged
+            || $alertMin !== ($sensor['alert_min'] === null ? null : (float) $sensor['alert_min'])
+            || $alertMax !== ($sensor['alert_max'] === null ? null : (float) $sensor['alert_max']);
+
+        $state = [];
+        if ($rangeChanged) {
+            $latest = (new SensorReadingModel())->latestForSensor((int) $sensor['id']);
+            $state  = ['alert_state' => $latest === null ? null : SensorAlerts::evaluate((float) $latest['value'], $alertMin, $alertMax)];
+        }
+
         $sensorModel->update((int) $sensor['id'], [
             'sensor_type_id' => $sensorTypeId,
             'label'          => $label !== '' ? $label : null,
-        ]);
+            'alert_min'      => $alertMin,
+            'alert_max'      => $alertMax,
+        ] + $state);
 
         // typeChanged: con otro tipo cambian la unidad y el gráfico del panel,
         // que no vive en esta región; la vista lo redibuja al cerrar. Si solo
@@ -188,7 +216,7 @@ class SensorController extends BaseController
             'action'      => 'updated',
             'id'          => (int) $sensor['id'],
             'title'       => $label !== '' ? $label : (string) $type['name'],
-            'typeChanged' => $typeChanged,
+            'typeChanged' => $rangeChanged, // tipo o rango: el panel del gráfico se redibuja
         ]);
     }
 
@@ -200,7 +228,7 @@ class SensorController extends BaseController
     {
         $device = $this->adminDevice($deviceId);
         if ($device === null) {
-            return $this->deviceFail(null, 'No tenes permiso para borrar los sensores de esa placa.', 403);
+            return $this->deviceFail(null, 'No tenés permiso para borrar los sensores de esa placa.', 403);
         }
 
         $sensorModel = new Esp32SensorModel();
@@ -229,7 +257,7 @@ class SensorController extends BaseController
         $sensorId   = (int) $sensorId;
 
         if ((new IndustryUserModel())->roleFor($userId, $industryId) !== IndustryUserModel::ROLE_ADMIN) {
-            return $this->spaceFail($industryId, 'No tenes permiso para administrar ese espacio.');
+            return $this->spaceFail($industryId, 'No tenés permiso para administrar ese espacio.');
         }
 
         $unlock = session('space_unlock');
@@ -256,6 +284,14 @@ class SensorController extends BaseController
         }
 
         return redirect()->to(base_url('registros-iot?config=' . $industryId))->with('success', 'Sensor eliminado.');
+    }
+
+    /** Campo numérico opcional del formulario: vacío = sin límite. */
+    private function optionalNumber(string $field): ?float
+    {
+        $raw = trim(str_replace(',', '.', (string) $this->request->getPost($field)));
+
+        return $raw === '' ? null : (float) $raw;
     }
 
     private function spaceFail(int $industryId, string $message)

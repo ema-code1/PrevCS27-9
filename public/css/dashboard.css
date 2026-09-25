@@ -209,3 +209,11 @@
     transition-duration: 1ms !important;
   }
 }
+
+/* Tarjeta "Alertas activas" cuando hay sensores fuera de rango. */
+.kpi-card--alert { border-color: var(--error-soft); box-shadow: 0 0 0 3px var(--error-soft); }
+.kpi-card--alert strong { color: var(--error); }
+.dashboard-alerts .list-row span:last-child { color: var(--error); }
+
+/* Panel principal: seis tarjetas en una sola fila cuando entra. */
+.kpi-grid--six { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }

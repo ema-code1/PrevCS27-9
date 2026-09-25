@@ -3,7 +3,7 @@
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/standalone.css') ?>?v=20260807-3">
-<link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260831-2">
+<link rel="stylesheet" href="<?= base_url('css/stock.css') ?>?v=20260924-1">
 <link rel="stylesheet" href="<?= base_url('css/event-manager.css') ?>?v=20260918-1">
 <?= $this->endSection() ?>
 
@@ -295,7 +295,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
 
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260831-1" defer></script>
-<script src="<?= base_url('js/event-manager.js') ?>?v=20260918-3"></script>
+<script src="<?= base_url('js/event-manager.js') ?>?v=20260924-1"></script>
 <script>
 /* ── Pestañas Stock / Calendario + calendario del espacio ─────────────── */
 (function () {
@@ -447,6 +447,22 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
     var configAviso = document.getElementById('config-aviso');
     var inputAvisoLabel = document.getElementById('input-aviso-label');
     var inputAvisoComparador = document.getElementById('input-aviso-comparador');
+    // Select propio (el mismo del calendario) en lugar del nativo, que no se
+    // puede estilar. El <select> queda oculto y sigue guardando el valor que
+    // lee el resto del código al guardar la columna.
+    var comparadorSelect = null;
+    if (window.EmSelect && inputAvisoComparador) {
+        comparadorSelect = new window.EmSelect({
+            ariaLabel: 'Comparación del aviso',
+            options: Array.prototype.map.call(inputAvisoComparador.options, function (o) {
+                return { value: o.value, label: o.textContent.trim() };
+            }),
+            onChange: function (value) { inputAvisoComparador.value = value; }
+        });
+        comparadorSelect.setValue(inputAvisoComparador.value);
+        inputAvisoComparador.style.display = 'none';
+        inputAvisoComparador.parentNode.insertBefore(comparadorSelect.root, inputAvisoComparador.nextSibling);
+    }
     var inputAvisoZero = document.getElementById('input-aviso-zero');
     var inputAvisoMinimo = document.getElementById('input-aviso-minimo');
     var avisoMinimoHint = modal.querySelector('[data-aviso-minimo-hint]');
@@ -1803,6 +1819,7 @@ $spaceLine   = trim($spaceName . ($sector !== '' ? ' - ' . $sector : ''));
         var settings = settingsDeTabla(colActiva.closest('table'));
         inputAvisoLabel.value = settings.label;
         inputAvisoComparador.value = settings.comparator;
+        if (comparadorSelect) comparadorSelect.setValue(settings.comparator);
         inputAvisoZero.checked = settings.zero;
         inputAvisoMinimo.checked = settings.minimo;
         sincronizarConfigAviso(tipoActual);

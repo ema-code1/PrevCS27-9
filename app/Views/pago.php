@@ -3,7 +3,7 @@
 <?php $showHeader = false; ?>
 
 <?= $this->section('pageStyles') ?>
-<link rel="stylesheet" href="<?= base_url('css/pago.css') ?>?v=20260917-1">
+<link rel="stylesheet" href="<?= base_url('css/pago.css') ?>?v=20260924-1">
 <?= $this->endSection() ?>
 
 <?= $this->section('content') ?>
@@ -93,7 +93,7 @@
                 </span>
                 <span class="pay-method-text">
                   <strong>Mercado Pago</strong>
-                  <small>Tarjeta, dinero en cuenta o efectivo</small>
+                  <small>Tarjeta de crédito o débito</small>
                 </span>
                 <span class="pay-method-check" aria-hidden="true">
                   <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -101,8 +101,10 @@
               </span>
             </label>
 
-            <label class="pay-method" data-method="paypal">
-              <input type="radio" name="method" value="paypal">
+            <?php /* PayPal todavía no está integrado: se muestra deshabilitado para
+                    no ofrecer un pago que en realidad no se cobra. */ ?>
+            <label class="pay-method is-disabled" data-method="paypal" title="Próximamente">
+              <input type="radio" name="method" value="paypal" disabled>
               <span class="pay-method-inner">
                 <span class="pay-logo-chip">
                   <img src="https://cdn.jsdelivr.net/npm/simple-icons@v13/icons/paypal.svg"
@@ -110,7 +112,7 @@
                 </span>
                 <span class="pay-method-text">
                   <strong>PayPal</strong>
-                  <small>Pagá con tu saldo o tarjeta internacional</small>
+                  <small>Próximamente</small>
                 </span>
                 <span class="pay-method-check" aria-hidden="true">
                   <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -195,10 +197,10 @@
         </div>
 
         <ul class="pay-summary-list">
-          <li><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Workspaces ilimitados</li>
-          <li><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Sensores sin tope</li>
-          <li><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Alertas en tiempo real</li>
-          <li><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Soporte prioritario</li>
+          <li><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Espacios ilimitados</li>
+          <li><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Placas ESP32 sin tope</li>
+          <li><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Alertas por umbral en la web y en la placa</li>
+          <li><svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Historial completo exportable a CSV</li>
         </ul>
 
         <div class="pay-summary-rows">
@@ -211,7 +213,7 @@
 
         <span class="pay-guarantee mono">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 13.5 4v4c0 3.5-2.3 5.6-5.5 6.5C4.8 13.6 2.5 11.5 2.5 8V4L8 1.5Z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
-          Garantía de 30 días · cancelás cuando quieras
+          Sin permanencia · cancelás desde tu cuenta
         </span>
       </div>
     </aside>

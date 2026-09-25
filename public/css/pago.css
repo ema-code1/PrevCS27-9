@@ -514,3 +514,7 @@
   .pay-card-row { grid-template-columns: 1fr; }
   .pay-method-text small { display: none; }
 }
+
+/* Método todavía no disponible (PayPal): visible pero sin poder elegirse. */
+.pay-method.is-disabled { cursor: not-allowed; }
+.pay-method.is-disabled .pay-method-inner { pointer-events: none; opacity: .55; filter: grayscale(1); }

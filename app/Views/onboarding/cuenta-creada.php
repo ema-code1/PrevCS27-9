@@ -14,9 +14,9 @@
             </svg>
         </div>
         <h1>Tu cuenta fue creada</h1>
-        <p>Correo verificado. Ya podes crear tu espacio y empezar.</p>
+        <p>Correo verificado. Ya podés crear tu espacio y empezar.</p>
         <a class="auth-submit account-created__button" href="<?= base_url('crear-espacio') ?>">Continuar</a>
-        <span>Ya tenes acceso a las funciones de tu cuenta.</span>
+        <span>Ya tenés acceso a las funciones de tu cuenta.</span>
     </section>
 </main>
 <?= $this->endSection() ?>

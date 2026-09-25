@@ -1173,7 +1173,7 @@ $icon = function (string $name, string $cls = 'pf-ico'): string {
       <div>
         <h5>Contacto</h5>
         <a href="mailto:mayradelloso@itr3.edu.ar">mayradelloso@itr3.edu.ar</a>
-        <a href="mailto:hola@prevcs.com">hola@prevcs.com</a>
+        <a href="mailto:preventivecontrolsystem.saas@gmail.com">preventivecontrolsystem.saas@gmail.com</a>
       </div>
     </div>
   </div>

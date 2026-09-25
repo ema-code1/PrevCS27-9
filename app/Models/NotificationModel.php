@@ -18,6 +18,9 @@ class NotificationModel extends Model
     /** Recordatorios del calendario del espacio (SpaceEventReminders). */
     public const SOURCE_CALENDAR = 'calendar';
 
+    /** Lecturas de sensores fuera del rango configurado (SensorAlerts). */
+    public const SOURCE_SENSOR = 'sensor';
+
     /** Nivel = color del punto en el panel: 1 rojo, 2 ámbar, 3 neutro. */
     public const LEVEL_CRITICAL = 1;
 

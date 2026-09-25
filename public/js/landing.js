@@ -131,15 +131,12 @@
   /* ---------- Recommender ---------- */
   const recRoot = document.getElementById('recommender');
   if (recRoot) {
+    // Lo que el kit de PrevCS mide hoy: cada métrica con su sensor real, lo
+    // que se ve en el panel y el límite de alerta con el que nace el sensor.
     const RECS = {
-      temperatura:  { s: ['DS18B20 — sonda de temperatura', 'DHT22 — ambiente'],          t: ['Histórico térmico 24 h', 'Mapa de calor por área'],     a: ['Umbral &gt; 75 °C', 'Tendencia ascendente sostenida'] },
-      vibracion:    { s: ['SW-420 — vibración digital', 'ADXL345 — acelerómetro'],        t: ['Espectro de vibración', 'Predictivo de motores'],       a: ['Pico fuera de banda', 'Desbalance progresivo'] },
-      humedad:      { s: ['DHT22 — humedad relativa', 'HIH-6130 — alta precisión'],       t: ['Humedad por sala', 'Confort y materia prima'],          a: ['Humedad &gt; 80%', 'Caída brusca'] },
-      energia:      { s: ['SCT-013 — corriente AC', 'PZEM-004T — energía total'],         t: ['Consumo por línea', 'Comparativa de turnos'],           a: ['Pico de consumo', 'Factor de potencia bajo'] },
-      produccion:   { s: ['HC-SR04 — conteo por nivel', 'E18-D80 — proximidad'],          t: ['OEE en vivo', 'Producción por turno'],                  a: ['Caída de rendimiento', 'Parada prolongada'] },
-      stock:        { s: ['HC-SR04 — nivel ultrasónico', 'KY025 — magnético'],             t: ['Niveles de silos', 'Stock por insumo'],                 a: ['Stock &lt; mínimo', 'Reposición sugerida'] },
-      mantenimiento:{ s: ['ESP32 — gateway central', 'SW-420 — vibración'],               t: ['Línea de mantenimiento', 'Predictivo OEE'],             a: ['Horas de uso superadas', 'Patrón de fallo previo'] },
-      presion:      { s: ['BMP280 — presión barométrica', 'MPX5700 — alta presión'],      t: ['Presión por circuito', 'Curva de operación'],           a: ['Sobrepresión', 'Caída por fuga'] }
+      temperatura: { s: ['DS18B20 — sonda de temperatura'], t: ['Gráfico en vivo de temperatura'],  a: ['Máximo sugerido: 60 °C'] },
+      vibracion:   { s: ['SW-420 — vibración digital'],     t: ['Eventos de vibración por minuto'], a: ['Máximo sugerido: 50 eventos'] },
+      rpm:         { s: ['LM393 — sensor de RPM'],          t: ['Motor andando o detenido'],        a: ['Mínimo y máximo a elección'] }
     };
 
     const chips = recRoot.querySelectorAll('[data-rec]');
@@ -161,7 +158,7 @@
         r.t.slice(0, 1).forEach(x => setT.add(x));
         r.a.slice(0, 1).forEach(x => setA.add(x));
       });
-      if (active.length > 0) setS.add('Modulo ESP32 — gateway WiFi/MQTT');
+      if (active.length > 0) setS.add('ESP32 — placa WiFi con pantalla LCD y buzzer');
 
       const render = (set, host) => {
         const values = [...set].slice(0, 4).map((value) => {

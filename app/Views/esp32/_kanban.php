@@ -30,6 +30,9 @@
                  al contenido y Enter confirma en vez de meter un salto. -->
             <textarea class="kb__title kb-inline" data-kb-title maxlength="150" rows="1"
                 aria-label="Nombre del tablero" placeholder="Nombre del tablero"></textarea>
+            <?php if (empty($canEdit)): ?>
+                <span class="badge badge--info" title="Tu permiso en este espacio es de solo lectura">Solo lectura</span>
+            <?php endif; ?>
         </div>
 
         <div class="kb__toolbar" data-kb-toolbar role="toolbar" aria-label="Herramientas del tablero">

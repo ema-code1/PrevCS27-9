@@ -1280,6 +1280,12 @@ class KanbanController extends BaseController
             }
         }
 
+        // Un supervisor con permiso de solo lectura ve el tablero pero no lo
+        // modifica: todas las escrituras del kanban son POST.
+        if ($this->request->getMethod() === 'POST' && ! $membershipModel->canEdit($userId, $industryId)) {
+            return $this->fail('Tenés permiso de solo lectura en este espacio: no podés modificar el tablero.', 403);
+        }
+
         $this->device = $device;
         $this->board  = (new KanbanBoardModel())->forDevice($deviceId, $userId);
 

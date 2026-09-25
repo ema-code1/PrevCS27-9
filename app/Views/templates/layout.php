@@ -74,7 +74,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
     <link rel="stylesheet" href="<?= base_url('css/styles.css') ?>?v=20260820-1">
-    <link rel="stylesheet" href="<?= base_url('css/header.css') ?>?v=20260831-2">
+    <link rel="stylesheet" href="<?= base_url('css/header.css') ?>?v=20260924-1">
     <link rel="stylesheet" href="<?= base_url('css/sidebar.css') ?>?v=20260915-1">
     <link rel="stylesheet" href="<?= base_url('css/password-toggle.css') ?>?v=20260612-1">
     <link rel="stylesheet" href="<?= base_url('css/toast.css') ?>?v=20260831-2">

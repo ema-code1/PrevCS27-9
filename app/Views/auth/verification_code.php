@@ -30,7 +30,7 @@ $successMessage = session('success');
             <div class="verification-head">
                 <p class="auth-pane__eyebrow"><?= esc($eyebrow) ?></p>
                 <h1><?= esc($heading) ?></h1>
-                <p>Enviamos un codigo a <strong><?= esc($maskedEmail) ?></strong>. Es valido por 5 minutos.</p>
+                <p>Enviamos un código a <strong><?= esc($maskedEmail) ?></strong>. Es válido por 5 minutos.</p>
             </div>
 
             <?php if ($errorMessage): ?>
@@ -44,7 +44,7 @@ $successMessage = session('success');
                 <?= csrf_field() ?>
                 <input type="hidden" name="code" data-code-value>
 
-                <div class="verification-inputs" aria-label="Codigo de seis digitos">
+                <div class="verification-inputs" aria-label="Código de seis dígitos">
                     <?php for ($i = 0; $i < 6; $i++): ?>
                         <input
                             type="text"
@@ -63,11 +63,11 @@ $successMessage = session('success');
             </form>
 
             <div class="verification-resend">
-                <span>No recibiste el codigo?</span>
+                <span>¿No recibiste el código?</span>
                 <form action="<?= esc($resendUrl) ?>" method="post">
                     <?= csrf_field() ?>
                     <button type="submit" class="verification-resend__button" data-resend-button data-retry-after="<?= esc($retryAfter) ?>">
-                        Reenviar codigo
+                        Reenviar código
                     </button>
                 </form>
                 <span class="verification-resend__timer" data-resend-timer></span>

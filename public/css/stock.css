@@ -1783,3 +1783,6 @@ body[data-theme="dark"] .stock-interactive-card {
 
 /* La etiqueta del umbral no se edita: no es una unidad, es un rotulo fijo. */
 .unidad-label--fija { cursor: default; }
+
+/* Comparador del aviso: select propio (EmSelect) en la misma línea del texto. */
+.stock-aviso-regla .em-sel { min-width: 190px; }

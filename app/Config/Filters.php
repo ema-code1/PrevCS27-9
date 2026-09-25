@@ -59,7 +59,8 @@ class Filters extends BaseFilters
         'after' => [
             'pagecache',   // Web Page Caching
             'performance', // Performance Metrics
-            'toolbar',     // Debug Toolbar
+            // 'toolbar',  // Debug Toolbar: apagada para que no aparezca en la demo.
+            //             Descomentar para depurar en desarrollo.
         ],
     ];
 
@@ -77,13 +78,13 @@ class Filters extends BaseFilters
             'authGuard' => ['except' => [
                 '/',
                 'portfolio',
+                'portfolio.php',
                 'pago', // vista de pago: ocurre antes del registro -> publica
                 // Suscripción desde /pago (antes del registro). Consultar,
                 // pausar o cancelar (api/subscriptions/*) sigue protegido.
                 'api/mp-config',
                 'api/subscriptions',
                 'ayuda', // centro de ayuda: alcanzable con o sin sesion
-                'usuarios',
                 'api/form-metrics',
                 'reg-log',
                 'login',

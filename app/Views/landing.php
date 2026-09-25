@@ -38,7 +38,7 @@ $trendIcon = static function (string $direction): string {
       <a href="<?= base_url() ?>#como-funciona" data-nav-section="como-funciona">Cómo funciona</a>
       <a href="<?= base_url() ?>#metricas" data-nav-section="metricas">Métricas</a>
       <a href="<?= base_url() ?>#sensores" data-nav-section="sensores">Sensores</a>
-      <a href="<?= base_url() ?>#plantillas" data-nav-section="plantillas">Plantillas</a>
+      <a href="<?= base_url() ?>#plantillas" data-nav-section="plantillas">Vistas</a>
       <a href="<?= base_url() ?>#casos" data-nav-section="casos">Casos de uso</a>
       <a href="<?= base_url() ?>#precio" data-nav-section="precio">Precio</a>
 
@@ -159,14 +159,14 @@ $trendIcon = static function (string $direction): string {
     </a>
 
     <h1 class="hero-title">
-      Monitorea tu industria con un sistema
+      Monitoreá tu industria con un sistema
       <span class="hero-title-em">diseñado según tus métricas.</span>
     </h1>
 
     <p class="hero-sub">
-      PrevCS te ayuda a crear un espacio industrial personalizado, elegir qué datos medir
-      y recibir recomendaciones de sensores, dashboards y plantillas para monitorear
-      tu operación en tiempo real.
+      PrevCS conecta placas ESP32 con sensores de temperatura, vibración y RPM a un panel
+      web. Creás un espacio para tu planta, elegís qué medir y te avisa cuando un motor
+      sale del rango que definiste.
     </p>
 
     <div class="hero-actions">
@@ -181,10 +181,10 @@ $trendIcon = static function (string $direction): string {
     </div>
 
     <ul class="hero-trust">
-      <li><span>SOC 2 ready</span></li>
-      <li><span>ISA-95 friendly</span></li>
-      <li><span>MQTT · Modbus · OPC-UA</span></li>
-      <li><span>Workspaces ilimitados</span></li>
+      <li><span>ESP32 + WiFi</span></li>
+      <li><span>Alertas por umbral</span></li>
+      <li><span>Historial en CSV</span></li>
+      <li><span>Espacios ilimitados</span></li>
     </ul>
   </div>
 
@@ -194,8 +194,8 @@ $trendIcon = static function (string $direction): string {
       <article class="hdp-card hdp-main">
         <header class="hdp-main-head">
           <div class="hdp-main-title">
-            <span class="hdp-pill">workspace</span>
-            <strong>San Jose SRL · Planta 2</strong>
+            <span class="hdp-pill">ejemplo</span>
+            <strong>Espacio · Prensas</strong>
           </div>
           <div class="hdp-main-meta">
             <span class="live-dot"></span>
@@ -205,19 +205,19 @@ $trendIcon = static function (string $direction): string {
 
         <div class="hdp-kpis">
           <div class="hdp-kpi">
-            <span class="hdp-kpi-label">Temperatura prensa</span>
+            <span class="hdp-kpi-label">Temperatura motor</span>
             <span class="hdp-kpi-value mono"><span data-counter data-to="71.4" data-decimals="1">0</span><em>°C</em></span>
-          <span class="hdp-kpi-delta up"><svg class="trend-icon" viewBox="0 0 12 12" aria-hidden="true"><path d="m2 8 4-4 4 4Z" fill="currentColor"/></svg>1.2°</span>
+          <span class="hdp-kpi-delta up"><svg class="trend-icon" viewBox="0 0 12 12" aria-hidden="true"><path d="m2 8 4-4 4 4Z" fill="currentColor"/></svg>máx. 60</span>
           </div>
           <div class="hdp-kpi">
-            <span class="hdp-kpi-label">Vibración eje B</span>
-            <span class="hdp-kpi-value mono"><span data-counter data-to="4.8" data-decimals="1">0</span><em>mm/s</em></span>
-          <span class="hdp-kpi-delta flat"><svg class="trend-icon" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.25" width="8" height="1.5" rx=".75" fill="currentColor"/></svg>estable</span>
+            <span class="hdp-kpi-label">Vibración</span>
+            <span class="hdp-kpi-value mono"><span data-counter data-to="12" data-decimals="0">0</span><em>eventos</em></span>
+          <span class="hdp-kpi-delta flat"><svg class="trend-icon" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.25" width="8" height="1.5" rx=".75" fill="currentColor"/></svg>normal</span>
           </div>
           <div class="hdp-kpi">
-            <span class="hdp-kpi-label">Consumo línea 3</span>
-            <span class="hdp-kpi-value mono"><span data-counter data-to="38.2" data-decimals="1">0</span><em>kW</em></span>
-          <span class="hdp-kpi-delta down"><svg class="trend-icon" viewBox="0 0 12 12" aria-hidden="true"><path d="m2 4 4 4 4-4Z" fill="currentColor"/></svg>4.6%</span>
+            <span class="hdp-kpi-label">RPM</span>
+            <span class="hdp-kpi-value mono"><span data-counter data-to="1450" data-decimals="0">0</span><em>rev/min</em></span>
+          <span class="hdp-kpi-delta flat"><svg class="trend-icon" viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="5.25" width="8" height="1.5" rx=".75" fill="currentColor"/></svg>andando</span>
           </div>
         </div>
 
@@ -244,24 +244,24 @@ $trendIcon = static function (string $direction): string {
 
         <footer class="hdp-main-foot">
           <div class="hdp-tabs">
-            <button class="hdp-tab active">Línea de prensa</button>
-            <button class="hdp-tab">Caldera</button>
-            <button class="hdp-tab">Extracción</button>
+            <button class="hdp-tab active">Temperatura</button>
+            <button class="hdp-tab">Vibración</button>
+            <button class="hdp-tab">RPM</button>
           </div>
-          <span class="hdp-foot-meta mono">14 sensores · 3 alertas</span>
+          <span class="hdp-foot-meta mono">3 sensores · 1 alerta</span>
         </footer>
       </article>
 
       <article class="hdp-card hdp-float hdp-alert">
         <header>
           <span class="hdp-alert-icon">!</span>
-          <strong>Alerta térmica</strong>
+          <strong>Temperatura por encima del límite</strong>
           <span class="mono">12:47</span>
         </header>
-        <p>Prensa #4 superó <b>72 °C</b> durante 90s. Revisión recomendada.</p>
+        <p>El motor de la prensa marcó <b>71.4 °C</b>, arriba del máximo de 60 °C. Se avisó a todo el espacio.</p>
         <div class="hdp-alert-actions">
-          <button class="hdp-mini">Asignar</button>
-          <button class="hdp-mini">Silenciar 30m</button>
+          <button class="hdp-mini">Ver placa</button>
+          <button class="hdp-mini">Ver historial</button>
         </div>
       </article>
 
@@ -271,22 +271,22 @@ $trendIcon = static function (string $direction): string {
         </div>
         <div>
           <span class="hdp-sensor-name">DS18B20 · sonda</span>
-          <span class="hdp-sensor-meta mono">PRESA-04 · canal A</span>
+          <span class="hdp-sensor-meta mono">ESP32 Prensas · GPIO27</span>
         </div>
         <span class="hdp-sensor-val mono"><span data-counter data-to="71.4" data-decimals="1">0</span>°</span>
       </article>
 
       <article class="hdp-card hdp-float hdp-metric">
-        <span class="hdp-metric-label">Producción / hora</span>
-        <span class="hdp-metric-val mono"><span data-counter data-to="1820" data-decimals="0">0</span><em>u</em></span>
+        <span class="hdp-metric-label">Lecturas 24 h</span>
+        <span class="hdp-metric-val mono"><span data-counter data-to="4320" data-decimals="0">0</span><em>u</em></span>
         <span class="hdp-spark"><svg viewBox="0 0 80 24" preserveAspectRatio="none"><polyline points="0,18 8,14 16,17 24,9 32,13 40,6 48,11 56,4 64,8 72,2 80,5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></span>
-        <span class="hdp-metric-delta up mono">+12.4%</span>
+        <span class="hdp-metric-delta up mono">cada 60 s</span>
       </article>
 
       <article class="hdp-card hdp-float hdp-rec">
-        <span class="hdp-rec-tag">Sugerencia</span>
-        <p>Suma un <b>sensor de vibración SW-420</b> al eje B para anticipar fallas.</p>
-        <button class="hdp-rec-cta">Añadir al workspace <svg class="ui-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h10m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <span class="hdp-rec-tag">Stock</span>
+        <p>Quedan <b>2 rodamientos 6204</b>, en el mínimo tolerable. Se avisó al espacio.</p>
+        <button class="hdp-rec-cta">Ver stock <svg class="ui-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h10m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </article>
     </div>
   </div>
@@ -302,9 +302,9 @@ $trendIcon = static function (string $direction): string {
 <section class="signals-strip" aria-hidden="true">
   <div class="signals-track">
     <?php for ($i = 0; $i < 2; $i++): ?>
-      <span>● temperatura</span><span>● vibración</span><span>● humedad</span><span>● corriente</span>
-      <span>● presión</span><span>● proximidad</span><span>● nivel</span><span>● producción</span>
-      <span>● mantenimiento</span><span>● energía</span><span>● stock</span><span>● alertas</span>
+      <span>● temperatura</span><span>● vibración</span><span>● rpm</span><span>● alertas</span>
+      <span>● historial</span><span>● csv</span><span>● stock</span><span>● tareas</span>
+      <span>● calendario</span><span>● notificaciones</span><span>● roles</span><span>● esp32</span>
     <?php endfor; ?>
   </div>
 </section>
@@ -334,32 +334,32 @@ $trendIcon = static function (string $direction): string {
 <!-- ───────────────────────────── SOLUTION ───────── -->
 <section id="funcionalidades" class="solution-section" data-screen-label="03 Solucion">
   <div class="solution-inner">
-    <asíde class="solution-asíde">
+    <aside class="solution-aside">
       <span class="section-eyebrow mono">02 · La plataforma</span>
       <h2 class="section-title">
         PrevCS entiende que necesitás medir
         <span class="muted">y arma el sistema con vos.</span>
       </h2>
       <p class="section-lede">
-        No empezamos por los sensores. Empezamos por tu operación. PrevCS guía cada paso
-        — del workspace inicial a la primera alerta en tiempo real.
+        No empezamos por los sensores. Empezamos por tu operación. PrevCS te acompaña
+        desde el espacio inicial hasta la primera alerta.
       </p>
 
       <ul class="solution-list">
-        <li data-step="01"><b>Workspace por empresa.</b> Un espacio configurado a tu medida, no un panel genérico.</li>
-        <li data-step="02"><b>Métricas primero.</b> Elegís qué querés saber. PrevCS traduce eso en sensores.</li>
-        <li data-step="03"><b>Recomendaciónes inteligentes.</b> Sensores, dashboards y plantillas sugeridos.</li>
-        <li data-step="04"><b>Visualización en vivo.</b> Datos reales en tu workspace, no en planillas.</li>
-        <li data-step="05"><b>Alertas accionables.</b> Por umbral, tendencia o correlación entre métricas.</li>
-        <li data-step="06"><b>Decisiones con histórico.</b> Reportes, comparativas, ciclos de mantenimiento.</li>
+        <li data-step="01"><b>Espacio por empresa.</b> Cada planta o sector tiene su espacio, con sus placas, su equipo y sus datos.</li>
+        <li data-step="02"><b>Métricas primero.</b> Al crear el espacio elegís qué medir y cada ESP32 nueva nace con esos sensores.</li>
+        <li data-step="03"><b>Visualización en vivo.</b> Gráficos que se actualizan solos cada 15 segundos, con filtro por fechas.</li>
+        <li data-step="04"><b>Alertas por umbral.</b> Definís el mínimo y el máximo de cada sensor. Si una lectura se sale, avisa a todo el equipo y la placa suena.</li>
+        <li data-step="05"><b>Historial exportable.</b> Todas las lecturas quedan guardadas y se descargan en CSV.</li>
+        <li data-step="06"><b>Mantenimiento en un lugar.</b> Tablero de tareas por máquina, stock de repuestos con avisos y calendario con recordatorios.</li>
       </ul>
-    </asíde>
+    </aside>
 
     <div class="solution-canvas">
       <div class="solution-bento">
         <div class="sb sb-1">
-          <span class="sb-tag">workspace</span>
-          <strong>Tu planta, mapeada.</strong>
+          <span class="sb-tag">espacio</span>
+          <strong>Tu planta, por espacios.</strong>
           <div class="sb-mini-map">
             <span class="sb-zone" style="--x:8%;--y:18%;">Caldera</span>
             <span class="sb-zone active" style="--x:42%;--y:32%;">Prensa</span>
@@ -380,9 +380,9 @@ $trendIcon = static function (string $direction): string {
         <div class="sb sb-2">
           <span class="sb-tag">alertas</span>
           <ul class="sb-alerts">
-            <li class="warn"><span class="dot"></span> Vibración eje B sobre umbral <em>hace 12s</em></li>
-            <li><span class="dot"></span> Stock aceite crudo &lt; 18% <em>hace 4m</em></li>
-            <li><span class="dot"></span> Caldera nominal <em>hace 18m</em></li>
+            <li class="warn"><span class="dot"></span> Vibración por encima del límite <em>hace 12s</em></li>
+            <li><span class="dot"></span> Rodamientos en el mínimo de stock <em>hace 4m</em></li>
+            <li><span class="dot"></span> Temperatura volvió a la normalidad <em>hace 18m</em></li>
           </ul>
         </div>
 
@@ -391,22 +391,20 @@ $trendIcon = static function (string $direction): string {
           <div class="sb-chips">
             <span class="chip on">Temperatura</span>
             <span class="chip on">Vibración</span>
-            <span class="chip">Humedad</span>
-            <span class="chip on">Energía</span>
+            <span class="chip on">RPM</span>
             <span class="chip">Stock</span>
-            <span class="chip on">Mantenimiento</span>
-            <span class="chip">Producción</span>
-            <span class="chip">Presión</span>
+            <span class="chip">Tareas</span>
+            <span class="chip">Calendario</span>
           </div>
         </div>
 
         <div class="sb sb-4">
-          <span class="sb-tag">recomendación</span>
-          <p>Para <b>vibración + mantenimiento</b> sugerimos:</p>
+          <span class="sb-tag">kit por máquina</span>
+          <p>Lo que lleva cada <b>placa PrevCS</b>:</p>
           <ul class="sb-rec">
-            <li>Sensor SW-420 ×3</li>
-            <li>Módulo ESP32 gateway</li>
-            <li>Plantilla "Mantto. predictivo"</li>
+            <li>ESP32 con LCD y buzzer</li>
+            <li>DS18B20 · SW-420 · LM393</li>
+            <li>Vinculación por código QR</li>
           </ul>
         </div>
 
@@ -427,7 +425,7 @@ $trendIcon = static function (string $direction): string {
               <rect x="184" y="10" width="14" height="56"/>
             </g>
           </svg>
-          <span class="sb-foot mono">+18.4% eficiencia · últimos 30 días</span>
+          <span class="sb-foot mono">una lectura por minuto · exportable a CSV</span>
         </div>
       </div>
     </div>
@@ -448,7 +446,7 @@ $trendIcon = static function (string $direction): string {
   <ol class="how-track">
     <li class="how-step">
       <span class="how-num mono">01</span><h3>Creá tu cuenta</h3>
-      <p>Email, contraseña y listo. Sin onboarding eterno ni llamadas de venta.</p>
+      <p>Email y contraseña. Confirmás el correo con un código y listo.</p>
       <div class="how-art how-art-1">
         <div class="ha-input"><span class="mono">email</span><span class="cursor">|</span></div>
         <div class="ha-input ha-input-2"><span class="mono">password</span></div>
@@ -456,8 +454,8 @@ $trendIcon = static function (string $direction): string {
       </div>
     </li>
     <li class="how-step">
-      <span class="how-num mono">02</span><h3>Armá tu workspace</h3>
-      <p>Nombre, rubro, sedes y áreas. Tu planta, así como vos la divides.</p>
+      <span class="how-num mono">02</span><h3>Armá tu espacio</h3>
+      <p>Empresa, nombre y sector. Después sumás a tu equipo con una invitación por correo.</p>
       <div class="how-art how-art-2">
         <span class="ha-node">Caldera</span><span class="ha-node n2">Prensa</span>
         <span class="ha-node">Almacén</span><span class="ha-node">Despacho</span>
@@ -465,24 +463,24 @@ $trendIcon = static function (string $direction): string {
     </li>
     <li class="how-step">
       <span class="how-num mono">03</span><h3>Elegí qué medir</h3>
-      <p>Temperatura, vibración, energía, stock. Lo que importa en tu operación.</p>
+      <p>Temperatura, vibración y RPM. Cada placa que sumes nace con esos sensores.</p>
       <div class="how-art how-art-3">
         <span class="chip on">Temperatura</span><span class="chip on">Vibración</span>
-        <span class="chip">Humedad</span><span class="chip on">Energía</span><span class="chip">Producción</span>
+        <span class="chip on">RPM</span>
       </div>
     </li>
     <li class="how-step">
-      <span class="how-num mono">04</span><h3>Recibí sensores sugeridos</h3>
-      <p>PrevCS traduce tus métricas en un set concreto de sensores y módulos.</p>
+      <span class="how-num mono">04</span><h3>Vinculá la ESP32</h3>
+      <p>Escaneás el QR, la placa se conecta a tu WiFi y se vincula sola con su token.</p>
       <div class="how-art how-art-4">
         <div class="ha-pill">DS18B20<span class="mono">temp</span></div>
         <div class="ha-pill">SW-420<span class="mono">vibración</span></div>
-        <div class="ha-pill">ESP32<span class="mono">gateway</span></div>
+        <div class="ha-pill">LM393<span class="mono">rpm</span></div>
       </div>
     </li>
     <li class="how-step">
-      <span class="how-num mono">05</span><h3>Personalizá dashboards</h3>
-      <p>Plantillas sugeridas que podés mover, recortar y combinar a tu gusto.</p>
+      <span class="how-num mono">05</span><h3>Definí los límites</h3>
+      <p>Mínimo y máximo por sensor. Si una lectura se sale, la web avisa y la placa suena.</p>
       <div class="how-art how-art-5">
         <span class="ha-tile"></span><span class="ha-tile big"></span><span class="ha-tile"></span>
         <span class="ha-tile"></span><span class="ha-tile wide"></span>
@@ -490,7 +488,7 @@ $trendIcon = static function (string $direction): string {
     </li>
     <li class="how-step">
       <span class="how-num mono">06</span><h3>Instalá y monitoreá</h3>
-      <p>Encendés los sensores, abrís tu workspace y empieza a llegar la data.</p>
+      <p>Encendés la placa y cada minuto llega un lote de lecturas a tu panel.</p>
       <div class="how-art how-art-6">
         <span class="ha-live"><span class="live-dot"></span><span class="mono">streaming · 12:48</span></span>
         <svg viewBox="0 0 120 40" preserveAspectRatio="none" class="ha-spark"><polyline points="0,30 12,22 24,28 36,16 48,20 60,10 72,18 84,8 96,14 108,4 120,8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
@@ -503,24 +501,24 @@ $trendIcon = static function (string $direction): string {
 <!-- ───────────────────────────── METRICS ─────────── -->
 <section id="metricas" class="metrics-section" data-screen-label="05 Métricas" data-gsap-section="metrics">
   <div class="section-head">
-    <span class="section-eyebrow mono">04 · Métricas disponibles</span>
+    <span class="section-eyebrow mono">04 · Qué mide y qué gestiona</span>
     <h2 class="section-title">
       Empezá por lo que querés saber.
-      <span class="muted">Los sensores vienen después.</span>
+      <span class="muted">Esto es lo que PrevCS hace hoy.</span>
     </h2>
   </div>
 
   <div class="metrics-grid">
     <?php
     $metricsList = [
-      ['Temperatura',   '°C',   'Procesos térmicos, calderas, cámaras de frío, prensado.',         '71.4°C',     1],
-      ['Vibración',     'Hz',   'Motores, rodamientos, ejes. Anticipa fallas antes del paro.',     '4.8 mm/s',   1],
-      ['Humedad',       '%H',   'Materias primas, depósitos, salas de proceso, cámaras.',          '42%',        0],
-      ['Energía',       'kW',   'Consumo por línea, por turno, por máquina. Caza el desperdicio.', '38.2 kW',    1],
-      ['Producción',    'u/h',  'Volumen real, rendimiento por turno, comparativas históricas.',   '1820 u/h',   0],
-      ['Stock',         'kg',   'Insumos, materia prima, niveles en silos y tanques.',             '74%',        0],
-      ['Mantenimiento', '<svg class="metric-glyph-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 7.5A6 6 0 1 0 16 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m12.5 4.5 3 3 2-3" fill="currentColor"/></svg>', 'Ciclos, horas de uso, próximos servicios, predictivo.', '12 días', 0],
-      ['Alertas',       '!',    'Por umbral, tendencia o combinación. WhatsApp, mail o panel.',    '3 activas',  0],
+      ['Temperatura',   '°C',   'Sonda DS18B20 en la carcasa del motor. Detecta recalentamientos.',          '71.4 °C',        1],
+      ['Vibración',     '~',    'Sensor SW-420: cuenta los eventos de vibración en cada ventana de medición.', '12 eventos',     1],
+      ['RPM',           'rpm',  'Sensor LM393 sobre el eje: velocidad y si el motor está andando o detenido.', '1450 rev/min',   1],
+      ['Alertas',       '!',    'Mínimo y máximo por sensor. Avisa en la campana del panel, en el LCD y con el buzzer.', 'por umbral', 0],
+      ['Historial',     'csv',  'Gráficos con filtro por fecha y descarga de todas las lecturas en CSV.',       '1 por minuto',   0],
+      ['Stock',         'u',    'Tablas de repuestos por espacio, importables desde Excel, con mínimos y avisos.', '2 u · mínimo', 0],
+      ['Mantenimiento', '<svg class="metric-glyph-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M15.5 7.5A6 6 0 1 0 16 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m12.5 4.5 3 3 2-3" fill="currentColor"/></svg>', 'Tablero de tareas por máquina y calendario con recordatorios.', '3 tareas', 0],
+      ['Equipo',        '@',    'Invitaciones por correo, roles de admin y supervisor, permisos por placa.',   'roles',          0],
     ];
     foreach ($metricsList as [$name, $glyph, $desc, $val, $dec]):
     ?>
@@ -538,13 +536,13 @@ $trendIcon = static function (string $direction): string {
 <!-- ───────────────────────────── SENSORS ─────────── -->
 <section id="sensores" class="sensors-section" data-screen-label="06 Sensores">
   <div class="section-head">
-    <span class="section-eyebrow mono">05 · Sensores compatibles</span>
+    <span class="section-eyebrow mono">05 · El kit de sensores</span>
     <h2 class="section-title">
-      Una biblioteca de sensores
-      <span class="muted">que PrevCS sabe leer.</span>
+      Componentes simples,
+      <span class="muted">que PrevCS ya sabe leer.</span>
     </h2>
     <p class="section-lede small">
-      No vendemos hardware. Te decimos cuáles necesitás y los conectamos a tu workspace.
+      Cada placa usa piezas fáciles de conseguir. El firmware viene listo y se configura desde el celular.
     </p>
   </div>
 
@@ -552,16 +550,12 @@ $trendIcon = static function (string $direction): string {
     <div class="sensor-track">
       <?php
       $sensors = [
-        ['T°', 'DS18B20',  'temperatura · 1-wire', false],
-        ['H%', 'DHT22',    'humedad + temp',       false],
-        ['~',  'SW-420',   'vibración digital',    false],
-        ['A',  'SCT-013',  'corriente AC',         false],
-        ['ESP32', 'Módulo principal', 'gateway WiFi/MQTT', true],
-        ['<svg class="sensor-glyph-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h10m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>', 'E18-D80', 'proximidad IR', false],
-        ['<svg class="sensor-glyph-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 16V6m-4 4 4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>', 'HC-SR04', 'nivel ultrasonido', false],
-        ['N',  'Reed-KY025','magnético',           false],
-        ['P',  'BMP280',   'presión',              false],
-        ['CO₂','MH-Z19',   'calidad de aire',      false],
+        ['T°', 'DS18B20',  'temperatura · 1-wire',   false],
+        ['~',  'SW-420',   'vibración digital',      false],
+        ['rpm','LM393',    'velocidad del eje',      false],
+        ['ESP32', 'Placa principal', 'WiFi · envía cada 60 s', true],
+        ['LCD','LCD1602',  'estado en pantalla · I2C', false],
+        ['!',  'Buzzer',   'aviso sonoro de alertas', false],
       ];
       for ($pass = 0; $pass < 2; $pass++):
         foreach ($sensors as [$g, $name, $meta, $hero]):
@@ -569,8 +563,7 @@ $trendIcon = static function (string $direction): string {
         <?php if ($hero): ?>
         <article class="sensor-card sensor-hero sensor-hero--esp">
           <div class="sensor-hero__img-wrap">
-            <img src="<?= base_url('images/esp32.png') ?>" alt="ESP32" class="sensor-hero__img" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
-            <span class="sensor-hero__img-fallback" style="display:none">
+            <span class="sensor-hero__img-fallback" style="display:grid">
               <svg viewBox="0 0 80 80" aria-hidden="true" fill="none">
                 <rect x="18" y="18" width="44" height="44" rx="4" fill="#fff" fill-opacity=".18"/>
                 <rect x="24" y="24" width="32" height="32" rx="2" fill="#fff" fill-opacity=".1" stroke="#fff" stroke-opacity=".3" stroke-width="1"/>
@@ -600,10 +593,10 @@ $trendIcon = static function (string $direction): string {
 <!-- ───────────────────────────── RECOMMENDER ─────────── -->
 <section class="recommender-section" data-screen-label="07 Recomendador">
   <div class="section-head">
-    <span class="section-eyebrow mono">06 · Recomendación inteligente</span>
+    <span class="section-eyebrow mono">06 · Armá tu kit</span>
     <h2 class="section-title">
       Tocá las métricas que te interesan.
-      <span class="muted">PrevCS arma tu set.</span>
+      <span class="muted">Te mostramos qué necesitás.</span>
     </h2>
   </div>
 
@@ -613,12 +606,7 @@ $trendIcon = static function (string $direction): string {
       <div class="rec-chips">
         <button class="chip on" data-rec="temperatura">Temperatura</button>
         <button class="chip on" data-rec="vibracion">Vibración</button>
-        <button class="chip" data-rec="humedad">Humedad</button>
-        <button class="chip" data-rec="energia">Energía</button>
-        <button class="chip" data-rec="produccion">Producción</button>
-        <button class="chip" data-rec="stock">Stock</button>
-        <button class="chip on" data-rec="mantenimiento">Mantenimiento</button>
-        <button class="chip" data-rec="presion">Presión</button>
+        <button class="chip" data-rec="rpm">RPM</button>
       </div>
     </div>
 
@@ -627,14 +615,14 @@ $trendIcon = static function (string $direction): string {
     </div>
 
     <div class="rec-output">
-      <span class="rec-label mono">PrevCS te recomienda</span>
+      <span class="rec-label mono">tu kit PrevCS</span>
       <div class="rec-summary">
-        <div class="rec-block"><h4>Sensores</h4><p class="rec-list" id="rec-sensors"></p></div>
-        <div class="rec-block"><h4>Plantillas</h4><p class="rec-list" id="rec-templates"></p></div>
+        <div class="rec-block"><h4>Componentes</h4><p class="rec-list" id="rec-sensors"></p></div>
+        <div class="rec-block"><h4>Lo que vas a ver</h4><p class="rec-list" id="rec-templates"></p></div>
         <div class="rec-block"><h4>Alertas</h4><p class="rec-list" id="rec-alerts"></p></div>
       </div>
       <a class="l-btn l-btn--solid" href="<?= base_url('reg-log') . '?form=register' ?>">
-        Crear cuenta con este set
+        Crear cuenta
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
     </div>
@@ -645,10 +633,10 @@ $trendIcon = static function (string $direction): string {
 <!-- ───────────────────────────── TEMPLATES ─────────── -->
 <section id="plantillas" class="templates-section" data-screen-label="08 Plantillas">
   <div class="section-head">
-    <span class="section-eyebrow mono">07 · Plantillas y gráficos</span>
+    <span class="section-eyebrow mono">07 · Vistas del panel</span>
     <h2 class="section-title">
-      No diseñes desde cero.
-      <span class="muted">Empezá con una plantilla y editála.</span>
+      Nada que diseñar.
+      <span class="muted">Cada vista viene armada.</span>
     </h2>
   </div>
 
@@ -659,78 +647,71 @@ $trendIcon = static function (string $direction): string {
     <div class="tc-viewport">
       <div class="tc-track">
         <article class="template-card">
-          <span class="tc-tag mono">line</span><h4>Histórico de proceso</h4>
+          <span class="tc-tag mono">line</span><h4>Gráfico por sensor</h4>
           <svg viewBox="0 0 240 100" class="tc-svg" preserveAspectRatio="none">
             <defs><linearGradient id="tg1" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="currentColor" stop-opacity=".22"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
             <path d="M0,72 C30,60 50,68 80,48 C110,28 140,52 170,38 C200,24 220,32 240,28 L240,100 L0,100 Z" fill="url(#tg1)"/>
             <path d="M0,72 C30,60 50,68 80,48 C110,28 140,52 170,38 C200,24 220,32 240,28" fill="none" stroke="currentColor" stroke-width="1.6"/>
           </svg>
-          <span class="tc-foot mono">temperatura · 24h</span>
+          <span class="tc-foot mono">temperatura · filtro por fecha</span>
         </article>
         <article class="template-card">
-          <span class="tc-tag mono">bar</span><h4>Producción por turno</h4>
-          <svg viewBox="0 0 240 100" class="tc-svg" preserveAspectRatio="none">
-            <g fill="currentColor"><rect x="6" y="38" width="20" height="56"/><rect x="34" y="20" width="20" height="74"/><rect x="62" y="46" width="20" height="48"/><rect x="90" y="14" width="20" height="80"/><rect x="118" y="28" width="20" height="66"/><rect x="146" y="36" width="20" height="58"/><rect x="174" y="10" width="20" height="84"/><rect x="202" y="24" width="20" height="70"/></g>
-          </svg>
-          <span class="tc-foot mono">turnos · semana</span>
-        </article>
-        <article class="template-card">
-          <span class="tc-tag mono">donut</span><h4>Mezcla de consumo</h4>
-          <svg viewBox="0 0 100 100" class="tc-svg tc-donut">
-            <circle r="42" cx="50" cy="50" fill="none" stroke="currentColor" stroke-opacity=".1" stroke-width="14"/>
-            <circle r="42" cx="50" cy="50" fill="none" stroke="currentColor" stroke-width="14" stroke-dasharray="180 263" transform="rotate(-90 50 50)"/>
-            <circle r="42" cx="50" cy="50" fill="none" stroke="currentColor" stroke-opacity=".55" stroke-width="14" stroke-dasharray="50 263" stroke-dashoffset="-180" transform="rotate(-90 50 50)"/>
-            <text x="50" y="52" text-anchor="middle" font-size="13" font-family="Geist Mono" fill="currentColor">68%</text>
-          </svg>
-          <span class="tc-foot mono">energía · línea 3</span>
-        </article>
-        <article class="template-card">
-          <span class="tc-tag mono">kpi</span><h4>Tarjetas KPI</h4>
-          <div class="tc-kpis">
-            <div><span class="mono">OEE</span><b>82%</b></div>
-            <div><span class="mono">MTBF</span><b>148h</b></div>
-            <div><span class="mono">MTTR</span><b>22m</b></div>
-            <div><span class="mono">SCRAP</span><b>1.4%</b></div>
-          </div>
-          <span class="tc-foot mono">indicadores mensuales</span>
-        </article>
-        <article class="template-card">
-          <span class="tc-tag mono">table</span><h4>Registro de eventos</h4>
+          <span class="tc-tag mono">stock</span><h4>Stock de repuestos</h4>
           <div class="tc-table mono">
-            <div><span>12:47</span><span>vibración B</span><span class="warn"><?= $trendIcon('up') ?></span></div>
-            <div><span>12:32</span><span>temp prensa</span><span>—</span></div>
-            <div><span>12:11</span><span>stock crudo</span><span class="warn"><?= $trendIcon('down') ?></span></div>
-            <div><span>11:58</span><span>caldera</span><span>—</span></div>
+            <div><span>6204</span><span>rodamientos</span><span class="warn">2 u</span></div>
+            <div><span>A-42</span><span>correas</span><span>9 u</span></div>
+            <div><span>SAE40</span><span>aceite</span><span>18 l</span></div>
+            <div><span>F-10</span><span>filtros</span><span>6 u</span></div>
           </div>
-          <span class="tc-foot mono">últimos eventos</span>
+          <span class="tc-foot mono">importable desde excel</span>
         </article>
         <article class="template-card">
-          <span class="tc-tag mono">alerts</span><h4>Panel de alertas</h4>
+          <span class="tc-tag mono">kpi</span><h4>Panel principal</h4>
+          <div class="tc-kpis">
+            <div><span class="mono">ESPACIOS</span><b>2</b></div>
+            <div><span class="mono">ESP32</span><b>4</b></div>
+            <div><span class="mono">LECTURAS 24H</span><b>4320</b></div>
+            <div><span class="mono">ALERTAS</span><b>1</b></div>
+          </div>
+          <span class="tc-foot mono">resumen de tus espacios</span>
+        </article>
+        <article class="template-card">
+          <span class="tc-tag mono">table</span><h4>Historial de lecturas</h4>
+          <div class="tc-table mono">
+            <div><span>12:47</span><span>71.4 °C</span><span class="warn"><?= $trendIcon('up') ?></span></div>
+            <div><span>12:46</span><span>58.9 °C</span><span>—</span></div>
+            <div><span>12:45</span><span>57.2 °C</span><span>—</span></div>
+            <div><span>12:44</span><span>56.8 °C</span><span>—</span></div>
+          </div>
+          <span class="tc-foot mono">descargable en csv</span>
+        </article>
+        <article class="template-card">
+          <span class="tc-tag mono">alerts</span><h4>Campana de avisos</h4>
           <ul class="tc-alerts">
-            <li class="warn"><span class="dot"></span> Vibración eje B</li>
-            <li><span class="dot"></span> Caldera nominal</li>
-            <li class="crit"><span class="dot"></span> Stock crítico crudo</li>
+            <li class="crit"><span class="dot"></span> Temperatura sobre el límite</li>
+            <li class="warn"><span class="dot"></span> Rodamientos en el mínimo</li>
+            <li><span class="dot"></span> Recordatorio: service motor</li>
           </ul>
-          <span class="tc-foot mono">en vivo</span>
+          <span class="tc-foot mono">para todo el espacio</span>
         </article>
         <article class="template-card">
-          <span class="tc-tag mono">gauge</span><h4>Estado de equipo</h4>
+          <span class="tc-tag mono">estado</span><h4>Estado del motor</h4>
           <svg viewBox="0 0 100 60" class="tc-svg">
             <path d="M10,55 A40,40 0 0 1 90,55" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="8" stroke-linecap="round"/>
             <path d="M10,55 A40,40 0 0 1 75,22" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round"/>
             <circle cx="75" cy="22" r="3" fill="currentColor"/>
-            <text x="50" y="50" text-anchor="middle" font-size="12" font-family="Geist Mono" fill="currentColor">78%</text>
+            <text x="50" y="50" text-anchor="middle" font-size="11" font-family="Geist Mono" fill="currentColor">normal</text>
           </svg>
-          <span class="tc-foot mono">prensa #4</span>
+          <span class="tc-foot mono">según el rango del sensor</span>
         </article>
         <article class="template-card">
-          <span class="tc-tag mono">timeline</span><h4>Mantenimiento</h4>
+          <span class="tc-tag mono">calendario</span><h4>Mantenimiento</h4>
           <ul class="tc-timeline">
             <li><span class="mono">may 02</span><span>Cambio rodamiento eje B</span></li>
             <li><span class="mono">may 14</span><span>Lubricación prensa #4</span></li>
-            <li class="next"><span class="mono">may 28</span><span>Servicio caldera</span></li>
+            <li class="next"><span class="mono">may 28</span><span>Service motor extractor</span></li>
           </ul>
-          <span class="tc-foot mono">próximos servicios</span>
+          <span class="tc-foot mono">con recordatorios</span>
         </article>
       </div>
     </div>
@@ -746,7 +727,7 @@ $trendIcon = static function (string $direction): string {
   <div class="dp-bg" aria-hidden="true"></div>
 
   <div class="section-head section-head-dark">
-    <span class="section-eyebrow mono">08 · Preview del workspace</span>
+    <span class="section-eyebrow mono">08 · Así se ve un espacio</span>
     <h2 class="section-title">
       Así se siente abrir PrevCS
       <span class="muted">un martes a las 12:48.</span>
@@ -757,19 +738,19 @@ $trendIcon = static function (string $direction): string {
     <header class="dp-bar">
       <div class="dp-bar-left">
         <span class="dp-app-logo"><span></span><span></span><span></span><span class="live"></span></span>
-        <span class="dp-bar-ws">San Jose SRL <em class="mono">/ Planta 2</em></span>
+        <span class="dp-bar-ws">Espacio de ejemplo <em class="mono">/ Prensas</em></span>
       </div>
       <nav class="dp-bar-nav mono">
-        <span class="on">Resumen</span><span>Sensores</span><span>Alertas</span><span>Reportes</span><span>Ajustes</span>
+        <span class="on">Panel</span><span>Mis espacios</span><span>Stock</span><span>Calendario</span><span>Ayuda</span>
       </nav>
       <div class="dp-bar-right">
-        <span class="live-dot"></span><span class="mono">14 sensores online</span>
+        <span class="live-dot"></span><span class="mono">2 placas online</span>
       </div>
     </header>
 
     <div class="dp-grid">
       <article class="dp-card dp-card-big">
-        <header><strong>Temperatura prensa #4</strong><span class="mono">live · 24h</span></header>
+        <header><strong>Temperatura · motor prensa</strong><span class="mono">en vivo</span></header>
         <div class="dp-big-val mono"><span data-counter data-to="71.4" data-decimals="1">0</span>°C <span class="up mono small"><?= $trendIcon('up') ?>1.2°</span></div>
         <svg viewBox="0 0 600 160" preserveAspectRatio="none" class="dp-big-svg">
           <defs><linearGradient id="dpg" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="currentColor" stop-opacity=".25"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>
@@ -778,38 +759,38 @@ $trendIcon = static function (string $direction): string {
         </svg>
       </article>
       <article class="dp-card">
-        <header><strong>Alertas</strong><span class="mono">3 activas</span></header>
+        <header><strong>Notificaciones</strong><span class="mono">3 nuevas</span></header>
         <ul class="dp-alerts">
-          <li class="warn"><span class="dot"></span> Vibración eje B<em class="mono">12:47</em></li>
-          <li class="crit"><span class="dot"></span> Stock crudo &lt; 18%<em class="mono">12:42</em></li>
-          <li><span class="dot"></span> Caldera nominal<em class="mono">12:30</em></li>
+          <li class="crit"><span class="dot"></span> Temperatura sobre el límite<em class="mono">12:47</em></li>
+          <li class="warn"><span class="dot"></span> Rodamientos en el mínimo<em class="mono">12:42</em></li>
+          <li><span class="dot"></span> Vibración volvió a la normalidad<em class="mono">12:30</em></li>
         </ul>
       </article>
       <article class="dp-card dp-kpi">
-        <span class="mono">OEE</span>
-        <b class="kpi-number"><span data-counter data-to="82" data-decimals="0">0</span><em class="kpi-unit">%</em></b>
-        <span class="up mono small"><?= $trendIcon('up') ?>3 pts</span>
+        <span class="mono">Lecturas 24 h</span>
+        <b class="kpi-number"><span data-counter data-to="4320" data-decimals="0">0</span></b>
+        <span class="up mono small"><?= $trendIcon('up') ?>1 por minuto</span>
       </article>
       <article class="dp-card dp-kpi">
-        <span class="mono">Consumo / h</span>
-        <b><span data-counter data-to="38.2" data-decimals="1">0</span> <em>kW</em></b>
-        <span class="down mono small"><?= $trendIcon('down') ?>4.6%</span>
+        <span class="mono">RPM motor</span>
+        <b><span data-counter data-to="1450" data-decimals="0">0</span> <em>rev/min</em></b>
+        <span class="up mono small"><?= $trendIcon('up') ?>andando</span>
       </article>
       <article class="dp-card">
-        <header><strong>Producción / turno</strong><span class="mono">u/h</span></header>
+        <header><strong>Vibración · últimas mediciones</strong><span class="mono">eventos</span></header>
         <svg viewBox="0 0 240 80" preserveAspectRatio="none" class="dp-bars">
           <g fill="currentColor"><rect x="6" y="34" width="14" height="44"/><rect x="26" y="22" width="14" height="56"/><rect x="46" y="38" width="14" height="40"/><rect x="66" y="14" width="14" height="64"/><rect x="86" y="26" width="14" height="52"/><rect x="106" y="20" width="14" height="58"/><rect x="126" y="10" width="14" height="68"/><rect x="146" y="22" width="14" height="56"/><rect x="166" y="6" width="14" height="72"/><rect x="186" y="18" width="14" height="60"/><rect x="206" y="14" width="14" height="64"/></g>
         </svg>
       </article>
       <article class="dp-card dp-card-wide">
-        <header><strong>Sensores activos</strong><span class="mono">canal · valor · tendencia</span></header>
+        <header><strong>Sensores recientes</strong><span class="mono">placa · valor · tendencia</span></header>
         <ul class="dp-sensors mono">
-          <li><span>PRESA-04</span><span>71.4°C</span><span class="up"><?= $trendIcon('up') ?></span></li>
-          <li><span>VIBR-B</span><span>4.8 mm/s</span><span class="warn"><?= $trendIcon('up') ?></span></li>
-          <li><span>ENER-L3</span><span>38.2 kW</span><span class="down"><?= $trendIcon('down') ?></span></li>
-          <li><span>HUM-D</span><span>42%</span><span>—</span></li>
-          <li><span>PROD-A</span><span>1820 u/h</span><span class="up"><?= $trendIcon('up') ?></span></li>
-          <li><span>STOCK-X</span><span>74%</span><span class="down"><?= $trendIcon('down') ?></span></li>
+          <li><span>PRENSA · TEMP</span><span>71.4 °C</span><span class="up"><?= $trendIcon('up') ?></span></li>
+          <li><span>PRENSA · VIBR</span><span>12 eventos</span><span class="warn"><?= $trendIcon('up') ?></span></li>
+          <li><span>PRENSA · RPM</span><span>1450 rev/min</span><span>—</span></li>
+          <li><span>EXTRACTOR · TEMP</span><span>48.2 °C</span><span class="down"><?= $trendIcon('down') ?></span></li>
+          <li><span>EXTRACTOR · VIBR</span><span>3 eventos</span><span>—</span></li>
+          <li><span>EXTRACTOR · RPM</span><span>0 rev/min</span><span class="down"><?= $trendIcon('down') ?></span></li>
         </ul>
       </article>
     </div>
@@ -830,12 +811,12 @@ $trendIcon = static function (string $direction): string {
   <div class="cases-grid">
     <?php
     $cases = [
-      ['01', 'Aceiteras', 'Prensado, extraccion, calderas, cámaras. Control térmico y predictivo de motores.', ['temperatura', 'vibración', 'energía']],
-      ['02', 'Agroindustria', 'Silos, secaderos, balanzas. Humedad, niveles y consumo de gas o energía.', ['humedad', 'nivel', 'energía']],
-      ['03', 'Manufactura', 'Líneas de producción, OEE en vivo, paradas, mantenimiento preventivo.', ['producción', 'mantenimiento', 'alertas']],
-      ['04', 'Logística', 'Cámaras de frío, depósitos, tiempos por sector, control de proximidad.', ['temperatura', 'proximidad', 'stock']],
-      ['05', 'Talleres y metalmecánica', 'Máquinas-herramienta, compresores, hornos. Vibración, energía y horas de uso.', ['vibración', 'energía', 'mantenimiento']],
-      ['06', 'Plantas alimenticias', 'Camaras, hornos, mezcladores, lavadoras. Temperatura y trazabilidad de proceso.', ['temperatura', 'humedad', 'producción']],
+      ['01', 'Aceiteras', 'Prensas, extractores y bombas. Temperatura y vibración de los motores para anticipar fallas.', ['temperatura', 'vibración', 'rpm']],
+      ['02', 'Agroindustria', 'Secaderos, norias y cintas movidas por motores eléctricos: saber si andan y si calientan de más.', ['temperatura', 'rpm', 'alertas']],
+      ['03', 'Manufactura', 'Líneas de producción: estado de cada motor, tareas de mantenimiento y repuestos en stock.', ['vibración', 'tareas', 'stock']],
+      ['04', 'Logística', 'Cintas transportadoras y equipos de depósito, con avisos a todo el equipo cuando algo se sale de rango.', ['rpm', 'temperatura', 'alertas']],
+      ['05', 'Talleres y metalmecánica', 'Máquinas-herramienta y compresores: vibración, marcha del motor y services agendados.', ['vibración', 'rpm', 'calendario']],
+      ['06', 'Plantas alimenticias', 'Mezcladores, bombas y hornos: control térmico de motores con historial exportable.', ['temperatura', 'historial', 'alertas']],
     ];
     foreach ($cases as [$num, $name, $desc, $tags]):
     ?>
@@ -848,31 +829,31 @@ $trendIcon = static function (string $direction): string {
     <?php endforeach; ?>
   </div>
 
-  <asíde class="case-example">
+  <aside class="case-example">
     <div class="ce-left">
-      <span class="section-eyebrow mono">ejemplo</span>
-      <h3>San Jose SRL · aceitera</h3>
+      <span class="section-eyebrow mono">ejemplo ilustrativo</span>
+      <h3>Una aceitera con PrevCS</h3>
       <p>
-        San Jose SRL no es PrevCS — es un ejemplo de empresa cliente con su propio workspace
-        dentro de la plataforma. Eligieron 4 métricas, conectaron 14 sensores y armaron 6 dashboards.
+        No es un cliente real: es un ejemplo de cómo se organizaría una aceitera. Dos espacios
+        (prensas y extracción), una placa ESP32 por motor y los tres sensores del kit en cada una.
       </p>
       <ul class="ce-stats mono">
-        <li><b><span data-counter data-to="14" data-decimals="0">0</span></b><span>sensores activos</span></li>
-        <li><b><span data-counter data-to="6" data-decimals="0">0</span></b><span>dashboards</span></li>
-        <li><b class="stat-number"><span data-counter data-to="18" data-decimals="0">0</span><em>%</em></b><span>menos paradas</span></li>
+        <li><b><span data-counter data-to="2" data-decimals="0">0</span></b><span>espacios</span></li>
+        <li><b><span data-counter data-to="4" data-decimals="0">0</span></b><span>placas ESP32</span></li>
+        <li><b><span data-counter data-to="12" data-decimals="0">0</span></b><span>sensores</span></li>
       </ul>
     </div>
     <div class="ce-right">
-      <div class="ce-tag mono"><span>workspace cliente</span><span class="live-dot"></span></div>
+      <div class="ce-tag mono"><span>espacio de ejemplo</span><span class="live-dot"></span></div>
       <div class="ce-board">
-        <div class="ce-row"><span>Caldera</span><span class="mono">98.2°C</span><span class="up"><?= $trendIcon('up') ?></span></div>
-        <div class="ce-row"><span>Prensa #4</span><span class="mono">71.4°C</span><span class="up"><?= $trendIcon('up') ?></span></div>
-        <div class="ce-row"><span>Vibración B</span><span class="mono">4.8 mm/s</span><span class="warn"><?= $trendIcon('up') ?></span></div>
-        <div class="ce-row"><span>Stock crudo</span><span class="mono">74%</span><span class="down"><?= $trendIcon('down') ?></span></div>
-        <div class="ce-row"><span>Energía L3</span><span class="mono">38.2 kW</span><span class="down"><?= $trendIcon('down') ?></span></div>
+        <div class="ce-row"><span>Prensa #4 · temp.</span><span class="mono">71.4 °C</span><span class="up"><?= $trendIcon('up') ?></span></div>
+        <div class="ce-row"><span>Prensa #4 · vibración</span><span class="mono">12 eventos</span><span class="warn"><?= $trendIcon('up') ?></span></div>
+        <div class="ce-row"><span>Prensa #4 · RPM</span><span class="mono">1450 rev/min</span><span>—</span></div>
+        <div class="ce-row"><span>Extractor · temp.</span><span class="mono">48.2 °C</span><span class="down"><?= $trendIcon('down') ?></span></div>
+        <div class="ce-row"><span>Rodamientos 6204</span><span class="mono">2 u</span><span class="down"><?= $trendIcon('down') ?></span></div>
       </div>
     </div>
-  </asíde>
+  </aside>
 </section>
 
 
@@ -896,7 +877,7 @@ $trendIcon = static function (string $direction): string {
       <div class="price-head">
         <span class="price-plan-name">PrevCS Pro</span>
         <span class="price-plan-desc">
-          Todo lo que tu planta necesita para monitorear en tiempo real, sin límites ni sorpresas.
+          Monitoreo de motores, alertas y gestión del mantenimiento para toda tu planta, sin límites de espacios ni de placas.
         </span>
       </div>
 
@@ -913,31 +894,31 @@ $trendIcon = static function (string $direction): string {
           <span class="price-check" aria-hidden="true">
             <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
-          Workspaces y sedes <b>ilimitados</b>
+          Espacios y miembros <b>ilimitados</b>
         </li>
         <li data-anim>
           <span class="price-check" aria-hidden="true">
             <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
-          Sensores ESP32 <b>sin tope</b> por espacio
+          Placas ESP32 <b>sin tope</b> por espacio
         </li>
         <li data-anim>
           <span class="price-check" aria-hidden="true">
             <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
-          Alertas en tiempo real por umbral y tendencia
+          Alertas por umbral en la web y en la placa
         </li>
         <li data-anim>
           <span class="price-check" aria-hidden="true">
             <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
-          Dashboards y plantillas personalizables
+          Stock, tareas y calendario de mantenimiento
         </li>
         <li data-anim>
           <span class="price-check" aria-hidden="true">
             <svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5 6.5 12 13 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </span>
-          Histórico ilimitado y soporte prioritario
+          Historial completo exportable a CSV
         </li>
       </ul>
 
@@ -945,7 +926,7 @@ $trendIcon = static function (string $direction): string {
         Comprar ahora
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
-      <span class="price-note">Sin permanencia · cancelás cuando quieras</span>
+      <span class="price-note">Sin permanencia · cancelás desde tu cuenta</span>
     </article>
   </div>
 </section>
@@ -954,14 +935,14 @@ $trendIcon = static function (string $direction): string {
 <!-- ───────────────────────────── CTA ─────────── -->
 <section class="cta-section" data-screen-label="12 CTA final">
   <div class="cta-inner">
-    <span class="section-eyebrow mono">10 · Empezar</span>
+    <span class="section-eyebrow mono">11 · Empezar</span>
     <h2 class="cta-title">
       Construí un sistema de monitoreo
       <span class="muted">adaptado a tu industria.</span>
     </h2>
     <p class="cta-sub">
-      Hacés el primer workspace en cinco minutos. Elegí métricas, recibí recomendaciones,
-      ponelo en marcha.
+      Creás tu espacio en cinco minutos: elegís qué medir, vinculás la placa
+      y empezás a ver los datos.
     </p>
     <div class="hero-actions center">
       <a class="l-btn l-btn--solid l-btn--lg" href="<?= base_url('reg-log') . '?form=register' ?>">
@@ -969,17 +950,17 @@ $trendIcon = static function (string $direction): string {
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </a>
       <a class="l-btn l-btn--line l-btn--lg" href="#como-funciona">
-        <span class="l-play-dot"></span> Ver demo
+        <span class="l-play-dot"></span> Ver cómo funciona
       </a>
     </div>
     <div class="cta-marquee" aria-hidden="true">
       <div class="cta-track">
         <?php for ($i = 0; $i < 2; $i++): ?>
-          <span>monitoreo industrial</span><span>·</span>
-          <span>sensores recomendados</span><span>·</span>
-          <span>dashboards en vivo</span><span>·</span>
-          <span>alertas accionables</span><span>·</span>
-          <span>workspaces personalizados</span><span>·</span>
+          <span>monitoreo de motores</span><span>·</span>
+          <span>gráficos en vivo</span><span>·</span>
+          <span>alertas por umbral</span><span>·</span>
+          <span>historial en csv</span><span>·</span>
+          <span>stock y mantenimiento</span><span>·</span>
         <?php endfor; ?>
       </div>
     </div>
@@ -997,10 +978,6 @@ $trendIcon = static function (string $direction): string {
         <span>PrevCS</span>
       </a>
       <p>Plataforma de monitoreo industrial personalizada. Métricas primero, sensores después.</p>
-      <form class="ft-news" onsubmit="event.preventDefault(); this.querySelector('button').textContent='Listo ✓';">
-        <input type="email" placeholder="tu@empresa.com" aria-label="email"/>
-        <button type="submit">Avisame del lanzamiento <svg class="ui-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h10m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      </form>
     </div>
 
     <div class="ft-cols">
@@ -1009,14 +986,14 @@ $trendIcon = static function (string $direction): string {
         <a href="#funcionalidades">Funcionalidades</a>
         <a href="#como-funciona">Cómo funciona</a>
         <a href="#metricas">Métricas</a>
-        <a href="#plantillas">Plantillas</a>
+        <a href="#plantillas">Vistas</a>
       </div>
       <div>
         <h5>Sensores</h5>
-        <a href="#sensores">Compatibles</a>
-        <a href="#sensores">Gateway ESP32</a>
-        <a href="#sensores">Protocolos</a>
-        <a href="#sensores">Documentación</a>
+        <a href="#sensores">Kit de sensores</a>
+        <a href="#recommender">Armá tu kit</a>
+        <a href="<?= base_url('ayuda') ?>">Centro de ayuda</a>
+        <a href="<?= base_url('portfolio') ?>">Portfolio</a>
       </div>
       <div>
         <h5>Casos</h5>
@@ -1027,10 +1004,8 @@ $trendIcon = static function (string $direction): string {
       </div>
       <div>
         <h5>Contacto</h5>
-        <a href="mailto:hola@prevcs.com">hola@prevcs.com</a>
-        <a href="#">LinkedIn</a>
-        <a href="#">Instagram</a>
-        <a href="#">Soporte</a>
+        <a href="mailto:preventivecontrolsystem.saas@gmail.com">preventivecontrolsystem.saas@gmail.com</a>
+        <a href="<?= base_url('ayuda') ?>">Soporte</a>
       </div>
     </div>
   </div>
@@ -1046,6 +1021,6 @@ $trendIcon = static function (string $direction): string {
 <?= $this->section('pageScripts') ?>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
-<script src="<?= base_url('js/landing.js') ?>?v=20260608-9" defer></script>
+<script src="<?= base_url('js/landing.js') ?>?v=20260924-1" defer></script>
 <script src="<?= base_url('js/pricing.js') ?>?v=20260610-1" defer></script>
 <?= $this->endSection() ?>

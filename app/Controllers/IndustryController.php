@@ -96,6 +96,14 @@ class IndustryController extends BaseController
         $uid      = trim((string) $this->request->getPost('industry_uid'));
         $password = (string) $this->request->getPost('space_password');
 
+        // Freno a la fuerza bruta sobre la clave del espacio: 5 intentos por minuto.
+        $throttleKey = 'join-' . md5($this->request->getIPAddress() . '|' . $userId);
+        if (! service('throttler')->check($throttleKey, 5, MINUTE)) {
+            return redirect()->to(base_url('unirse-espacio'))
+                ->withInput()
+                ->with('error', 'Demasiados intentos. Esperá un minuto y volvé a probar.');
+        }
+
         $industryModel = new IndustryModel();
         $industry      = $industryModel->findByUid($uid);
 
@@ -136,7 +144,7 @@ class IndustryController extends BaseController
         $industryId = (int) $industryId;
 
         if (! $this->isAdmin($userId, $industryId)) {
-            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes permiso para editar ese espacio.');
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenés permiso para editar ese espacio.');
         }
 
         $rules = [
@@ -215,7 +223,7 @@ class IndustryController extends BaseController
         $membershipId = (int) $membershipId;
 
         if (! $this->isAdmin($userId, $industryId)) {
-            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes permiso para administrar ese espacio.');
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenés permiso para administrar ese espacio.');
         }
 
         $membershipModel = new IndustryUserModel();
@@ -275,7 +283,7 @@ class IndustryController extends BaseController
         $membershipId = (int) $membershipId;
 
         if (! $this->isAdmin($userId, $industryId)) {
-            return $this->fail($industryId, 'No tenes permiso para administrar ese espacio.');
+            return $this->fail($industryId, 'No tenés permiso para administrar ese espacio.');
         }
 
         $role = (string) $this->request->getPost('role');
@@ -341,7 +349,7 @@ class IndustryController extends BaseController
         $membershipId = (int) $membershipId;
 
         if (! $this->isAdmin($userId, $industryId)) {
-            return $this->fail($industryId, 'No tenes permiso para administrar ese espacio.');
+            return $this->fail($industryId, 'No tenés permiso para administrar ese espacio.');
         }
 
         $permission = (string) $this->request->getPost('permission');
@@ -381,7 +389,7 @@ class IndustryController extends BaseController
 
         $membershipModel = new IndustryUserModel();
         if (! $membershipModel->canManageDeviceAccess($userId, $industryId)) {
-            return $this->jsonError('No tenes permiso para administrar placas.', 403);
+            return $this->jsonError('No tenés permiso para administrar placas.', 403);
         }
 
         $target = $membershipModel->where('id', $membershipId)
@@ -427,7 +435,7 @@ class IndustryController extends BaseController
         $industryId = (int) $industryId;
 
         if (! $this->isAdmin($userId, $industryId)) {
-            return $this->fail($industryId, 'No tenes permiso para administrar ese espacio.');
+            return $this->fail($industryId, 'No tenés permiso para administrar ese espacio.');
         }
 
         $industry = (new IndustryModel())->find($industryId);
@@ -457,7 +465,7 @@ class IndustryController extends BaseController
         $industryId = (int) $industryId;
 
         if (! $this->isAdmin($userId, $industryId)) {
-            return $this->fail($industryId, 'No tenes permiso para cambiar la clave de ese espacio.');
+            return $this->fail($industryId, 'No tenés permiso para cambiar la clave de ese espacio.');
         }
 
         if (! $this->validate(['user_password' => 'required'])) {
@@ -499,7 +507,7 @@ class IndustryController extends BaseController
         $industry = $row !== null ? (new IndustryModel())->find((int) $row['industry_id']) : null;
 
         if ($row === null || $industry === null) {
-            return redirect()->to(base_url('login'))->with('error', 'El enlace no es valido o ya vencio.');
+            return redirect()->to(base_url('login'))->with('error', 'El enlace no es válido o ya venció.');
         }
 
         return view('auth/space_password_reset', [
@@ -532,7 +540,7 @@ class IndustryController extends BaseController
         $tokens = new SpaceActionTokenModel();
         $row = $tokens->findPending($token, SpaceActionTokenModel::PURPOSE_PASSWORD_RESET);
         if ($row === null) {
-            return redirect()->to(base_url('login'))->with('error', 'El enlace no es valido o ya vencio.');
+            return redirect()->to(base_url('login'))->with('error', 'El enlace no es válido o ya venció.');
         }
 
         (new IndustryModel())->update((int) $row['industry_id'], [
@@ -549,7 +557,7 @@ class IndustryController extends BaseController
         $industryId = (int) $industryId;
 
         if (! $this->isAdmin($userId, $industryId)) {
-            return $this->fail($industryId, 'No tenes permiso para eliminar ese espacio.');
+            return $this->fail($industryId, 'No tenés permiso para eliminar ese espacio.');
         }
 
         $industry = (new IndustryModel())->find($industryId);
@@ -597,7 +605,7 @@ class IndustryController extends BaseController
         $industry = $row !== null ? (new IndustryModel())->find((int) $row['industry_id']) : null;
 
         if ($row === null || $industry === null) {
-            return redirect()->to(base_url('login'))->with('error', 'El enlace no es valido o ya vencio.');
+            return redirect()->to(base_url('login'))->with('error', 'El enlace no es válido o ya venció.');
         }
 
         return view('auth/space_delete_confirm', [
@@ -615,7 +623,7 @@ class IndustryController extends BaseController
         $industry = $row !== null ? (new IndustryModel())->find((int) $row['industry_id']) : null;
 
         if ($row === null || $industry === null) {
-            return redirect()->to(base_url('login'))->with('error', 'El enlace no es valido o ya vencio.');
+            return redirect()->to(base_url('login'))->with('error', 'El enlace no es válido o ya venció.');
         }
 
         $industryId = (int) $industry['id'];
@@ -653,7 +661,7 @@ class IndustryController extends BaseController
         $industryId = (int) $industryId;
 
         if (! $this->isAdmin($userId, $industryId)) {
-            return $this->fail($industryId, 'No tenes permiso para administrar ese espacio.');
+            return $this->fail($industryId, 'No tenés permiso para administrar ese espacio.');
         }
 
         if (! $this->validate(['email' => 'required|valid_email|max_length[254]'])) {
@@ -714,7 +722,7 @@ class IndustryController extends BaseController
         $invitationId = (int) $invitationId;
 
         if (! $this->isAdmin($userId, $industryId)) {
-            return $this->fail($industryId, 'No tenes permiso para administrar ese espacio.');
+            return $this->fail($industryId, 'No tenés permiso para administrar ese espacio.');
         }
 
         $invitationModel = new SpaceInvitationModel();

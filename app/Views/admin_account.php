@@ -144,7 +144,7 @@ $initials = $initials !== '' ? $initials : 'U';
                             <div class="form-grid">
                                 <label class="field">
                                     <span class="field__label">Nueva contraseña</span>
-                                    <input type="password" name="new_password" autocomplete="new-password">
+                                    <input type="password" name="new_password" autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres">
                                     <?php if (isset($errors['new_password'])): ?>
                                         <span class="field__error"><?= esc($errors['new_password']) ?></span>
                                     <?php endif; ?>
@@ -210,6 +210,44 @@ $initials = $initials !== '' ? $initials : 'U';
                 </div>
 
                 <div class="acct-grid__right">
+                    <?php
+                    $subscription = $subscription ?? null;
+                    $subLabels = ['pending' => 'Pendiente de pago', 'authorized' => 'Activa', 'paused' => 'Pausada'];
+                    ?>
+                    <aside class="card sec sec--help">
+                        <div class="sec__head">
+                            <h2>Suscripción</h2>
+                        </div>
+
+                        <?php if ($subscription !== null): ?>
+                            <div class="security-control">
+                                <div class="security-control__copy">
+                                    <strong>PrevCS Pro · <?= esc($subLabels[$subscription['status']] ?? $subscription['status']) ?></strong>
+                                    <span><?= esc($subscription['currency']) ?> $<?= esc(number_format((float) $subscription['amount'], 0, ',', '.')) ?> por mes, cobrado por Mercado Pago a <?= esc($subscription['payer_email']) ?>.</span>
+                                </div>
+                            </div>
+                            <?php if (! empty($subscription['mp_preapproval_id'])): ?>
+                                <div class="acct-actions">
+                                    <button type="submit" class="btn btn--secondary" formnovalidate
+                                            formaction="<?= base_url('admin-account/suscripcion/cancelar') ?>"
+                                            onclick="return confirm('¿Cancelar la suscripción a PrevCS Pro? No se te va a volver a cobrar.');">
+                                        Cancelar suscripción
+                                    </button>
+                                </div>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <div class="security-control">
+                                <div class="security-control__copy">
+                                    <strong>Sin suscripción activa</strong>
+                                    <span>Podés suscribirte a PrevCS Pro cuando quieras y cancelarlo desde acá.</span>
+                                </div>
+                            </div>
+                            <div class="acct-actions">
+                                <a class="btn btn--secondary" href="<?= base_url('pago') ?>">Ver plan</a>
+                            </div>
+                        <?php endif; ?>
+                    </aside>
+
                     <aside class="card sec sec--help">
                         <div class="sec__head sec__head--icon">
                             <h2>Ayuda</h2>

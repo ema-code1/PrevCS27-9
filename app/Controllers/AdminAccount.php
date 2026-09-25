@@ -2,7 +2,10 @@
 
 namespace App\Controllers;
 
+use App\Libraries\MercadoPagoSubscriptions;
+use App\Models\SubscriptionModel;
 use App\Models\UserModel;
+use Config\Subscription;
 
 class AdminAccount extends BaseController
 {
@@ -35,11 +38,48 @@ class AdminAccount extends BaseController
         }
 
         return view('admin_account', [
-            'title'      => 'Administrar cuenta | Preventive Control System',
-            'activeMenu' => 'admin-account',
-            'user'       => $user,
-            'errors'     => session()->getFlashdata('errors') ?? [],
+            'title'        => 'Administrar cuenta | Preventive Control System',
+            'activeMenu'   => 'admin-account',
+            'user'         => $user,
+            'subscription' => (new SubscriptionModel())->activeForUser($userId),
+            'errors'       => session()->getFlashdata('errors') ?? [],
         ]);
+    }
+
+    // --------------------------------------------------------------------
+
+    /**
+     * Cancela la suscripción a PrevCS Pro desde la cuenta. Es lo que respalda
+     * el "cancelás cuando quieras" del plan: no hace falta entrar a Mercado Pago.
+     */
+    public function cancelSubscription()
+    {
+        $userId = (int) session('user_id');
+        $model  = new SubscriptionModel();
+        $record = $model->activeForUser($userId);
+
+        if ($record === null || empty($record['mp_preapproval_id'])) {
+            return redirect()->to(base_url('admin-account'))
+                ->with('error', 'No encontramos una suscripción activa en tu cuenta.');
+        }
+
+        try {
+            $result = (new MercadoPagoSubscriptions(config(Subscription::class)))
+                ->changeStatus($record['mp_preapproval_id'], 'cancelled');
+        } catch (\Throwable $e) {
+            log_message('error', 'No se pudo cancelar la suscripción {ref}: {msg}', [
+                'ref' => $record['external_reference'],
+                'msg' => $e->getMessage(),
+            ]);
+
+            return redirect()->to(base_url('admin-account'))
+                ->with('error', 'Mercado Pago no respondió. Intentá cancelar de nuevo en unos minutos.');
+        }
+
+        $model->update($record['id'], ['status' => mb_substr((string) $result['status'], 0, 20)]);
+
+        return redirect()->to(base_url('admin-account'))
+            ->with('success', 'Suscripción cancelada. No se te va a volver a cobrar.');
     }
 
     // --------------------------------------------------------------------
@@ -104,7 +144,7 @@ class AdminAccount extends BaseController
             return redirect()->to(base_url('admin-account'))
                 ->withInput()
                 ->with('errors', $this->validator->getErrors())
-                ->with('error', 'Revisa los datos del formulario.');
+                ->with('error', 'Revisá los datos del formulario.');
         }
 
         // --------------------------------------------------------------------

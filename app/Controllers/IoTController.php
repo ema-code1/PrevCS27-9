@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\SensorAlerts;
 use App\Models\Esp32DeviceModel;
 use App\Models\Esp32SensorModel;
 use App\Models\SensorReadingModel;
@@ -97,6 +98,7 @@ class IoTController extends BaseController
         $deviceId    = (int) $device['id'];
 
         $rows    = [];   // filas listas para insertar en sensor_readings
+        $checks  = [];   // sensor + valor, para evaluar las alertas después de guardar
         $saved   = [];   // resumen de lo aceptado (para la respuesta)
         $skipped = [];   // lo omitido + motivo (para diagnóstico en la consola de la ESP)
 
@@ -128,6 +130,7 @@ class IoTController extends BaseController
                 'measured_at'     => $this->resolveMeasuredAt($item, $payload),
             ];
             $saved[] = ['type' => $type['code'], 'value' => (float) $value];
+            $checks[] = ['sensor' => $sensor, 'type' => $type, 'value' => (float) $value];
         }
 
         // 5) Si nada coincide con sensores asociados, avisamos (config incompleta).
@@ -159,12 +162,27 @@ class IoTController extends BaseController
             return $this->fail(500, 'No se pudieron guardar las lecturas.');
         }
 
-        // 7) Responder (201 con detalle de aceptadas/omitidas)
+        // 7) La web reacciona a los datos: cada lectura se compara con el rango
+        //    de su sensor y los cambios de estado se notifican a todo el espacio.
+        //    Un fallo acá no invalida el lote, que ya quedó guardado.
+        $alerts = [];
+        try {
+            $alerts = (new SensorAlerts())->process($device, $checks);
+        } catch (Throwable $e) {
+            log_message('error', 'IoT alerts failed for device {id}: {msg}', [
+                'id'  => $deviceId,
+                'msg' => $e->getMessage(),
+            ]);
+        }
+
+        // 8) Responder (201 con detalle de aceptadas/omitidas). "alerts" lista los
+        //    sensores fuera de rango: la placa lo muestra en el LCD y suena.
         return $this->response->setStatusCode(201)->setJSON([
             'ok'      => true,
             'device'  => $device['name'],
             'saved'   => $saved,
             'skipped' => $skipped,
+            'alerts'  => $alerts,
             'count'   => count($rows),
         ]);
     }

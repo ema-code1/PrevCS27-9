@@ -51,8 +51,8 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
             <section class="auth-pane<?= $activeForm === 'login' ? ' is-active' : '' ?>" data-auth-pane="login" aria-hidden="<?= $activeForm === 'login' ? 'false' : 'true' ?>">
                 <div class="auth-pane__header">
                     <p class="auth-pane__eyebrow"></p>
-                    <h1>Entra a tu cuenta</h1>
-                    <p>Usa tu email y contraseña para seguir trabajando en el sistema.</p>
+                    <h1>Entrá a tu cuenta</h1>
+                    <p>Usá tu email y contraseña para seguir trabajando en el sistema.</p>
                 </div>
 
                 <form action="<?= base_url('login') ?>" method="post" class="auth-form">
@@ -74,7 +74,7 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                         <span class="auth-field__label">Contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="password" placeholder="Ingresa tu contraseña" required>
+                            <input type="password" name="password" placeholder="Ingresá tu contraseña" required>
                         </span>
                         <?php if (isset($errors['password']) && $activeForm === 'login'): ?>
                             <span class="auth-field__error"><?= esc($errors['password']) ?></span>
@@ -93,7 +93,7 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
             <section class="auth-pane<?= $activeForm === 'register' ? ' is-active' : '' ?>" data-auth-pane="register" aria-hidden="<?= $activeForm === 'register' ? 'false' : 'true' ?>">
                 <div class="auth-pane__header">
                     <p class="auth-pane__eyebrow"></p>
-                    <h1>Crea tu cuenta</h1>
+                    <h1>Creá tu cuenta</h1>
                     <p>Registrate en pocos pasos y empezá a usar Preventive Control System.</p>
                 </div>
 
@@ -138,7 +138,7 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                         <span class="auth-field__label">Contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="password" placeholder="Mínimo 6 caracteres" required>
+                            <input type="password" name="password" placeholder="Mínimo 8 caracteres" minlength="8" autocomplete="new-password" required>
                         </span>
                         <?php if (isset($errors['password']) && $activeForm === 'register'): ?>
                             <span class="auth-field__error"><?= esc($errors['password']) ?></span>
@@ -149,7 +149,7 @@ if (!in_array($activeForm, ['login', 'register'], true)) { $activeForm = 'login'
                         <span class="auth-field__label">Repetir contraseña</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="password_confirm" placeholder="Repetí tu contraseña" required>
+                            <input type="password" name="password_confirm" placeholder="Repetí tu contraseña" minlength="8" autocomplete="new-password" required>
                         </span>
                         <?php if (isset($errors['password_confirm']) && $activeForm === 'register'): ?>
                             <span class="auth-field__error"><?= esc($errors['password_confirm']) ?></span>

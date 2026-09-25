@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260914-1">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260908-2">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260924-2">
 <link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260910-1">
 <?= $this->endSection() ?>
 
@@ -37,7 +37,7 @@
 
         <?php if ($industries === []): ?>
             <section class="panel card esp32-empty">
-                <h3>Todavía no tenes espacios</h3>
+                <h3>Todavía no tenés espacios</h3>
                 <p>Creá un espacio para tu planta o máquina y asociá una ESP32 para empezar a ver registros.</p>
                 <a href="<?= base_url('crear-espacio') ?>" class="btn btn--primary">Crear espacio</a>
             </section>
@@ -107,7 +107,7 @@
                                                     <strong><?= esc($device['name']) ?></strong>
                                                     <code><?= ! empty($device['mac_address']) ? esc($device['mac_address']) : 'Sin vincular' ?></code>
                                                 </span>
-                                                <span class="iot-acc__esp-meta mono"><?= esc($device['last_seen_at'] ?? '�') ?></span>
+                                                <span class="iot-acc__esp-meta mono"><?= esc($device['last_seen_at'] ?? '—') ?></span>
                                                 <svg class="iot-acc__esp-arrow" viewBox="0 0 20 20" aria-hidden="true"><path d="m8 5 5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                                             </a>
                                         <?php endforeach; ?>

@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\SensorAlerts;
 use App\Models\Esp32DeviceModel;
 use App\Models\Esp32SensorModel;
 use App\Models\DeviceAccessModel;
@@ -65,6 +66,7 @@ class Home extends BaseController
         $since24h = date('Y-m-d H:i:s', strtotime('-24 hours'));
         $readings24h = $deviceIds === [] ? 0 : $this->countReadingsSince($deviceIds, $since24h);
         $totalReadings = $deviceIds === [] ? 0 : $this->countReadingsSince($deviceIds, '1970-01-01 00:00:00');
+        $activeAlerts = array_values(array_filter($latestSensors, static fn ($sensor) => in_array($sensor['alert_state'] ?? null, [SensorAlerts::STATE_HIGH, SensorAlerts::STATE_LOW], true)));
         $activeDevices = count(array_filter($devices, static fn ($device) => ! empty($device['last_seen_at']) && strtotime((string) $device['last_seen_at']) >= strtotime('-24 hours')));
 
         return view('principal', [
@@ -81,6 +83,7 @@ class Home extends BaseController
                 'readings_24h'   => $readings24h,
                 'total_readings' => $totalReadings,
                 'last_reading_at'=> $lastReadingAt,
+                'alerts'         => $activeAlerts,
                 'state'          => $this->resolveState(count($industries), count($devices), $totalReadings),
             ],
         ]);

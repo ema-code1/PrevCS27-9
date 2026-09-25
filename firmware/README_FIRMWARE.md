@@ -73,6 +73,12 @@ El buzzer avisa por patrones, una sola vez por episodio de error:
 - 2 beeps: error de sensor
 - 3 beeps: error de WiFi o de API
 - 1 beep largo: error critico
+- 2 beeps largos: un sensor quedo fuera del rango configurado en la web
+
+La web decide las alertas: cada respuesta de `/api/iot/lectura` trae `alerts` con
+los sensores fuera de rango. La placa lo muestra como `ALERTA SENSOR` + detalle
+(p. ej. `TEMP ALTA`) y suena una vez por episodio; cuando todo vuelve al rango se
+rearma la alarma.
 
 ## Primer uso
 

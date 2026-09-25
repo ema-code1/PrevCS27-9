@@ -1,10 +1,10 @@
-﻿<?= $this->extend('templates/layout') ?>
+<?= $this->extend('templates/layout') ?>
 
 <?= $this->section('pageStyles') ?>
 <link rel="stylesheet" href="<?= base_url('css/dashboard.css') ?>">
 <link rel="stylesheet" href="<?= base_url('css/registros-iot.css') ?>?v=20260908-2">
 <link rel="stylesheet" href="<?= base_url('css/reg-log.css') ?>">
-<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260908-2">
+<link rel="stylesheet" href="<?= base_url('css/esp32.css') ?>?v=20260924-2">
 <link rel="stylesheet" href="<?= base_url('css/date-range.css') ?>?v=20260609-1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=wifi_off" />
 <link rel="stylesheet" href="<?= base_url('css/space-modal.css') ?>?v=20260908-1">
@@ -48,7 +48,7 @@
                         <span class="dot <?= ($device['status'] ?? '') === 'online' ? 'dot--live' : '' ?>"></span>
                         <?= esc($device['status'] ?? 'offline') ?>
                     </span>
-                    <small class="text-muted mono">Última: <span data-device-last-seen><?= esc($device['last_seen_at'] ?? '�') ?></span></small>
+                    <small class="text-muted mono">Última: <span data-device-last-seen><?= esc($device['last_seen_at'] ?? '—') ?></span></small>
                 </div>
             </div>
         </header>
@@ -60,7 +60,7 @@
             <div class="auth-alert auth-alert--error"><?= esc(session('error')) ?></div>
         <?php endif; ?>
         <?php if (! empty($sensorCount)): ?>
-            <div class="auth-alert auth-alert--success"><?= (int) $sensorCount ?> sensores creados automaticamente.</div>
+            <div class="auth-alert auth-alert--success"><?= (int) $sensorCount ?> sensores creados automáticamente.</div>
         <?php endif; ?>
 
         <?php if (empty($device['mac_address'])): ?>
@@ -69,7 +69,7 @@
             <section class="panel card esp32-unlinked">
                 <h3>¡No has conectado tu ESP32!</h3>
                 <img src="<?= base_url('images/no_esp_conected.svg') ?>" alt="ESP32 sin conectar">
-                <p>Conecta tu placa para poder empezar a recibir los datos</p>
+                <p>Conectá tu placa para empezar a recibir los datos.</p>
                 <button type="button" class="btn btn--primary esp32-unlinked__cta" data-open-modal="esp32-config-modal">
                     <span class="material-symbols-rounded" aria-hidden="true">wifi_off</span>
                     Vincular mi ESP
@@ -92,11 +92,13 @@
             </div>
 
             <?php foreach ($sensors as $idx => $s): ?>
+                <?php $readingsUrl = base_url('api/esp32/' . $device['id'] . '/lecturas'); ?>
                 <section class="section-pane<?= $idx === 0 ? ' is-active' : '' ?>" data-section-pane="sensor-<?= $s['id'] ?>">
                     <div class="iot-grid"
                         data-sensor-id="<?= $s['id'] ?>"
+                        data-sensor-code="<?= esc($s['code']) ?>"
                         data-sensor-unit="<?= esc($s['unit'] ?? '') ?>"
-                        data-readings-url="<?= base_url('api/esp32/' . $device['id'] . '/lecturas') ?>">
+                        data-readings-url="<?= esc($readingsUrl, 'attr') ?>">
                         <section class="panel card iot-chart-card">
                             <div class="panel__header">
                                 <h3><?= esc($s['name']) ?><?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?></h3>
@@ -141,26 +143,33 @@
                         </section>
 
                         <div class="iot-side-stack">
+                            <?= view('registros-iot/_sensor_state', ['s' => $s], ['saveData' => false]) ?>
+
                             <aside class="panel card">
                                 <div class="panel__header"><h3>Resumen</h3></div>
                                 <dl class="esp32-sensor-meta">
                                     <div><dt>Descripción</dt><dd>Mediciones de <?= esc(mb_strtolower($s['name'])) ?> reportadas por la ESP32.</dd></div>
                                     <div><dt>Última lectura</dt>
                                         <dd class="mono" data-sensor-latest>
-                                            <?= $s['latest_value'] !== null ? esc($s['latest_value']) . ' ' . esc($s['unit'] ?? '') : '�' ?>
+                                            <?= $s['latest_value'] !== null ? esc(\App\Libraries\SensorAlerts::num((float) $s['latest_value'])) . ' ' . esc($s['unit'] ?? '') : '—' ?>
                                         </dd>
                                     </div>
-                                    <div><dt>Registrada</dt><dd class="mono" data-sensor-latest-at><?= esc($s['latest_at'] ?? '�') ?></dd></div>
+                                    <div><dt>Registrada</dt><dd class="mono" data-sensor-latest-at><?= esc($s['latest_at'] ?? '—') ?></dd></div>
                                 </dl>
                             </aside>
 
                             <aside class="panel card">
                                 <div class="panel__header"><h3>Observaciones</h3></div>
-                                <p class="esp32-observations" data-sensor-observation>Esperando datos del sensor��</p>
+                                <p class="esp32-observations" data-sensor-observation>Esperando datos del sensor…</p>
                             </aside>
 
                             <aside class="panel card">
-                                <div class="panel__header"><h3>Historial</h3></div>
+                                <div class="panel__header">
+                                    <h3>Historial</h3>
+                                    <a class="btn btn--secondary btn--sm" data-sensor-csv download
+                                       href="<?= esc($readingsUrl . '?sensor=' . (int) $s['id'] . '&format=csv', 'attr') ?>"
+                                       title="Descargar todas las lecturas del rango elegido">Descargar CSV</a>
+                                </div>
                                 <div class="esp32-history" data-sensor-history>
                                     <div class="iot-skel-rows" aria-hidden="true">
                                         <span class="iot-skel"></span>
@@ -319,7 +328,7 @@
 <?= $this->section('pageScripts') ?>
 <script src="<?= base_url('js/date-range-picker.js') ?>?v=20260609-1" defer></script>
 <script src="<?= base_url('js/prevcs-ui.js') ?>?v=20260908-2" defer></script>
-<script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260612-1" defer></script>
+<script src="<?= base_url('js/iot-sensor-charts.js') ?>?v=20260924-1" defer></script>
 <script src="<?= base_url('js/kanban.js') ?>?v=20260831-2" defer></script>
 <script src="<?= base_url('js/qrcode.min.js') ?>"></script>
 <script>

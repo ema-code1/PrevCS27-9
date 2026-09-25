@@ -2504,4 +2504,6 @@
 
   EventManager.DEFAULT_COLORS = DEFAULT_COLORS;
   window.EventManager = EventManager;
+  /* El select propio también lo usa la configuración de columnas de stock. */
+  window.EmSelect = EmSelect;
 })(window, document);

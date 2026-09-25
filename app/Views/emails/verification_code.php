@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $isTwoFactor ? 'Codigo de acceso' : 'Verifica tu cuenta' ?></title>
+    <title><?= $isTwoFactor ? 'Código de acceso' : 'Verificá tu cuenta' ?></title>
 </head>
 <body style="margin:0;padding:0;background-color:#FBFAF7;font-family:'Segoe UI',Arial,sans-serif;">
 
@@ -32,15 +32,15 @@
                         <td style="background-color:#FFFFFF;padding:40px 48px 36px;text-align:center;">
 
                             <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#5A7339;text-transform:uppercase;letter-spacing:.08em;">
-                                <?= $isTwoFactor ? 'Verificacion en dos pasos' : 'Verificacion de cuenta' ?>
+                                <?= $isTwoFactor ? 'Verificación en dos pasos' : 'Verificación de cuenta' ?>
                             </p>
 
                             <h1 style="margin:0 0 12px;font-size:24px;font-weight:600;color:#2A2C32;line-height:1.3;">
-                                <?= $isTwoFactor ? 'Confirma tu inicio de sesion' : 'Verifica tu correo' ?>
+                                <?= $isTwoFactor ? 'Confirmá tu inicio de sesión' : 'Verificá tu correo' ?>
                             </h1>
 
                             <p style="margin:0 0 28px;font-size:15px;color:#4A4D55;line-height:1.6;">
-                                Hola <?= esc($userName !== '' ? $userName : 'usuario') ?>. Usa este codigo para continuar.<br>
+                                Hola <?= esc($userName !== '' ? $userName : 'usuario') ?>. Usá este código para continuar.<br>
                                 Vence en <strong>5 minutos</strong>.
                             </p>
 
@@ -50,7 +50,7 @@
                             </div>
 
                             <p style="margin:28px 0 0;font-size:13px;color:#8A8C92;line-height:1.5;">
-                                Si no <?= $isTwoFactor ? 'intentaste iniciar sesion' : 'creaste esta cuenta' ?>, ignora este correo.
+                                Si no <?= $isTwoFactor ? 'intentaste iniciar sesión' : 'creaste esta cuenta' ?>, ignorá este correo.
                             </p>
 
                         </td>

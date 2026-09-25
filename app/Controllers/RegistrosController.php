@@ -2,12 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Libraries\SensorSeries;
 use App\Models\Esp32DeviceModel;
 use App\Models\Esp32SensorModel;
 use App\Models\DeviceAccessModel;
 use App\Models\IndustryModel;
 use App\Models\IndustryUserModel;
 use App\Models\SensorReadingModel;
+use App\Models\SensorTypeModel;
 use App\Models\SpaceInvitationModel;
 
 /**
@@ -184,48 +186,13 @@ class RegistrosController extends BaseController
             }
         }
 
-        [$from, $to] = $this->rangeBounds();
-        $series = (new SensorReadingModel())->seriesForSensor($sensorId, 500, $from, $to);
-
-        $points = array_map(static function ($row) {
-            return [
-                'at'    => $row['measured_at'],
-                'label' => date('d/m H:i', strtotime((string) $row['measured_at'])),
-                'value' => (float) $row['value'],
-            ];
-        }, $series);
-
-        return $this->response->setJSON([
-            'sensor' => $sensorId,
-            'from'   => $from,
-            'to'     => $to,
-            'latest' => $points !== [] ? end($points)['value'] : null,
-            'points' => $points,
-        ]);
-    }
-
-    /**
-     * Lee from/to de la query y los normaliza a 'Y-m-d H:i:s' (o null).
-     * El date range selector envía, p.ej. from=2026-03-09 00:00:00.
-     *
-     * @return array{0: ?string, 1: ?string}
-     */
-    private function rangeBounds(): array
-    {
-        $parse = function (?string $value): ?string {
-            $value = $value !== null ? trim($value) : '';
-            if ($value === '') {
-                return null;
-            }
-            $ts = strtotime($value);
-
-            return $ts !== false ? date('Y-m-d H:i:s', $ts) : null;
-        };
-
-        return [
-            $parse($this->request->getGet('from')),
-            $parse($this->request->getGet('to')),
-        ];
+        // JSON para el gráfico, o ?format=csv para descargar el historial.
+        return (new SensorSeries())->respond(
+            $this->request,
+            $this->response,
+            $sensor,
+            (new SensorTypeModel())->find((int) $sensor['sensor_type_id']) ?? []
+        );
     }
 
     /**

@@ -16,6 +16,52 @@ class Esp32DeviceModel extends Model
     protected bool $allowEmptyInserts = false;
 
     /**
+     * Segundos sin lecturas a partir de los cuales la placa se muestra
+     * "offline". La placa manda un lote cada 60 s: tres ciclos perdidos
+     * seguidos ya son una placa caída, no un corte de WiFi pasajero.
+     */
+    public const OFFLINE_AFTER_SECONDS = 180;
+
+    /**
+     * La columna status solo la escribe la ingesta ("online"): nadie la vuelve
+     * a "offline" cuando la placa deja de mandar. Por eso el estado que ve la
+     * web se calcula al leer, a partir de last_seen_at.
+     */
+    protected $afterFind = ['withLiveStatus'];
+
+    protected function withLiveStatus(array $data): array
+    {
+        if (empty($data['data'])) {
+            return $data;
+        }
+
+        $data['data'] = ($data['singleton'] ?? false)
+            ? self::applyLiveStatus($data['data'])
+            : array_map([self::class, 'applyLiveStatus'], $data['data']);
+
+        return $data;
+    }
+
+    /**
+     * @param mixed $device
+     *
+     * @return mixed
+     */
+    public static function applyLiveStatus($device)
+    {
+        if (! is_array($device) || ! array_key_exists('last_seen_at', $device)) {
+            return $device;
+        }
+
+        $seen = strtotime((string) ($device['last_seen_at'] ?? ''));
+        $device['status'] = $seen !== false && (time() - $seen) <= self::OFFLINE_AFTER_SECONDS
+            ? 'online'
+            : 'offline';
+
+        return $device;
+    }
+
+    /**
      * Normaliza una MAC a mayusculas con separador ':' (o null si es invalida).
      * Acepta entradas con ':', '-' o sin separador.
      */

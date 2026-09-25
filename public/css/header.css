@@ -587,3 +587,17 @@ body[data-theme="dark"] .theme-switch__moon,
    urgente de los tres, asi que va en el color de informacion y no en ambar. */
 .notif-item--info .notif-item__dot { background: var(--info); }
 .notif-item--info.is-unread .notif-item__title { color: var(--info); }
+
+/* "Cerrar sesión" es un botón dentro de un form (POST + CSRF). */
+.user-menu__logout { margin: 0; }
+.user-menu__logout .user-menu__item {
+  width: 100%;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15.5px;
+  text-align: left;
+}
+.user-menu__logout .user-menu__item:hover {
+  background: color-mix(in oklab, var(--error) 8%, transparent);
+}

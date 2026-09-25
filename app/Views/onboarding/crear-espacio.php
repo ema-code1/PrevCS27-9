@@ -102,7 +102,7 @@ $chartLabels = [
                         <span class="auth-field__label">Clave del espacio</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="space_password" placeholder="Minimo 6 caracteres" minlength="6" required>
+                            <input type="password" name="space_password" placeholder="Mínimo 6 caracteres" minlength="6" required>
                         </span>
                     </label>
 
@@ -110,7 +110,7 @@ $chartLabels = [
                         <span class="auth-field__label">Repetir clave</span>
                         <span class="auth-field__control">
                             <span class="auth-field__icon">*</span>
-                            <input type="password" name="space_password_confirm" placeholder="Repeti la clave" minlength="6" required>
+                            <input type="password" name="space_password_confirm" placeholder="Repetí la clave" minlength="6" required>
                         </span>
                     </label>
 

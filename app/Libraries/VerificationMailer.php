@@ -19,7 +19,7 @@ class VerificationMailer
         $email = service('email');
         $email->setFrom($fromEmail, $fromName);
         $email->setTo((string) $user['email']);
-        $email->setSubject($isTwoFactor ? 'Tu codigo de acceso' : 'Verifica tu cuenta');
+        $email->setSubject($isTwoFactor ? 'Tu código de acceso' : 'Verificá tu cuenta');
         $email->setMailType('html');
         $email->setMessage(view('emails/verification_code', [
             'code'        => $code,

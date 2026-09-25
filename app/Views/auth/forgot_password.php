@@ -24,7 +24,7 @@ $successMessage = session('success');
                 <div class="auth-pane__header">
                     <p class="auth-pane__eyebrow">Recuperación</p>
                     <h1>Restablecer contraseña</h1>
-                    <p>Ingresa tu email y te enviaremos un enlace para crear una nueva contraseña.</p>
+                    <p>Ingresá tu email y te enviaremos un enlace para crear una nueva contraseña.</p>
                 </div>
 
                 <form action="<?= base_url('forgot-password') ?>" method="post" class="auth-form">

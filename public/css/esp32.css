@@ -881,4 +881,52 @@
 }
 @media (max-width: 560px) {
     .dashboard-head__meta--esp { align-self: auto; align-items: flex-start; }
+    /* En el teléfono el bloque de estado baja debajo del título: con la
+       fecha completa de "Última:" no entraba y desbordaba la pantalla. */
+    .page--iot .dashboard-head { flex-wrap: wrap; }
+    .dashboard-head__meta-row { flex-wrap: wrap; white-space: normal; }
 }
+
+/* ── Alertas de sensores ─────────────────────────────────────────────
+   Rango aceptable en el "Cambiar" del sensor, tarjeta "Estado" con el
+   motor ilustrado y marcas del límite en el gráfico. */
+.esp32-sensor-edit__range {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--space-sm);
+}
+.esp32-sensor-edit__range label { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.esp32-sensor-edit__range span { color: var(--text-muted); font-size: var(--font-size-xs); }
+@media (max-width: 520px) {
+    .esp32-sensor-edit__range { grid-template-columns: minmax(0, 1fr); }
+}
+
+.iot-state__art {
+    display: grid;
+    place-items: center;
+    margin: -6px 0 2px;
+}
+.iot-state__img { width: 150px; height: 150px; object-fit: contain; }
+.iot-state__img--dark { display: none; }
+body[data-theme="dark"] .iot-state__img--light { display: none; }
+body[data-theme="dark"] .iot-state__img--dark { display: block; }
+.iot-state__range { margin: 0; color: var(--text-secondary); font-size: var(--font-size-sm); text-align: center; }
+.iot-state[data-sensor-state="high"] { box-shadow: 0 0 0 1px var(--error-soft), 0 0 0 4px var(--error-soft); }
+.iot-state[data-sensor-state="low"]  { box-shadow: 0 0 0 1px var(--warning-soft), 0 0 0 4px var(--warning-soft); }
+
+.iot-line-chart__limit {
+    stroke: var(--error);
+    stroke-width: 1.2;
+    stroke-dasharray: 5 4;
+    opacity: .75;
+}
+.iot-line-chart__limit-label {
+    fill: var(--error);
+    font-family: var(--font-mono);
+    font-size: 10px;
+}
+.iot-line-chart .iot-line-chart__point.is-alert { fill: var(--error); r: 4.5; }
+
+.esp32-history__row.is-alert { background: var(--error-soft); }
+.esp32-history__row.is-alert strong { color: var(--error); }

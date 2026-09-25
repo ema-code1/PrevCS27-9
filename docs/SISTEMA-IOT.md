@@ -15,6 +15,22 @@ inteligencia artificial que retome el proyecto.
 > el usuario **ya no carga la MAC** en la web. El resto del documento ya refleja este
 > flujo nuevo.
 
+> **Cambio del 2026-09-24 (alertas por umbral):**
+>
+> - Cada sensor tiene un rango aceptable (`esp32_sensors.alert_min` / `alert_max`) que el
+>   admin edita en "Configuración de la placa" → Cambiar. Temperatura nace con máximo 60 °C
+>   y vibración con máximo 50 eventos (`App\Libraries\SensorAlerts::DEFAULTS`).
+> - Al llegar un lote, `IoTController::ingest()` compara cada lectura con su rango. Si el
+>   estado cambia (normal → alto/bajo o al revés) avisa a todo el espacio por la campana y
+>   guarda el estado en `alert_state`. La respuesta trae `alerts`: la placa muestra
+>   "ALERTA SENSOR" en el LCD y suena el buzzer.
+> - La web lo refleja en vivo: tarjeta "Estado" con el motor ilustrado, línea del límite en
+>   el gráfico, puntos fuera de rango en rojo y panel de alertas activas en el inicio.
+> - El historial de cada sensor se descarga en CSV (`?format=csv`, respeta el rango de fechas).
+> - La unidad de vibración pasó de `mm/s` a `eventos`: el SW-420 cuenta eventos, no mide velocidad.
+> - La app ahora corre en `America/Argentina/Buenos_Aires` (antes UTC): la migración
+>   `ShiftUtcTimestampsToLocal` corrió 3 h las lecturas viejas.
+
 ---
 
 ## Índice
@@ -155,7 +171,7 @@ Base de datos MySQL: **`prevcs`**. Tablas del módulo IoT:
 |---|---|---|---|---|
 | 1 | `temperature` | Temperatura | °C | line |
 | 2 | `humidity` | Humedad | % | area |
-| 3 | `vibration` | Vibración | mm/s | line |
+| 3 | `vibration` | Vibración | eventos | line |
 | 4 | `rpm` | RPM | rev/min | gauge |
 | 5 | `current` | Corriente | A | bars |
 | 6 | `on_off` | Estado ON/OFF | — | timeline |

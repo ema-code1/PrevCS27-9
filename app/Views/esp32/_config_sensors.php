@@ -15,6 +15,21 @@
  * @var bool  $isAdmin
  */
 $canAdd = $isAdmin && $availableTypes !== [];
+
+// "Alerta > 60 °C", "Alerta < 5 · > 90", "Sin alertas".
+$rangeText = static function (array $s): string {
+    $unit  = ! empty($s['unit']) ? ' ' . $s['unit'] : '';
+    $parts = [];
+    if ($s['alert_min'] !== null && $s['alert_min'] !== '') {
+        $parts[] = '< ' . \App\Libraries\SensorAlerts::num((float) $s['alert_min']) . $unit;
+    }
+    if ($s['alert_max'] !== null && $s['alert_max'] !== '') {
+        $parts[] = '> ' . \App\Libraries\SensorAlerts::num((float) $s['alert_max']) . $unit;
+    }
+
+    return $parts === [] ? 'Sin alertas' : 'Alerta ' . implode(' · ', $parts);
+};
+$numValue = static fn ($v): string => $v === null || $v === '' ? '' : \App\Libraries\SensorAlerts::num((float) $v);
 ?>
 <div class="space-modal__section-head">
     <h4>Sensores <span class="space-modal__count"><?= count($sensors) ?></span></h4>
@@ -57,7 +72,7 @@ $canAdd = $isAdmin && $availableTypes !== [];
                 <div class="esp32-sensor-row">
                     <div class="esp32-sensor-row__info">
                         <strong><?= esc($sensorTitle) ?></strong>
-                        <small><?= esc($s['name']) ?><?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?></small>
+                        <small><?= esc($s['name']) ?><?= !empty($s['unit']) ? ' · ' . esc($s['unit']) : '' ?> · <?= esc($rangeText($s)) ?></small>
                     </div>
                     <?php if ($isAdmin): ?>
                         <div class="iot-kebab" data-kebab>
@@ -104,6 +119,18 @@ $canAdd = $isAdmin && $availableTypes !== [];
                                     <?php endforeach; ?>
                                 </select>
                                 <input type="text" name="label" class="esp32-input" placeholder="Etiqueta (opcional)" maxlength="150" value="<?= esc($s['label'] ?? '') ?>">
+                                <?php /* Rango aceptable: fuera de él, cada lectura nueva avisa
+                                        a todo el espacio por la campana y la placa suena. */ ?>
+                                <div class="esp32-sensor-edit__range">
+                                    <label>
+                                        <span>Alertar si baja de</span>
+                                        <input type="number" step="any" name="alert_min" class="esp32-input" placeholder="Sin mínimo" value="<?= esc($numValue($s['alert_min'])) ?>">
+                                    </label>
+                                    <label>
+                                        <span>Alertar si supera</span>
+                                        <input type="number" step="any" name="alert_max" class="esp32-input" placeholder="Sin máximo" value="<?= esc($numValue($s['alert_max'])) ?>">
+                                    </label>
+                                </div>
                                 <div class="esp32-sensor-edit__actions">
                                     <button type="button" class="btn btn--secondary btn--sm" data-sensor-edit-cancel>Cancelar</button>
                                     <button type="submit" class="btn btn--primary btn--sm">Guardar</button>

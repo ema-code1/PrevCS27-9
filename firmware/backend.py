@@ -21,12 +21,17 @@ import time
 
 _last_ok = 0  # indice del ultimo endpoint que acepto (se prueba primero)
 
+# Sensores fuera de rango segun la ultima respuesta del backend, p. ej.
+# [{'type': 'temperature', 'state': 'high'}]. main.py lo muestra en el LCD y
+# hace sonar el buzzer: asi la placa tambien reacciona a las alertas de la web.
+last_alerts = []
+
 
 def send_readings(endpoints, mac_address, readings, window_seconds=15,
                   timestamp=None, retries=2):
     """Envia el lote a los endpoints hasta que uno acepte. Devuelve True/False.
     No lanza excepciones: ante error loguea y sigue con el siguiente."""
-    global _last_ok
+    global _last_ok, last_alerts
 
     if not endpoints:
         print("[http] No hay endpoints configurados.")
@@ -67,6 +72,7 @@ def send_readings(endpoints, mac_address, readings, window_seconds=15,
                 if 200 <= code < 300:
                     print("[http] OK", code, "->", text)
                     _last_ok = idx
+                    last_alerts = _parse_alerts(text)
                     return True
                 # El server respondio pero rechazo: no sirve reintentar este
                 # endpoint (token/registro/sensores). Pasamos al siguiente.
@@ -88,3 +94,12 @@ def send_readings(endpoints, mac_address, readings, window_seconds=15,
 
     print("[http] Ningun servidor acepto el lote. Se descarta este paquete.")
     return False
+
+
+def _parse_alerts(text):
+    """Saca la lista 'alerts' de la respuesta JSON. Ante cualquier problema, []."""
+    try:
+        alerts = json.loads(text).get("alerts") or []
+        return [a for a in alerts if isinstance(a, dict)]
+    except Exception:
+        return []

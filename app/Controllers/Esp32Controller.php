@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\SensorAlerts;
+use App\Libraries\SensorSeries;
 use App\Models\Esp32DeviceModel;
 use App\Models\Esp32SensorModel;
 use App\Models\DeviceAccessModel;
@@ -79,7 +81,7 @@ class Esp32Controller extends BaseController
         if ((new IndustryUserModel())->roleFor($userId, $industryId) !== IndustryUserModel::ROLE_ADMIN) {
             return redirect()->to(base_url('esp32/agregar'))
                 ->withInput()
-                ->with('error', 'No tenes permiso para añadir ESP32 en ese espacio.');
+                ->with('error', 'No tenés permiso para añadir ESP32 en ese espacio.');
         }
 
         $deviceModel = new Esp32DeviceModel();
@@ -125,7 +127,7 @@ class Esp32Controller extends BaseController
     {
         $device = $this->findAccessibleDevice((int) $id);
         if ($device === null) {
-            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes acceso a esa ESP32.');
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenés acceso a esa ESP32.');
         }
 
         $sensorModel  = new Esp32SensorModel();
@@ -194,13 +196,13 @@ class Esp32Controller extends BaseController
     {
         $device = $this->findAccessibleDevice((int) $id);
         if ($device === null) {
-            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenes acceso a esa ESP32.');
+            return redirect()->to(base_url('registros-iot'))->with('error', 'No tenés acceso a esa ESP32.');
         }
 
         $back = base_url('esp32/' . $device['id']);
 
         if (! (new IndustryUserModel())->canEdit((int) session('user_id'), (int) $device['industry_id'])) {
-            return redirect()->to($back)->with('error', 'No tenes permiso para eliminar placas de este espacio.');
+            return redirect()->to($back)->with('error', 'No tenés permiso para eliminar placas de este espacio.');
         }
 
         // Los errores de confirmación se muestran inline dentro del modal
@@ -245,48 +247,13 @@ class Esp32Controller extends BaseController
             return $this->response->setStatusCode(404)->setJSON(['error' => 'sensor_not_found']);
         }
 
-        [$from, $to] = $this->rangeBounds();
-        $series = (new SensorReadingModel())->seriesForSensor($sensorId, 500, $from, $to);
-
-        $points = array_map(static function ($row) {
-            return [
-                'at'    => $row['measured_at'],
-                'label' => date('d/m H:i', strtotime((string) $row['measured_at'])),
-                'value' => (float) $row['value'],
-            ];
-        }, $series);
-
-        return $this->response->setJSON([
-            'sensor' => $sensorId,
-            'from'   => $from,
-            'to'     => $to,
-            'latest' => $points !== [] ? end($points)['value'] : null,
-            'points' => $points,
-        ]);
-    }
-
-    /**
-     * Lee from/to de la query y los normaliza a 'Y-m-d H:i:s' (o null).
-     * El date range selector envía, p.ej. from=2026-03-09 00:00:00.
-     *
-     * @return array{0: ?string, 1: ?string}
-     */
-    private function rangeBounds(): array
-    {
-        $parse = function (?string $value): ?string {
-            $value = $value !== null ? trim($value) : '';
-            if ($value === '') {
-                return null;
-            }
-            $ts = strtotime($value);
-
-            return $ts !== false ? date('Y-m-d H:i:s', $ts) : null;
-        };
-
-        return [
-            $parse($this->request->getGet('from')),
-            $parse($this->request->getGet('to')),
-        ];
+        // JSON para el gráfico, o ?format=csv para descargar el historial.
+        return (new SensorSeries())->respond(
+            $this->request,
+            $this->response,
+            $sensor,
+            (new SensorTypeModel())->find((int) $sensor['sensor_type_id']) ?? []
+        );
     }
 
     private function findAccessibleDevice(int $deviceId): ?array
@@ -331,11 +298,13 @@ class Esp32Controller extends BaseController
                 continue;
             }
 
+            $type = (new SensorTypeModel())->find($sensorTypeId);
+
             if ($sensorModel->insert([
                 'esp32_device_id' => $deviceId,
                 'sensor_type_id'  => $sensorTypeId,
                 'label'           => null,
-            ]) !== false) {
+            ] + SensorAlerts::defaultsFor((string) ($type['code'] ?? ''))) !== false) {
                 $created++;
             }
         }
